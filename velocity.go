@@ -170,33 +170,33 @@ func (p Parameters) printStatVelo(v map[int]int, target string) int {
 	return datapoints
 }
 
-func (a *velocityResult) Join(b velocityResult) (r velocityResult) {
-	if a.vID == nil {
+func (velo *velocityResult) Join(b velocityResult) (r velocityResult) {
+	if velo.vID == nil {
 		return b
 	}
 
 	for i := range b.vID {
-		r.vID = append(r.vID, joinMapStatInt(a.vID[i], b.vID[i]))
+		r.vID = append(r.vID, joinMapStatInt(velo.vID[i], b.vID[i]))
 	}
 
-	for i := range a.dApprovers {
-		r.dApprovers = append(r.dApprovers, joinMapStatInt(a.dApprovers[i], b.dApprovers[i]))
+	for i := range b.dApprovers {
+		r.dApprovers = append(r.dApprovers, joinMapStatInt(velo.dApprovers[i], b.dApprovers[i]))
 	}
 
-	for i := range a.vTime {
-		r.vTime = append(r.vTime, joinMapStatFloat64(a.vTime[i], b.vTime[i]))
+	for i := range b.vTime {
+		r.vTime = append(r.vTime, joinMapStatFloat64(velo.vTime[i], b.vTime[i]))
 	}
 	return r
 }
 
-func (a velocityResult) Save(p Parameters) (err error) {
-	if err = a.SaveVID(p); err != nil {
+func (velo velocityResult) Save(p Parameters) (err error) {
+	if err = velo.SaveVID(p); err != nil {
 		return err
 	}
-	if err = a.SaveVTime(p); err != nil {
+	if err = velo.SaveVTime(p); err != nil {
 		return err
 	}
-	if err = a.saveApprovers(p); err != nil {
+	if err = velo.saveApprovers(p); err != nil {
 		return err
 	}
 	return err
