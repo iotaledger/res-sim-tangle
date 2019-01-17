@@ -111,14 +111,19 @@ func clearSim(sim *Sim) {
 }
 
 // RunTangle executes the simulation
-func (p *Parameters) RunTangle() (velocityResult, Benchmark) {
+func (p *Parameters) RunTangle() (result, Benchmark) {
 	performance := make(Benchmark)
 	defer performance.track(runningtime("total"))
 	//fmt.Println(p)
 	sim := Sim{}
 	var nTips int
 
-	result := newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth"})
+	var result result
+
+	if p.VelocityEnabled {
+		vr := newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth"})
+		result.velocity = *vr
+	}
 
 	p.initSim(&sim)
 	//fmt.Println(p.nRun)
@@ -162,10 +167,12 @@ func (p *Parameters) RunTangle() (velocityResult, Benchmark) {
 		//printCWRef(sim.cw)
 		//fmt.Println(sim.tangle)
 
-		sim.runVelocityStat(result)
-
+		result.tips.tips = float64(nTips) / float64(sim.param.TangleSize-sim.param.minCut*2) / sim.param.Lambda / float64(sim.param.nRun)
+		if p.VelocityEnabled {
+			sim.runVelocityStat(&result.velocity)
+		}
 	}
 
 	//fmt.Println("E(L):", float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut*2)/sim.param.Lambda/float64(sim.param.nRun))
-	return *result, performance
+	return result, performance
 }

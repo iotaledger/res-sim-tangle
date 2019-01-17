@@ -1,10 +1,27 @@
 package main
 
-type Result interface {
-	Join(Result) Result
-	Save(Parameters) error
-	SaveStat(Parameters) error
-	Stat(Parameters) string
+import "fmt"
+
+type result struct {
+	tips     avgTips
+	velocity velocityResult
+}
+
+type avgTips struct {
+	tips float64
+}
+
+func (a avgTips) Join(b avgTips) avgTips {
+	if a.tips == 0 {
+		return b
+	}
+	var result avgTips
+	result.tips = (a.tips + b.tips) / 2.
+	return result
+}
+
+func (a avgTips) String() string {
+	return fmt.Sprintln("E(L):", a.tips)
 }
 
 type StatInt struct {

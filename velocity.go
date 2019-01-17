@@ -14,7 +14,6 @@ type velocityResult struct {
 	vID        []StatInt
 	vTime      []StatFloat64
 	dApprovers []StatInt
-	Result
 }
 
 func newVelocityResult(veloMetrics []string) *velocityResult {
@@ -55,7 +54,7 @@ func (sim Sim) velocityURTS(v map[int]int, t map[float64]int, d map[int]int) {
 			t[deltaTime]++
 		}
 	}
-	fmt.Println(t)
+	//fmt.Println(t)
 }
 
 func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]int, nParticles int) {

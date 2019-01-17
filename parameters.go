@@ -16,4 +16,5 @@ type Parameters struct {
 	minCut                   int
 	maxCut                   int
 	nRun                     int
+	VelocityEnabled          bool
 }
