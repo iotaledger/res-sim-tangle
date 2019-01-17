@@ -50,7 +50,7 @@ func saveApprovers(a map[int][]int) {
 	}
 }
 
-func saveTangle(tangle []tx) {
+func saveTangle(tangle []Tx) {
 	f, err := os.Create("data/tangle.txt")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)

@@ -5,18 +5,19 @@ import (
 	"math/rand"
 )
 
-type tx struct {
+// Tx defines the data structure of a transaction
+type Tx struct {
 	id            int
 	time          float64
 	cw            int
-	cw2           int
+	cw2           int // TODO: to remove, used only to compare different CW update mechanisms
 	ref           []int
 	firstApproval float64
 }
 
-func (sim *Sim) newGenesis() tx {
+func (sim *Sim) newGenesis() Tx {
 
-	genesis := tx{
+	genesis := Tx{
 		id:            0,
 		time:          0,
 		cw:            1,
@@ -30,8 +31,8 @@ func (sim *Sim) newGenesis() tx {
 
 }
 
-func newTx(sim *Sim, previous tx) tx {
-	t := tx{
+func newTx(sim *Sim, previous Tx) Tx {
+	t := Tx{
 		id:            previous.id + 1,
 		time:          sim.nextTime(previous),
 		cw:            1,
@@ -42,7 +43,7 @@ func newTx(sim *Sim, previous tx) tx {
 	return t
 }
 
-func (sim Sim) nextTime(t tx) float64 {
+func (sim Sim) nextTime(t Tx) float64 {
 	if sim.param.ConstantRate {
 		return t.time + 1/sim.param.Lambda
 	}
@@ -51,7 +52,7 @@ func (sim Sim) nextTime(t tx) float64 {
 
 }
 
-func (sim *Sim) removeOldTips(t tx) {
+func (sim *Sim) removeOldTips(t Tx) {
 	var currentTips []int
 	for _, tip := range sim.tips {
 		if !sim.tangle[tip].hasApprover(t.time, sim.param.H) {
@@ -62,26 +63,26 @@ func (sim *Sim) removeOldTips(t tx) {
 }
 
 //given a time "now" and a transaction t, checks that t has (visible) approvers
-func (t tx) hasApprover(now float64, h int) bool {
+func (t Tx) hasApprover(now float64, h int) bool {
 	return (t.firstApproval > 0 && t.firstApproval+float64(h) < now)
 }
 
 //given a time "now" and a transaction t, checks that t is visible
-func (t tx) isVisible(now float64, h int) bool {
+func (t Tx) isVisible(now float64, h int) bool {
 	return t.time+float64(h) < now || t.time == 0
 }
 
-func (t tx) isGenesis() bool {
+func (t Tx) isGenesis() bool {
 	return t.time == 0
 }
 
-func (sim *Sim) tipsUpdate(t tx) []int {
+func (sim *Sim) tipsUpdate(t Tx) []int {
 	//defer track(runningtime("udpateTips"))
 	sim.removeOldTips(t)
 	return sim.revealTips(t)
 }
 
-func (sim *Sim) revealTips(t tx) []int {
+func (sim *Sim) revealTips(t Tx) []int {
 	var newTips []int
 	//fmt.Println("HiddenTips", sim.hiddenTips)
 
@@ -109,7 +110,7 @@ func (sim *Sim) revealTips(t tx) []int {
 	return newTips
 }
 
-func updateApprovers(a map[int][]int, t tx) map[int][]int {
+func updateApprovers(a map[int][]int, t Tx) map[int][]int {
 	//defer track(runningtime("updateApprovers"))
 	for _, ref := range t.ref {
 		a[ref] = append(a[ref], t.id)
@@ -117,14 +118,14 @@ func updateApprovers(a map[int][]int, t tx) map[int][]int {
 	return a
 }
 
-func (sim *Sim) updateCW(tip tx) {
+func (sim *Sim) updateCW(tip Tx) {
 	defer sim.b.track(runningtime("updateCW-BitMask"))
 	sim.cw = append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
 	sim.addCW(sim.cw[tip.id])
 
 }
 
-func (sim *Sim) updateCWDFS(tip tx) {
+func (sim *Sim) updateCWDFS(tip Tx) {
 	defer sim.b.track(runningtime("updateCW-DFS"))
 	set := make(map[int]bool)
 	dfs(tip, set, sim)
@@ -192,7 +193,7 @@ func maxFloat64(a, b float64) float64 {
 	return b
 }
 
-func dfs(t tx, visited map[int]bool, sim *Sim) {
+func dfs(t Tx, visited map[int]bool, sim *Sim) {
 	if t.id > 0 {
 		for _, id := range t.ref {
 			if !visited[id] {
@@ -203,14 +204,13 @@ func dfs(t tx, visited map[int]bool, sim *Sim) {
 	}
 }
 
-//func cwBitMask(t tx, cw map[int][]uint64) []uint64 {
-func cwBitMask(t tx, cw [][]uint64) []uint64 {
+func cwBitMask(t Tx, cw [][]uint64) []uint64 {
 	refCW := make([][]uint64, len(t.ref))
 	var i uint64
 	var base uint64
 	base = 64
 	for k, link := range t.ref {
-		//TODO: add check t.id - link < 25*lambda, if not dfs or additional data structure
+		//TODO: add check t.id - link < 50*lambda, if not dfs or additional data structure
 		l := uint64(link)
 		size := uint64(len(cw[link]))
 		refCW[k] = make([]uint64, size)

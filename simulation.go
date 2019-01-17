@@ -9,7 +9,7 @@ import (
 
 // Sim contains the data structure of a Tangle simulation
 type Sim struct {
-	tangle     []tx          // A Tangle, i.e., a list of transactions
+	tangle     []Tx          // A Tangle, i.e., a list of transactions
 	tips       []int         // A list of current available/visible tips
 	hiddenTips []int         // A list of yet unavailable/hidden tips
 	approvers  map[int][]int // A map of direct approvers, e.g., 5 <- 10,13
@@ -105,20 +105,20 @@ func clearSim(sim *Sim) {
 	sim.b = make(Benchmark)
 
 	sim.cw = [][]uint64{}
-	sim.tangle = make([]tx, sim.param.TangleSize)
+	sim.tangle = make([]Tx, sim.param.TangleSize)
 	sim.tips = []int{}
 	sim.hiddenTips = []int{}
 }
 
 // RunTangle executes the simulation
-func (p *Parameters) RunTangle() (result, Benchmark) {
+func (p *Parameters) RunTangle() (Result, Benchmark) {
 	performance := make(Benchmark)
 	defer performance.track(runningtime("total"))
 	//fmt.Println(p)
 	sim := Sim{}
 	var nTips int
 
-	var result result
+	var result Result
 
 	if p.VelocityEnabled {
 		vr := newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth"})

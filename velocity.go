@@ -239,6 +239,7 @@ func (velo velocityResult) Stat(p Parameters) (result string) {
 	return result
 }
 
+// ToString converts a StatInt to a string
 func (s StatInt) ToString(p Parameters, normalized bool) (result string) {
 	var keys []int
 	var datapoints int
@@ -276,6 +277,7 @@ func (s StatInt) ToString(p Parameters, normalized bool) (result string) {
 	return result
 }
 
+// ToString converts a StatFloat64 to a string
 func (s StatFloat64) ToString(p Parameters, normalized bool) (result string) {
 	var keys []float64
 	var datapoints int
@@ -313,6 +315,7 @@ func (s StatFloat64) ToString(p Parameters, normalized bool) (result string) {
 	return result
 }
 
+// Save saves a StatInt on a file
 func (s StatInt) Save(p Parameters, target string, normalized bool) error {
 	var keys []int
 	var datapoints int
@@ -365,6 +368,7 @@ func (s StatInt) Save(p Parameters, target string, normalized bool) error {
 	return nil
 }
 
+// Save saves a StatFloat64 as a file
 func (s StatFloat64) Save(p Parameters, target string, normalized bool) error {
 	var keys []float64
 	var datapoints int

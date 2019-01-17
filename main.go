@@ -38,8 +38,8 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		VelocityEnabled: false,
 	}
 	c := make(chan bool, nParallelSims)
-	r := make([]result, nParallelSims)
-	var f result
+	r := make([]Result, nParallelSims)
+	var f Result
 
 	for i := 0; i < nParallelSims; i++ {
 		p.Seed = int64(i*p.nRun + 1)
@@ -65,7 +65,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 	}
 }
 
-func run(p Parameters, r *result, c chan bool) {
+func run(p Parameters, r *Result, c chan bool) {
 	defer func() { c <- true }()
 	b := make(Benchmark)
 	*r, b = p.RunTangle()

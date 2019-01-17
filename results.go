@@ -2,7 +2,8 @@ package main
 
 import "fmt"
 
-type result struct {
+// Result is the data structure containing all the results of a simulation
+type Result struct {
 	tips     avgTips
 	velocity velocityResult
 }
@@ -24,14 +25,16 @@ func (a avgTips) String() string {
 	return fmt.Sprintln("E(L):", a.tips)
 }
 
+// StatInt defines a metric of ints
 type StatInt struct {
 	desc string
-	v    map[int]int //description: -1=RW, 0=all links, 1=first link, 2=second link, etc.
+	v    map[int]int
 }
 
+// StatFloat64 defines a metric of float64s
 type StatFloat64 struct {
 	desc string
-	v    map[float64]int //description: -1=RW, 0=all links, 1=first link, 2=second link, etc.
+	v    map[float64]int
 }
 
 func joinMapInt(a, b map[int]int) map[int]int {

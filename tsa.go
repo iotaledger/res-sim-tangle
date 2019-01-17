@@ -6,31 +6,35 @@ import (
 	"os"
 )
 
+// TipSelector defines the interface for a TSA
 type TipSelector interface {
-	TipSelect(tx, *Sim) []int
-	//TipsUpdate(tx, *Sim) []int
-	//revealTips(tx, *Sim) []int
+	TipSelect(Tx, *Sim) []int
 }
 
+// RandomWalker defines the interface for a random walk
 type RandomWalker interface {
-	RandomWalk(tx, *Sim) (tx, int)
+	RandomWalk(Tx, *Sim) (Tx, int)
 }
 
+// URTS defines a concrete type of a TSA
 type URTS struct {
 	TipSelector
 }
 
+// URW defines a concrete type of a TSA
 type URW struct {
 	TipSelector
 	RandomWalker
 }
 
+// BRW defines a concrete type of a TSA
 type BRW struct {
 	TipSelector
 	RandomWalker
 }
 
-func (URTS) TipSelect(t tx, sim *Sim) []int {
+// TipSelect selects k tips
+func (URTS) TipSelect(t Tx, sim *Sim) []int {
 	tipsApproved := make([]int, sim.param.K)
 	//var j int
 
@@ -52,15 +56,18 @@ func (URTS) TipSelect(t tx, sim *Sim) []int {
 	return tipsApproved
 }
 
-func (tsa URW) TipSelect(t tx, sim *Sim) []int {
+// TipSelect selects k tips
+func (tsa URW) TipSelect(t Tx, sim *Sim) []int {
 	return randomWalk(tsa, t, sim)
 }
 
-func (tsa BRW) TipSelect(t tx, sim *Sim) []int {
+// TipSelect selects k tips
+func (tsa BRW) TipSelect(t Tx, sim *Sim) []int {
 	return randomWalk(tsa, t, sim)
 }
 
-func (URW) RandomWalk(t tx, sim *Sim) (tx, int) {
+//RandomWalk returns the choosen tip and its index position
+func (URW) RandomWalk(t Tx, sim *Sim) (Tx, int) {
 	directApprovers := sim.approvers[t.id]
 	if (len(directApprovers)) == 0 {
 		return t, -1
@@ -71,7 +78,7 @@ func (URW) RandomWalk(t tx, sim *Sim) (tx, int) {
 }
 
 //RandomWalk returns the choosen tip and its index position
-func (BRW) RandomWalk(t tx, sim *Sim) (choosenTip tx, approverIndx int) {
+func (BRW) RandomWalk(t Tx, sim *Sim) (choosenTip Tx, approverIndx int) {
 	//defer sim.b.track(runningtime("BRW"))
 	directApprovers := sim.approvers[t.id]
 	if (len(directApprovers)) == 0 {
@@ -90,14 +97,14 @@ func (BRW) RandomWalk(t tx, sim *Sim) (choosenTip tx, approverIndx int) {
 	return sim.tangle[tip], j
 }
 
-func randomWalk(tsa RandomWalker, t tx, sim *Sim) []int {
+func randomWalk(tsa RandomWalker, t Tx, sim *Sim) []int {
 	defer sim.b.track(runningtime("RW"))
 	tipsApproved := make([]int, sim.param.K)
 	//cache := make(map[int][]float64)
 
 	for i := 0; i < sim.param.K; i++ {
 		//URTS with repetition
-		var current tx
+		var current Tx
 		for current, _ = tsa.RandomWalk(sim.tangle[0], sim); len(sim.approvers[current.id]) > 0; current, _ = tsa.RandomWalk(current, sim) {
 		}
 
