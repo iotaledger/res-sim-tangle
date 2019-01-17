@@ -1,5 +1,7 @@
 package main
 
+import "os"
+
 func unique(intSlice []int) []int {
 	keys := make(map[int]bool)
 	list := []int{}
@@ -64,4 +66,13 @@ func median(x, weights []float64) float64 {
 	}
 	return 0
 
+}
+
+func createDirIfNotExist(dir string) {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0755)
+		if err != nil {
+			panic(err)
+		}
+	}
 }

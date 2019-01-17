@@ -96,6 +96,8 @@ func (p Parameters) initSim(sim *Sim) {
 	sim.param.minCut = 30 * int(sim.param.Lambda)
 	sim.param.maxCut = sim.param.TangleSize - sim.param.minCut
 
+	createDirIfNotExist("data")
+
 }
 
 func clearSim(sim *Sim) {
