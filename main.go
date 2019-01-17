@@ -13,10 +13,8 @@ func main() {
 	// 		runSimulation(b, lambda, alpha)
 	// 	}
 	// }
-	runSimulation(b, 1, 0.01)
-	// runSimulation(b, 0.01)
-	// runSimulation(b, 0.1)
-	// runSimulation(b, 1.0)
+	runSimulation(b, 100, 0)
+
 	printPerformance(b)
 }
 
@@ -32,7 +30,7 @@ func runSimulation(b Benchmark, lambda, alpha float64) {
 		TangleSize:   1000 * int(lambda),
 		ConstantRate: false,
 		nRun:         2,
-		TSA:          "rw",
+		TSA:          "urts",
 	}
 	c := make(chan bool, limit)
 	r := make([]velocityResult, limit)
