@@ -76,7 +76,6 @@ func (p Parameters) initSim(sim *Sim) {
 		} else {
 			sim.param.TSA = "RW"
 			sim.param.tsa = BRW{}
-			//sim.param.weightPropagationEnabled = true
 		}
 	default:
 		sim.param.TSA = "URTS"
