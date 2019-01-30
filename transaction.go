@@ -82,6 +82,7 @@ func (sim *Sim) tipsUpdate(t Tx) []int {
 	return sim.revealTips(t)
 }
 
+// reveal tips, update CW
 func (sim *Sim) revealTips(t Tx) []int {
 	var newTips []int
 	//fmt.Println("HiddenTips", sim.hiddenTips)
@@ -94,10 +95,11 @@ func (sim *Sim) revealTips(t Tx) []int {
 	tip := sim.hiddenTips[i]
 	for sim.tangle[tip].isVisible(t.time, sim.param.H) {
 		sim.approvers = updateApprovers(sim.approvers, sim.tangle[tip])
-		if sim.param.TSA == "RW" {
-			sim.updateCW(sim.tangle[tip])
-			//sim.updateCWDFS(sim.tangle[tip])
-		}
+		sim.updateCW(sim.tangle[tip])
+		// if sim.param.TSA == "RW" {
+		// 	sim.updateCW(sim.tangle[tip])
+		// 	//sim.updateCWDFS(sim.tangle[tip])
+		// }
 		i++
 		if i >= len(sim.hiddenTips) {
 			break
@@ -166,6 +168,7 @@ func weightedChoose(approvers []int, weights []float64, g *rand.Rand, b Benchmar
 	return approvers[len(approvers)-1], len(approvers) - 1
 }
 
+//
 func normalizeWeights(approvers []int, sim *Sim) []float64 {
 	//defer sim.b.track(runningtime("normalizeWeights"))
 	cumWeigths := make([]float64, len(approvers))
@@ -248,10 +251,11 @@ func cwBitMask(t Tx, cw [][]uint64) []uint64 {
 
 }
 
+// add BitMask to CW
 func (sim *Sim) addCW(a []uint64) {
 	//defer sim.b.track(runningtime("addCW"))
 	base := 64
-	for i, block := range a {
+	for i, block := range a { // the i iterates through the blocks, block is the unit64 of the block itself
 		for j := 0; j < base; j++ {
 			if block&(1<<uint(j)) != 0 {
 				sim.tangle[j+(i*base)].cw++

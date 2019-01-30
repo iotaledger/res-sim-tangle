@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// var nParallelSims = 1
+
 var nParallelSims = runtime.NumCPU()/2 - 1
 
 func main() {
@@ -17,7 +19,10 @@ func main() {
 	// 		runSimulation(b, "rw", lambda, alpha)
 	// 	}
 	// }
-	runSimulation(b, "urts", 100, 0)
+
+	// Options: RW, URTS
+	// runSimulation(b, "urts", 100, 0)
+	runSimulation(b, "rw", 300, 0.01)
 
 	printPerformance(b)
 }
@@ -29,13 +34,17 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 	p := Parameters{
 		//K:          2,
 		//H:          1,
-		Lambda:          lambda,
-		Alpha:           alpha,
-		TangleSize:      1000 * int(lambda),
-		ConstantRate:    false,
-		nRun:            2,
-		TSA:             tsa,
-		VelocityEnabled: false,
+		Lambda:               lambda,
+		Alpha:                alpha,
+		TangleSize:           200 * int(lambda),
+		ConstantRate:         false,
+		nRun:                 5,
+		TSA:                  tsa,
+		VelocityEnabled:      true,
+		AnPastEdgeEnabled:    false,
+		AnPastEdgeResolution: 40,
+		AnPastEdgeMaxT:       10,
+		AnPastEdgeMaxApp:     5,
 	}
 	c := make(chan bool, nParallelSims)
 	r := make([]Result, nParallelSims)
@@ -53,15 +62,25 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		if p.VelocityEnabled {
 			f.velocity = f.velocity.Join(batch.velocity)
 		}
+		if p.AnPastEdgeEnabled {
+			f.PastEdge = f.PastEdge.Join(batch.PastEdge)
+		}
 		f.tips = f.tips.Join(batch.tips)
+	}
+
+	if p.AnPastEdgeEnabled {
+		f.PastEdge.finalprocess(p)
 	}
 
 	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
 	fmt.Println(f.tips)
 	if p.VelocityEnabled {
-		fmt.Println(f.velocity.Stat(p))
+		// fmt.Println(f.velocity.Stat(p))
 		f.velocity.Save(p)
 		f.velocity.SaveStat(p)
+	}
+	if p.AnPastEdgeEnabled {
+		f.PastEdge.Save(p)
 	}
 }
 

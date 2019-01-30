@@ -6,6 +6,7 @@ import "fmt"
 type Result struct {
 	tips     avgTips
 	velocity velocityResult
+	PastEdge PastEdgeResult
 }
 
 type avgTips struct {
@@ -37,6 +38,12 @@ type StatFloat64 struct {
 	v    map[float64]int
 }
 
+// AnFloat64 defines a metric of float64s
+type MetricFloat64Float64 struct {
+	desc string
+	v    map[float64]float64
+}
+
 func joinMapInt(a, b map[int]int) map[int]int {
 	if a == nil {
 		return b
@@ -57,6 +64,16 @@ func joinMapFloat64(a, b map[float64]int) map[float64]int {
 	return a
 }
 
+func joinMapFloat64Float64(a, b map[float64]float64) map[float64]float64 {
+	if a == nil {
+		return b
+	}
+	for k, v := range b {
+		a[k] += v
+	}
+	return a
+}
+
 func joinMapStatInt(a, b StatInt) StatInt {
 	a.desc = b.desc
 	a.v = joinMapInt(a.v, b.v)
@@ -66,5 +83,11 @@ func joinMapStatInt(a, b StatInt) StatInt {
 func joinMapStatFloat64(a, b StatFloat64) StatFloat64 {
 	a.desc = b.desc
 	a.v = joinMapFloat64(a.v, b.v)
+	return a
+}
+
+func joinMapMetricFloat64Float64(a, b MetricFloat64Float64) MetricFloat64Float64 {
+	a.desc = b.desc
+	a.v = joinMapFloat64Float64(a.v, b.v)
 	return a
 }

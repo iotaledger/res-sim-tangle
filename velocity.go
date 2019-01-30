@@ -11,11 +11,12 @@ import (
 
 //Velocity result of simulation
 type velocityResult struct {
-	vID        []StatInt
+	vID        []StatInt //???creates a map[int]int with a keyword
 	vTime      []StatFloat64
 	dApprovers []StatInt
 }
 
+//??? use string to create empty value maps to vID, vTime, dApprovers
 func newVelocityResult(veloMetrics []string) *velocityResult {
 	// variables initialization for velocity
 	var result velocityResult
@@ -81,6 +82,7 @@ func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]i
 	}
 }
 
+//projects values onto intervals of 1/100 of h
 func (sim Sim) velocityOfIndex(v map[int]int, t map[float64]int, index int) {
 	for i := sim.param.minCut; i < sim.param.maxCut; i++ {
 		if index > 0 && len(sim.approvers[i]) > index-1 {

@@ -77,7 +77,7 @@ func (URW) RandomWalk(t Tx, sim *Sim) (Tx, int) {
 
 }
 
-//RandomWalk returns the choosen tip and its index position
+//RandomWalk returns the chosen tip and its index position
 func (BRW) RandomWalk(t Tx, sim *Sim) (choosenTip Tx, approverIndx int) {
 	//defer sim.b.track(runningtime("BRW"))
 	directApprovers := sim.approvers[t.id]
@@ -103,7 +103,7 @@ func randomWalk(tsa RandomWalker, t Tx, sim *Sim) []int {
 	//cache := make(map[int][]float64)
 
 	for i := 0; i < sim.param.K; i++ {
-		//URTS with repetition
+		//URTS with repetition  //??? this seems the wrong comment here
 		var current Tx
 		for current, _ = tsa.RandomWalk(sim.tangle[0], sim); len(sim.approvers[current.id]) > 0; current, _ = tsa.RandomWalk(current, sim) {
 		}
