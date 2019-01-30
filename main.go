@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
-	"runtime"
 	"strings"
 )
 
-var nParallelSims = runtime.NumCPU()/2 - 1
+var nParallelSims = 1 //runtime.NumCPU()/2 - 1
 
 func main() {
 	b := make(Benchmark)
@@ -33,9 +32,9 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		Alpha:           alpha,
 		TangleSize:      1000 * int(lambda),
 		ConstantRate:    false,
-		nRun:            2,
+		nRun:            1,
 		TSA:             tsa,
-		VelocityEnabled: false,
+		VelocityEnabled: true,
 	}
 	c := make(chan bool, nParallelSims)
 	r := make([]Result, nParallelSims)

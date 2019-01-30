@@ -82,11 +82,8 @@ func (p Parameters) initSim(sim *Sim) {
 		sim.param.tsa = URTS{}
 	}
 
-	if p.ConstantRate != false {
-		sim.param.ConstantRate = p.ConstantRate
-	} else {
-		sim.param.ConstantRate = false
-	}
+	sim.param.ConstantRate = p.ConstantRate
+	sim.param.VelocityEnabled = p.VelocityEnabled
 
 	if p.DataPath != "" {
 		sim.param.DataPath = p.DataPath
@@ -120,13 +117,14 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	var result Result
 
 	if p.VelocityEnabled {
-		vr := newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth"})
+		vr := newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1"})
 		result.velocity = *vr
 	}
 
 	p.initSim(&sim)
 	//fmt.Println(p.nRun)
 	bar := progressbar.New(sim.param.nRun)
+	//bar := progressbar.New(sim.param.TangleSize)
 
 	for run := 0; run < sim.param.nRun; run++ {
 
@@ -142,6 +140,11 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		}
 
 		for i := 1; i < sim.param.TangleSize; i++ {
+
+			// if p.Seed == int64(1) {
+			// 	bar.Add(1)
+			// }
+
 			//generate new tx
 			t := newTx(&sim, sim.tangle[i-1])
 
@@ -171,6 +174,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			sim.runVelocityStat(&result.velocity)
 		}
 	}
+	//saveTangle(sim.tangle)
 
 	//fmt.Println("E(L):", float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut*2)/sim.param.Lambda/float64(sim.param.nRun))
 	return result, performance

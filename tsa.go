@@ -72,6 +72,9 @@ func (URW) RandomWalk(t Tx, sim *Sim) (Tx, int) {
 	if (len(directApprovers)) == 0 {
 		return t, -1
 	}
+	if (len(directApprovers)) == 1 {
+		return sim.tangle[directApprovers[0]], 0
+	}
 	j := rand.Intn(len(directApprovers))
 	return sim.tangle[directApprovers[j]], j
 
@@ -83,6 +86,9 @@ func (BRW) RandomWalk(t Tx, sim *Sim) (choosenTip Tx, approverIndx int) {
 	directApprovers := sim.approvers[t.id]
 	if (len(directApprovers)) == 0 {
 		return t, -1
+	}
+	if (len(directApprovers)) == 1 {
+		return sim.tangle[directApprovers[0]], 0
 	}
 	// nw, ok := cache[t.id]
 	// if !ok {
