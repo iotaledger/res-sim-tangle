@@ -104,7 +104,7 @@ func (BRW) RandomWalk(t Tx, sim *Sim) (choosenTip Tx, approverIndx int) {
 }
 
 func randomWalk(tsa RandomWalker, t Tx, sim *Sim) []int {
-	defer sim.b.track(runningtime("RW"))
+	//defer sim.b.track(runningtime("RW"))
 	tipsApproved := make([]int, sim.param.K)
 	//cache := make(map[int][]float64)
 

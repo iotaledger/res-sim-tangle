@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 )
 
 var nParallelSims = 1 //runtime.NumCPU()/2 - 1
@@ -16,25 +15,26 @@ func main() {
 	// 		runSimulation(b, "rw", lambda, alpha)
 	// 	}
 	// }
-	runSimulation(b, "urts", 100, 0)
+	runSimulation(b, "rw", 100, 0.001)
 
 	printPerformance(b)
 }
 
 func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
-	defer b.track(runningtime("TSA=" + strings.ToUpper(tsa) + ", Lambda=" + fmt.Sprintf("%.2f", lambda) + ", Alpha=" + fmt.Sprintf("%.4f", alpha) + "\tTime"))
+	//defer b.track(runningtime("TSA=" + strings.ToUpper(tsa) + ", Lambda=" + fmt.Sprintf("%.2f", lambda) + ", Alpha=" + fmt.Sprintf("%.4f", alpha) + "\tTime"))
 
 	//lambda := 100.
 	p := Parameters{
 		//K:          2,
 		//H:          1,
-		Lambda:          lambda,
-		Alpha:           alpha,
-		TangleSize:      1000 * int(lambda),
-		ConstantRate:    false,
-		nRun:            1,
-		TSA:             tsa,
-		VelocityEnabled: true,
+		Lambda:                 lambda,
+		Alpha:                  alpha,
+		TangleSize:             1000 * int(lambda),
+		ConstantRate:           false,
+		nRun:                   10,
+		TSA:                    tsa,
+		VelocityEnabled:        false,
+		ReusableAddressEnabled: true,
 	}
 	c := make(chan bool, nParallelSims)
 	r := make([]Result, nParallelSims)
@@ -55,8 +55,8 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		f.tips = f.tips.Join(batch.tips)
 	}
 
-	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
-	fmt.Println(f.tips)
+	//fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
+	//fmt.Println(f.tips)
 	if p.VelocityEnabled {
 		fmt.Println(f.velocity.Stat(p))
 		f.velocity.Save(p)
@@ -66,7 +66,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 
 func run(p Parameters, r *Result, c chan bool) {
 	defer func() { c <- true }()
-	b := make(Benchmark)
-	*r, b = p.RunTangle()
-	printPerformance(b)
+	//b := make(Benchmark)
+	*r, _ = p.RunTangle()
+	//printPerformance(b)
 }

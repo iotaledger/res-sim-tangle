@@ -119,16 +119,16 @@ func updateApprovers(a map[int][]int, t Tx) map[int][]int {
 }
 
 func (sim *Sim) updateCW(tip Tx) {
-	defer sim.b.track(runningtime("updateCW-BitMask"))
+	//defer sim.b.track(runningtime("updateCW-BitMask"))
 	sim.cw = append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
 	sim.addCW(sim.cw[tip.id])
 
 }
 
 func (sim *Sim) updateCWDFS(tip Tx) {
-	defer sim.b.track(runningtime("updateCW-DFS"))
+	//defer sim.b.track(runningtime("updateCW-DFS"))
 	set := make(map[int]bool)
-	dfs(tip, set, sim)
+	//dfs(tip, set, sim)
 	//fmt.Println(tip.id, set)
 	for k := range set {
 		sim.tangle[k].cw2++
@@ -191,17 +191,6 @@ func maxFloat64(a, b float64) float64 {
 		return a
 	}
 	return b
-}
-
-func dfs(t Tx, visited map[int]bool, sim *Sim) {
-	if t.id > 0 {
-		for _, id := range t.ref {
-			if !visited[id] {
-				visited[id] = true
-				dfs(sim.tangle[id], visited, sim)
-			}
-		}
-	}
 }
 
 func cwBitMask(t Tx, cw [][]uint64) []uint64 {

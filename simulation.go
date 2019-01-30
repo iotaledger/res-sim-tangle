@@ -1,10 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 
-	"github.com/schollz/progressbar"
+	"gonum.org/v1/gonum/stat"
 )
 
 // Sim contains the data structure of a Tangle simulation
@@ -84,6 +85,7 @@ func (p Parameters) initSim(sim *Sim) {
 
 	sim.param.ConstantRate = p.ConstantRate
 	sim.param.VelocityEnabled = p.VelocityEnabled
+	sim.param.ReusableAddressEnabled = p.ReusableAddressEnabled
 
 	if p.DataPath != "" {
 		sim.param.DataPath = p.DataPath
@@ -123,8 +125,13 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 
 	p.initSim(&sim)
 	//fmt.Println(p.nRun)
-	bar := progressbar.New(sim.param.nRun)
+	//bar := progressbar.New(sim.param.nRun)
 	//bar := progressbar.New(sim.param.TangleSize)
+
+	timesDirect := make(map[int64]int)
+	timesReverse := make(map[int64]int)
+	visitedDirect := make(map[int]int)
+	visitedReverse := make(map[int]int)
 
 	for run := 0; run < sim.param.nRun; run++ {
 
@@ -135,9 +142,9 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 
 		sim.tangle[0] = sim.newGenesis()
 
-		if p.Seed == int64(1) {
-			bar.Add(1)
-		}
+		// if p.Seed == int64(1) {
+		// 	bar.Add(1)
+		// }
 
 		for i := 1; i < sim.param.TangleSize; i++ {
 
@@ -173,6 +180,59 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		if p.VelocityEnabled {
 			sim.runVelocityStat(&result.velocity)
 		}
+		if sim.param.ReusableAddressEnabled {
+			for i := 0; i < 1; i++ {
+				t, v := sim.directOrder(sim.tangle[sim.tips[len(sim.tips)-1]]) //start from last visible tip
+				timesDirect[t]++
+				visitedDirect[v]++
+				t, v = sim.reverseOrder(sim.tangle[0]) //start from genesis
+				timesReverse[t]++
+				visitedReverse[v]++
+			}
+		}
+	}
+
+	if sim.param.ReusableAddressEnabled {
+		// calculate statistics for direct order
+		fmt.Printf("\nVersion \tavg[ms] \tstd \tvar\t#visited\n")
+		var weigths []float64
+		var x []float64
+		for k, v := range timesDirect {
+			x = append(x, float64(k)/1000000)
+			weigths = append(weigths, float64(v))
+		}
+		avgT, std := stat.MeanStdDev(x, weigths)
+		_, variance := stat.MeanVariance(x, weigths)
+
+		weigths = []float64{}
+		x = []float64{}
+		for k, v := range visitedDirect {
+			x = append(x, float64(k))
+			weigths = append(weigths, float64(v))
+		}
+		avg := stat.Mean(x, weigths)
+
+		fmt.Printf("Direct order: \t%0.4f \t%0.4f \t%0.4f \t%d\n", avgT, std, variance, int(avg))
+
+		// calculate statistics for reverse order
+		weigths = []float64{}
+		x = []float64{}
+		for k, v := range timesReverse {
+			x = append(x, float64(k)/1000000)
+			weigths = append(weigths, float64(v))
+		}
+		avgT, std = stat.MeanStdDev(x, weigths)
+		_, variance = stat.MeanVariance(x, weigths)
+
+		weigths = []float64{}
+		x = []float64{}
+		for k, v := range visitedReverse {
+			x = append(x, float64(k))
+			weigths = append(weigths, float64(v))
+		}
+		avg = stat.Mean(x, weigths)
+
+		fmt.Printf("Reverse order: \t%0.4f \t%0.4f \t%0.4f \t%d\n", avgT, std, variance, int(avg))
 	}
 	//saveTangle(sim.tangle)
 
