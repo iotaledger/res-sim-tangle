@@ -32,7 +32,7 @@ func dfs(t Tx, visited map[int]bool, sim *Sim) {
 }
 
 func dfsPastToPresent(t Tx, visited map[int]bool, sim *Sim) {
-	if len(sim.approvers[t.id]) > 0 {
+	if sim.approvers[t.id] != nil {
 		for _, id := range sim.approvers[t.id] {
 			if !visited[id] {
 				visited[id] = true

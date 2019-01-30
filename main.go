@@ -31,7 +31,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		Alpha:                  alpha,
 		TangleSize:             1000 * int(lambda),
 		ConstantRate:           false,
-		nRun:                   10,
+		nRun:                   1,
 		TSA:                    tsa,
 		VelocityEnabled:        false,
 		ReusableAddressEnabled: true,

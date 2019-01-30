@@ -181,7 +181,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			sim.runVelocityStat(&result.velocity)
 		}
 		if sim.param.ReusableAddressEnabled {
-			for i := 0; i < 1; i++ {
+			for i := 0; i < 1000; i++ {
 				t, v := sim.directOrder(sim.tangle[sim.tips[len(sim.tips)-1]]) //start from last visible tip
 				timesDirect[t]++
 				visitedDirect[v]++
