@@ -6,7 +6,8 @@ import "fmt"
 type Result struct {
 	tips     avgTips
 	velocity velocityResult
-	PastEdge PastEdgeResult
+	PastCone PastConeResult
+	FocusRW  FocusRWResult
 }
 
 type avgTips struct {

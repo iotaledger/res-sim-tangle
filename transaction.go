@@ -263,3 +263,16 @@ func (sim *Sim) addCW(a []uint64) {
 		}
 	}
 }
+
+// remove BitMask from CW
+func (sim *Sim) removeCW(a []uint64) {
+	//defer sim.b.track(runningtime("addCW"))
+	base := 64
+	for i, block := range a { // the i iterates through the blocks, block is the unit64 of the block itself
+		for j := 0; j < base; j++ {
+			if block&(1<<uint(j)) != 0 {
+				sim.tangle[j+(i*base)].cw--
+			}
+		}
+	}
+}

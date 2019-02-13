@@ -22,7 +22,7 @@ func main() {
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 100, 0)
-	runSimulation(b, "rw", 300, 0.01)
+	runSimulation(b, "rw", 100, 0.001)
 
 	printPerformance(b)
 }
@@ -34,17 +34,20 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 	p := Parameters{
 		//K:          2,
 		//H:          1,
-		Lambda:               lambda,
-		Alpha:                alpha,
-		TangleSize:           200 * int(lambda),
-		ConstantRate:         false,
-		nRun:                 5,
-		TSA:                  tsa,
-		VelocityEnabled:      true,
-		AnPastEdgeEnabled:    false,
-		AnPastEdgeResolution: 40,
-		AnPastEdgeMaxT:       10,
-		AnPastEdgeMaxApp:     5,
+		Lambda:       lambda,
+		Alpha:        alpha,
+		TangleSize:   202 * int(lambda),
+		minCut:       100 * int(lambda),
+		maxCutrange:  100 * int(lambda),
+		ConstantRate: false,
+		nRun:         1,
+		TSA:          tsa,
+		// - - - Analysis section - - -
+		VelocityEnabled: false,
+		//{Enabled, Resolution, MaxT, MaxApp}
+		AnPastCone: AnPastCone{false, 40, 10, 5},
+		//{Enabled, maxiMT, murel, nRW}
+		AnFocusRW: AnFocusRW{true, 300 * int(lambda), 0.3, 10},
 	}
 	c := make(chan bool, nParallelSims)
 	r := make([]Result, nParallelSims)
@@ -62,14 +65,13 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		if p.VelocityEnabled {
 			f.velocity = f.velocity.Join(batch.velocity)
 		}
-		if p.AnPastEdgeEnabled {
-			f.PastEdge = f.PastEdge.Join(batch.PastEdge)
+		if p.AnPastCone.Enabled {
+			f.PastCone = f.PastCone.Join(batch.PastCone)
+		}
+		if p.AnFocusRW.Enabled {
+			f.FocusRW = f.FocusRW.Join(batch.FocusRW)
 		}
 		f.tips = f.tips.Join(batch.tips)
-	}
-
-	if p.AnPastEdgeEnabled {
-		f.PastEdge.finalprocess(p)
 	}
 
 	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
@@ -79,8 +81,13 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		f.velocity.Save(p)
 		f.velocity.SaveStat(p)
 	}
-	if p.AnPastEdgeEnabled {
-		f.PastEdge.Save(p)
+	if p.AnPastCone.Enabled {
+		f.PastCone.finalprocess(p)
+		f.PastCone.Save(p)
+	}
+	if p.AnFocusRW.Enabled {
+		f.FocusRW.finalprocess(p)
+		f.FocusRW.Save(p)
 	}
 }
 

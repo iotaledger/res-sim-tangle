@@ -1,2 +1,4 @@
 *.exe
 data/*
+plot.plt
+FocusRW.png
