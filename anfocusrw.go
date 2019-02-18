@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"sort"
 )
@@ -40,9 +41,10 @@ func (sim *Sim) runAnFocusRW(r *FocusRWResult) {
 	counter := 0
 	fmt.Println((sim.param.maxCut-sim.param.minCut)/int(sim.param.Lambda), "h data")
 	for i1 := sim.param.minCut; i1 < sim.param.maxCut; i1++ {
-		if (i1-sim.param.minCut)%((sim.param.maxCut-sim.param.minCut)/100) == 0 {
+		fmt.Println(sim.param.maxCut - sim.param.minCut)
+		if (i1-sim.param.minCut)%(int(math.Max(100, float64(sim.param.maxCut-sim.param.minCut))/100)) == 0 {
 			counter++
-			fmt.Println(counter, "/", 100)
+			fmt.Println(counter, "/", sim.param.maxCut-sim.param.minCut)
 		}
 		// fmt.Println("Tx", i1)
 		// assess for a range of PC lengths
@@ -51,14 +53,7 @@ func (sim *Sim) runAnFocusRW(r *FocusRWResult) {
 			// add weight for each added PC tx
 			sim.addCW(sim.cw[i1]) // add +1 to all ancestors
 			sim.tangle[i1].cw++   // add also +1 to root
-			// fmt.Println("i2", i2)
-			// fmt.Println(sim.tangle[i1].cw)
-			// for i3 := i1; i3 > i1-10; i3-- {
-			// 	fmt.Print(sim.tangle[i3].cw, ",")
-			// }
-			// fmt.Println(sim.tangle[i1])
-			// pauseit()
-			// number of RWs for each data point
+
 			for i3 := 0; i3 < pAn.nRWs; i3++ {
 				for current, _ = tsa.RandomWalk(sim.tangle[0], sim); (len(sim.approvers[current.id]) > 0) && (current.id < i1); current, _ = tsa.RandomWalk(current, sim) {
 				}

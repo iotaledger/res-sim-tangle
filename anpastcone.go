@@ -32,14 +32,6 @@ func (sim *Sim) runAnPastCone(result *PastConeResult) {
 	// resolution := 4. // how many steps per h
 	deltat := 0.
 
-	// initate counters
-	// for i2 := 0; i2 <= maxApp; i2++ {
-	// 	for i1 := 1. / resolution; i1 < float64(maxt); i1 += 1. / resolution {
-	// 		result.counter[i2].v[i1] = 0
-	// 		result.p[i2].v[i1] = 0
-	// 	}
-	// }
-
 	// count occurances
 	for i1 := sim.param.minCut; i1 < sim.param.maxCut; i1++ {
 		// fmt.Println("i1", i1)
@@ -48,14 +40,6 @@ func (sim *Sim) runAnPastCone(result *PastConeResult) {
 			if i2*base > sim.param.minCut { // only consider tx within this range
 				if (i1 - (i2+1)*base) < int(sim.param.AnPastCone.MaxT)*int(sim.param.Lambda) { // only consider tx within this range
 					if i1 > 2*sim.param.minCut {
-						// fmt.Println("+++++++++++++++++++")
-						// fmt.Println(i2 * base)
-						// fmt.Println((i1 - i2*base))
-						// fmt.Println(int(sim.param.AnPastConeMaxT) * int(sim.param.Lambda))
-						// fmt.Println(sim.cw[i1])
-						// fmt.Println("   i2", i2)
-						// fmt.Println(block)
-						// pauseit()
 					}
 					for i3 := 0; i3 < base; i3++ {
 						if block&(1<<uint(i3)) != 0 { // if this is an ancestor of i1 then
@@ -121,20 +105,6 @@ func (s MetricFloat64Float64) SavePastCone(p Parameters, target string, normaliz
 	}
 	sort.Float64s(keys)
 
-	// var weigths []float64
-	// var x []float64
-	// norm := 1.
-	// for k := range keys {
-	// 	if normalized {
-	// 		norm = p.Lambda
-	// 	}
-	// 	x = append(x, float64(keys[k])/norm)
-	// 	weigths = append(weigths, float64(s.v[keys[k]]))
-	// 	// datapoints = datapoints + s.v[keys[k]]
-	// }
-
-	// save to file for plot
-
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
 	alphaStr := fmt.Sprintf("%.2f", p.Alpha)
 	var rateType string
@@ -168,17 +138,6 @@ func (r *PastConeResult) finalprocess(p Parameters) error {
 		for i1 := range r.counter[i2].v {
 			r.p[i2].v[i1] = float64(r.counter[i2].v[i1]) / float64(r.counter[0].v[i1])
 		}
-		// var keys []float64
-		// // var datapoints int
-		// for k := range s.v {
-		// 	keys = append(keys, k)
-		// }
-		// for k := range
-		// for i1 := 1; i1 < int(p.AnPastConeMaxT*p.AnPastConeResolution); i1 += 1 {
-		// 	if float64(r.counter[0].v[float64(i1)/p.AnPastConeResolution]) > 0 {
-		// r.p[i2].v[float64(i1)/p.AnPastConeResolution] = float64(r.counter[i2].v[float64(i1)/p.AnPastConeResolution]) / float64(r.counter[0].v[float64(i1)/p.AnPastConeResolution])
-		// 	}
-		// }
 	}
 	return nil
 }
