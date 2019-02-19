@@ -11,12 +11,13 @@ import (
 
 //Velocity result of simulation
 type velocityResult struct {
-	vID        []StatInt
+	vID        []StatInt //???creates a map[int]int with a keyword
 	vTime      []StatFloat64
 	dApprovers []StatInt
 	vCW        []StatInt
 }
 
+//??? use string to create empty value maps to vID, vTime, dApprovers
 func newVelocityResult(veloMetrics []string) *velocityResult {
 	// variables initialization for velocity
 	var result velocityResult

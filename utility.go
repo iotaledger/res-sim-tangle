@@ -1,6 +1,10 @@
 package main
 
-import "os"
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
 
 func unique(intSlice []int) []int {
 	keys := make(map[int]bool)
@@ -75,4 +79,15 @@ func createDirIfNotExist(dir string) {
 			panic(err)
 		}
 	}
+}
+
+func pauseit() {
+	reader := bufio.NewReader(os.Stdin)
+	// fmt.Print("Enter.")
+	text, _ := reader.ReadString('\n')
+	fmt.Println(text)
+	// fmt.Println("Enter texttext: ")
+	// text2 := ""
+	// fmt.Scanln(text2)
+	// fmt.Println(text2)
 }

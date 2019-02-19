@@ -13,10 +13,102 @@ type Sim struct {
 	tips       []int         // A list of current available/visible tips
 	hiddenTips []int         // A list of yet unavailable/hidden tips
 	approvers  map[int][]int // A map of direct approvers, e.g., 5 <- 10,13
-	cw         [][]uint64    // Matrix of cumulative weigth branches
+	cw         [][]uint64    // Matrix of propagated weigth branches (cw[i][] is the column of bit values forthe ith tx, stored as uint64 blocks)
 	generator  *rand.Rand    // An unsafe random generator
 	param      Parameters    // Set of simulation parameters
 	b          Benchmark     // Data structure to save performance of the simulation
+}
+
+// RunTangle executes the simulation
+func (p *Parameters) RunTangle() (Result, Benchmark) {
+	performance := make(Benchmark)
+	defer performance.track(runningtime("total"))
+	//fmt.Println(p)
+	sim := Sim{}
+	var nTips int
+
+	var result Result
+
+	// - - - - - - - - - - - - - - - - - - - - -
+	// initiate analysis variables
+	// - - - - - - - - - - - - - - - - - - - - -
+	if p.VelocityEnabled {
+		//???is there a way this can be defined in the velocity.go file
+		vr := newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth"})
+		result.velocity = *vr
+	}
+	if p.AnPastEdgeEnabled {
+		//??? can this be combined into one line?
+		r := newPastEdgeResult([]string{"avg", "1", "2", "3", "4", "5", "rest"})
+		result.PastEdge = *r
+	}
+
+	p.initSim(&sim)
+	//fmt.Println(p.nRun)
+	bar := progressbar.New(sim.param.nRun)
+
+	// - - - - - - - - - - - - - - - - - - - - -
+	// run nRun tangle sims
+	// - - - - - - - - - - - - - - - - - - - - -
+	for run := 0; run < sim.param.nRun; run++ {
+
+		clearSim(&sim)
+		//fmt.Println(sim)
+		sim.generator = rand.New(rand.NewSource(p.Seed + int64(run)))
+		//rand.Seed(p.Seed + int64(run))
+
+		sim.tangle[0] = sim.newGenesis()
+
+		if p.Seed == int64(1) {
+			bar.Add(1)
+		}
+
+		// counter := 0
+		for i := 1; i < sim.param.TangleSize; i++ {
+			//generate new tx
+			t := newTx(&sim, sim.tangle[i-1])
+			// fmt.Println("tx", i)
+
+			//update set of tips before running TSA, increase the wb matrix here
+			sim.tips = append(sim.tips, sim.tipsUpdate(t)...)
+
+			// fmt.Println("sim.tips", sim.tips)
+			// fmt.Println("sim.hiddenTips", sim.hiddenTips)
+			// fmt.Println("sim.cw,sim.cw")
+			// fmt.Println("len(sim.cw)", len(sim.cw))
+			// for ; counter < len(sim.cw); counter++ {
+			// 	fmt.Println("Counter now=", counter)
+			// 	fmt.Println(sim.cw[counter][0])
+			// 	fmt.Println(strconv.FormatInt(int64(sim.cw[counter][0]), 2))
+			// }
+
+			//run TSA to select k(2) tips to approve
+			t.ref = sim.param.tsa.TipSelect(t, &sim) //sim.tipsSelection(t, sim.vTips)
+
+			//add the new tx to the Tangle and to the hidden tips set
+			sim.tangle[i] = t
+			sim.hiddenTips = append(sim.hiddenTips, t.id)
+
+			if i > sim.param.minCut && i < sim.param.maxCut {
+				nTips += len(sim.tips)
+			}
+
+		}
+
+		// - - - - - - - - - - - - - - - - - - - - -
+		// data evaluation after each tangle
+		// - - - - - - - - - - - - - - - - - - - - -
+		result.tips.tips = float64(nTips) / float64(sim.param.TangleSize-sim.param.minCut*2) / sim.param.Lambda / float64(sim.param.nRun)
+		if p.VelocityEnabled {
+			sim.runVelocityStat(&result.velocity)
+		}
+		if p.AnPastEdgeEnabled {
+			sim.runAnPastEdge(&result.PastEdge)
+		}
+	}
+
+	//fmt.Println("E(L):", float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut*2)/sim.param.Lambda/float64(sim.param.nRun))
+	return result, performance
 }
 
 func (p Parameters) initSim(sim *Sim) {
@@ -50,7 +142,7 @@ func (p Parameters) initSim(sim *Sim) {
 	if p.TangleSize != 0 {
 		sim.param.TangleSize = p.TangleSize
 	} else {
-		sim.param.Alpha = 0
+		sim.param.TangleSize = 0
 	}
 
 	if p.Seed != 0 {
@@ -63,6 +155,22 @@ func (p Parameters) initSim(sim *Sim) {
 		sim.param.nRun = p.nRun
 	} else {
 		sim.param.nRun = 1
+	}
+
+	if p.AnPastEdgeMaxApp != 0 {
+		sim.param.AnPastEdgeMaxApp = p.AnPastEdgeMaxApp
+	} else {
+		sim.param.AnPastEdgeMaxApp = 2
+	}
+	if p.AnPastEdgeMaxT != 0 {
+		sim.param.AnPastEdgeMaxT = p.AnPastEdgeMaxT
+	} else {
+		sim.param.AnPastEdgeMaxT = 2
+	}
+	if p.AnPastEdgeResolution != 0 {
+		sim.param.AnPastEdgeResolution = p.AnPastEdgeResolution
+	} else {
+		sim.param.AnPastEdgeResolution = 2
 	}
 
 	switch strings.ToUpper(p.TSA) {
@@ -104,78 +212,4 @@ func clearSim(sim *Sim) {
 	sim.tangle = make([]Tx, sim.param.TangleSize)
 	sim.tips = []int{}
 	sim.hiddenTips = []int{}
-}
-
-// RunTangle executes the simulation
-func (p *Parameters) RunTangle() (Result, Benchmark) {
-	performance := make(Benchmark)
-	defer performance.track(runningtime("total"))
-	//fmt.Println(p)
-	sim := Sim{}
-	var nTips int
-
-	var result Result
-
-	if p.VelocityEnabled {
-		vr := newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1"})
-		result.velocity = *vr
-	}
-
-	p.initSim(&sim)
-	//fmt.Println(p.nRun)
-	bar := progressbar.New(sim.param.nRun)
-	//bar := progressbar.New(sim.param.TangleSize)
-
-	for run := 0; run < sim.param.nRun; run++ {
-
-		clearSim(&sim)
-		//fmt.Println(sim)
-		sim.generator = rand.New(rand.NewSource(p.Seed + int64(run)))
-		//rand.Seed(p.Seed + int64(run))
-
-		sim.tangle[0] = sim.newGenesis()
-
-		if p.Seed == int64(1) {
-			bar.Add(1)
-		}
-
-		for i := 1; i < sim.param.TangleSize; i++ {
-
-			// if p.Seed == int64(1) {
-			// 	bar.Add(1)
-			// }
-
-			//generate new tx
-			t := newTx(&sim, sim.tangle[i-1])
-
-			//update set of tips before running TSA
-			sim.tips = append(sim.tips, sim.tipsUpdate(t)...)
-
-			//run TSA to select k(2) tips to approve
-			t.ref = sim.param.tsa.TipSelect(t, &sim) //sim.tipsSelection(t, sim.vTips)
-
-			//add the new tx to the Tangle and to the hidden tips set
-			sim.tangle[i] = t
-			sim.hiddenTips = append(sim.hiddenTips, t.id)
-
-			if i > sim.param.minCut && i < sim.param.maxCut {
-				nTips += len(sim.tips)
-			}
-
-		}
-		//printApprovers(sim.approvers)
-		//fmt.Println("CW comparison:", sim.compareCW())
-		//printPerformance(sim.b)
-		//printCWRef(sim.cw)
-		//fmt.Println(sim.tangle)
-
-		result.tips.tips = float64(nTips) / float64(sim.param.TangleSize-sim.param.minCut*2) / sim.param.Lambda / float64(sim.param.nRun)
-		if p.VelocityEnabled {
-			sim.runVelocityStat(&result.velocity)
-		}
-	}
-	//saveTangle(sim.tangle)
-
-	//fmt.Println("E(L):", float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut*2)/sim.param.Lambda/float64(sim.param.nRun))
-	return result, performance
 }
