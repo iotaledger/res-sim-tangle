@@ -59,20 +59,22 @@ func (sim *Sim) runAnPastCone(result *PastConeResult) {
 
 }
 
-func (PER *PastConeResult) Join(b PastConeResult) (r PastConeResult) {
-	if PER.counter == nil {
+//Join joins PastConeResult
+func (r *PastConeResult) Join(b PastConeResult) (res PastConeResult) {
+	if r.counter == nil {
 		return b
 	}
 
 	for i := range b.counter {
-		r.counter = append(r.counter, joinMapMetricFloat64Float64(PER.counter[i], b.counter[i]))
+		res.counter = append(res.counter, joinMapMetricFloat64Float64(r.counter[i], b.counter[i]))
 	}
 	for i := range b.p {
-		r.p = append(r.p, joinMapMetricFloat64Float64(PER.p[i], b.p[i]))
+		res.p = append(res.p, joinMapMetricFloat64Float64(r.p[i], b.p[i]))
 	}
-	return r
+	return res
 }
 
+//Save saves PastConeResult
 func (r PastConeResult) Save(p Parameters) (err error) {
 	if err = r.SaveCounter(p); err != nil {
 		return err
@@ -83,12 +85,15 @@ func (r PastConeResult) Save(p Parameters) (err error) {
 	return err
 }
 
+//SaveCounter saves counter
 func (r PastConeResult) SaveCounter(p Parameters) error {
 	for _, counter := range r.counter {
 		counter.SavePastCone(p, "counter", true)
 	}
 	return nil
 }
+
+//SaveP saves p
 func (r PastConeResult) SaveP(p Parameters) error {
 	for _, prob := range r.p {
 		prob.SavePastCone(p, "p", true)
@@ -96,7 +101,7 @@ func (r PastConeResult) SaveP(p Parameters) error {
 	return nil
 }
 
-// Save saves a MetricFloat64Float64 as a file
+// SavePastCone saves a MetricFloat64Float64 as a file
 func (s MetricFloat64Float64) SavePastCone(p Parameters, target string, normalized bool) error {
 	var keys []float64
 	// var datapoints int

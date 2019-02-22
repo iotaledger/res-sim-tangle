@@ -9,7 +9,7 @@ import (
 	"sort"
 )
 
-//FocusRW result of simulation
+//FocusRWResult result of simulation
 type FocusRWResult struct { //this slices hold the statistics for each approver number mapping over all deltat's
 	countersuccess []MetricIntFloat64
 	countertotal   []MetricIntFloat64
@@ -79,20 +79,21 @@ func (sim *Sim) runAnFocusRW(r *FocusRWResult) {
 	// fmt.Println("\nFocus RW Data gathered.")
 }
 
-func (a *FocusRWResult) Join(b FocusRWResult) (r FocusRWResult) {
-	if a.countersuccess == nil {
+//Join joins FocusRWResult
+func (r *FocusRWResult) Join(b FocusRWResult) (res FocusRWResult) {
+	if r.countersuccess == nil {
 		return b
 	}
 	for i := range b.countersuccess {
-		r.countersuccess = append(r.countersuccess, joinMapMetricIntFloat64(a.countersuccess[i], b.countersuccess[i]))
+		res.countersuccess = append(res.countersuccess, joinMapMetricIntFloat64(r.countersuccess[i], b.countersuccess[i]))
 	}
 	for i := range b.countertotal {
-		r.countertotal = append(r.countertotal, joinMapMetricIntFloat64(a.countertotal[i], b.countertotal[i]))
+		res.countertotal = append(res.countertotal, joinMapMetricIntFloat64(r.countertotal[i], b.countertotal[i]))
 	}
 	for i := range b.prob {
-		r.prob = append(r.prob, joinMapMetricIntFloat64(a.prob[i], b.prob[i]))
+		res.prob = append(res.prob, joinMapMetricIntFloat64(r.prob[i], b.prob[i]))
 	}
-	return r
+	return res
 }
 
 // evaluate probabilities
@@ -107,6 +108,7 @@ func (r *FocusRWResult) finalprocess(p Parameters) error {
 // - - - save process - - -
 // - - - - - - - - - - - -
 
+// Save saves FocusRWResult
 func (r FocusRWResult) Save(p Parameters) (err error) {
 	if err = r.SaveCountersuccess(p); err != nil {
 		return err
@@ -120,18 +122,23 @@ func (r FocusRWResult) Save(p Parameters) (err error) {
 	return err
 }
 
+// SaveCountersuccess saves countersuccess
 func (r FocusRWResult) SaveCountersuccess(p Parameters) error {
 	for _, val := range r.countersuccess {
 		val.SaveFocusRW(p, "countersuccess", true)
 	}
 	return nil
 }
+
+// SaveCountertotal saves countertotal
 func (r FocusRWResult) SaveCountertotal(p Parameters) error {
 	for _, val := range r.countertotal {
 		val.SaveFocusRW(p, "Countertotal", true)
 	}
 	return nil
 }
+
+// SaveProb saves prob
 func (r FocusRWResult) SaveProb(p Parameters) error {
 	for _, val := range r.prob {
 		val.SaveFocusRW(p, "prob", true)
@@ -139,7 +146,7 @@ func (r FocusRWResult) SaveProb(p Parameters) error {
 	return nil
 }
 
-// Save saves a MetricIntFloat64 as a file
+// SaveFocusRW saves a MetricIntFloat64 as a file
 func (s MetricIntFloat64) SaveFocusRW(p Parameters, target string, normalized bool) error {
 	var keys []int
 	// var datapoints int
