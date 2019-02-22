@@ -29,12 +29,20 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 
 	var result Result
 
+	p.initSim(&sim)
+
 	// - - - - - - - - - - - - - - - - - - - - -
 	// initiate analysis variables
 	// - - - - - - - - - - - - - - - - - - - - -
 	if p.VelocityEnabled {
 		//???is there a way this can be defined in the velocity.go file
-		vr := newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth"})
+		var vr *velocityResult
+		if sim.param.TSA != "RW" {
+			vr = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "back"})
+		} else {
+			vr = newVelocityResult([]string{"rw", "all", "first", "last", "back"})
+			//vr = newVelocityResult([]string{"rw", "all", "back"})
+		}
 		result.velocity = *vr
 	}
 	if p.AnPastEdgeEnabled {
@@ -43,7 +51,6 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		result.PastEdge = *r
 	}
 
-	p.initSim(&sim)
 	//fmt.Println(p.nRun)
 	bar := progressbar.New(sim.param.nRun)
 

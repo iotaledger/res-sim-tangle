@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 )
 
-var nParallelSims = 1 //runtime.NumCPU()/2 - 1
+var nParallelSims = runtime.NumCPU()/2 - 1
 
 func main() {
 	b := make(Benchmark)
@@ -18,8 +19,8 @@ func main() {
 	// }
 
 	// Options: RW, URTS
-	// runSimulation(b, "urts", 100, 0)
-	runSimulation(b, "rw", 300, 0.01)
+	//runSimulation(b, "urts", 100, 0)
+	runSimulation(b, "rw", 100, 0.01)
 
 	printPerformance(b)
 }
@@ -33,9 +34,9 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		//H:          1,
 		Lambda:               lambda,
 		Alpha:                alpha,
-		TangleSize:           200 * int(lambda),
+		TangleSize:           1000 * int(lambda),
 		ConstantRate:         false,
-		nRun:                 5,
+		nRun:                 1,
 		TSA:                  tsa,
 		VelocityEnabled:      true,
 		AnPastEdgeEnabled:    false,
@@ -72,7 +73,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
 	fmt.Println(f.tips)
 	if p.VelocityEnabled {
-		// fmt.Println(f.velocity.Stat(p))
+		fmt.Println(f.velocity.Stat(p))
 		f.velocity.Save(p)
 		f.velocity.SaveStat(p)
 	}

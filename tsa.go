@@ -14,6 +14,7 @@ type TipSelector interface {
 // RandomWalker defines the interface for a random walk
 type RandomWalker interface {
 	RandomWalk(Tx, *Sim) (Tx, int)
+	RandomWalkBack(Tx, *Sim) Tx
 }
 
 // URTS defines a concrete type of a TSA
@@ -77,7 +78,19 @@ func (URW) RandomWalk(t Tx, sim *Sim) (Tx, int) {
 	}
 	j := rand.Intn(len(directApprovers))
 	return sim.tangle[directApprovers[j]], j
+}
 
+//RandomWalkBack returns the choosen tx
+func (URW) RandomWalkBack(t Tx, sim *Sim) Tx {
+	refs := t.ref
+	if len(refs) == 0 {
+		return t
+	}
+	if (len(refs)) == 1 {
+		return sim.tangle[refs[0]]
+	}
+	j := rand.Intn(len(refs))
+	return sim.tangle[refs[j]]
 }
 
 //RandomWalk returns the chosen tip and its index position
@@ -103,6 +116,22 @@ func (BRW) RandomWalk(t Tx, sim *Sim) (choosenTip Tx, approverIndx int) {
 	return sim.tangle[tip], j
 }
 
+//RandomWalkBack returns the chosen tx
+func (BRW) RandomWalkBack(t Tx, sim *Sim) (choosenTip Tx) {
+	//defer sim.b.track(runningtime("BRW"))
+	refs := t.ref
+	if (len(refs)) == 0 {
+		return t
+	}
+	if (len(refs)) == 1 {
+		return sim.tangle[t.ref[0]]
+	}
+
+	nw := normalizeWeights(refs, sim)
+	tip, _ := weightedChoose(refs, nw, sim.generator, sim.b)
+	return sim.tangle[tip]
+}
+
 func randomWalk(tsa RandomWalker, t Tx, sim *Sim) []int {
 	defer sim.b.track(runningtime("RW"))
 	tipsApproved := make([]int, sim.param.K)
@@ -122,96 +151,3 @@ func randomWalk(tsa RandomWalker, t Tx, sim *Sim) []int {
 	}
 	return tipsApproved
 }
-
-// //remove (visible)approved transactions from tips set. Return []tx of approved tips
-// func (tsa URTS) TipsUpdate(t tx, sim *Sim) []int {
-// 	//defer track(runningtime("udpateTips"))
-// 	sim.removeOldTips(t)
-// 	return tsa.revealTips(t, sim)
-// }
-
-// //remove (visible)approved transactions from tips set. Return []tx of approved tips
-// func (tsa URW) TipsUpdate(t tx, sim *Sim) []int {
-// 	//defer track(runningtime("udpateTips"))
-// 	sim.removeOldTips(t)
-// 	return tsa.revealTips(t, sim)
-// }
-
-// //remove (visible) approved transactions from tips set. Return []tx of approved tips
-// func (tsa BRW) TipsUpdate(t tx, sim *Sim) []int {
-// 	//defer track(runningtime("udpateTips"))
-// 	sim.removeOldTips(t)
-// 	return sim.revealTips(t)
-// }
-
-// //return set of new visible tips from the hidden tips set and update hidden tips set
-// func (URW) revealTips(t tx, sim *Sim) []int {
-// 	//var i, tip int
-// 	var newTips []int
-// 	//fmt.Println("HiddenTips", sim.hiddenTips)
-// 	for i, tip := range sim.hiddenTips { //iterate hidden tips set until it finds the first NOT visible tip
-
-// 		if sim.tangle[tip].isVisible(t.time, sim.param.H) {
-// 			sim.approvers = updateApprovers(sim.approvers, sim.tangle[tip])
-// 		} else {
-// 			newTips = sim.hiddenTips[:i]        //set of "new" visible tips
-// 			sim.hiddenTips = sim.hiddenTips[i:] //update hidden tips set
-// 			return newTips
-// 		}
-// 	}
-
-// 	//All the hidden tips are visible
-// 	newTips = sim.hiddenTips
-// 	sim.hiddenTips = sim.hiddenTips[:0]
-// 	return newTips
-// }
-
-// func (URTS) revealTips(t tx, sim *Sim) []int {
-// 	//var i, tip int
-// 	var newTips []int
-// 	//fmt.Println("HiddenTips", sim.hiddenTips)
-// 	for i, tip := range sim.hiddenTips { //iterate hidden tips set until it finds the first NOT visible tip
-
-// 		if sim.tangle[tip].isVisible(t.time, sim.param.H) {
-// 			sim.approvers = updateApprovers(sim.approvers, sim.tangle[tip])
-// 		} else {
-// 			newTips = sim.hiddenTips[:i]        //set of "new" visible tips
-// 			sim.hiddenTips = sim.hiddenTips[i:] //update hidden tips set
-// 			return newTips
-// 		}
-// 	}
-
-// 	//All the hidden tips are visible
-// 	newTips = sim.hiddenTips
-// 	sim.hiddenTips = sim.hiddenTips[:0]
-// 	return newTips
-// }
-
-// func (BRW) revealTips(t tx, sim *Sim) []int {
-// 	//var i, tip int
-// 	var newTips []int
-// 	//fmt.Println("HiddenTips", sim.hiddenTips)
-
-// 	if len(sim.hiddenTips) == 0 {
-// 		return newTips
-// 	}
-
-// 	i := 0
-// 	tip := sim.hiddenTips[i]
-// 	for sim.tangle[tip].isVisible(t.time, sim.param.H) {
-// 		sim.approvers = updateApprovers(sim.approvers, sim.tangle[tip])
-// 		if sim.param.TSA == "rw" {
-// 			sim.updateCW(sim.tangle[tip])
-// 			//sim.updateCWDFS(sim.tangle[tip])
-// 		}
-// 		i++
-// 		if i >= len(sim.hiddenTips) {
-// 			break
-// 		}
-// 		tip = sim.hiddenTips[i]
-// 	}
-
-// 	newTips = sim.hiddenTips[:i]        //set of "new" visible tips
-// 	sim.hiddenTips = sim.hiddenTips[i:] //update hidden tips set
-// 	return newTips
-// }
