@@ -4,7 +4,7 @@ package main
 
 import "fmt"
 
-//Save Results
+//SaveResults saves result
 func (f *Result) SaveResults(p Parameters) {
 	if p.VelocityEnabled {
 		fmt.Println(f.velocity.Stat(p))
@@ -22,6 +22,7 @@ func (f *Result) SaveResults(p Parameters) {
 	return
 }
 
+//JoinResults joins result
 func (f *Result) JoinResults(batch Result, p Parameters) {
 	if p.VelocityEnabled {
 		f.velocity = f.velocity.Join(batch.velocity)

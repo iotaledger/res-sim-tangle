@@ -23,7 +23,7 @@ type Parameters struct {
 	AnFocusRW       AnFocusRW
 }
 
-// Analysis Past Cone
+// AnPastCone Analysis Past Cone
 type AnPastCone struct {
 	Enabled    bool
 	Resolution float64
@@ -31,7 +31,7 @@ type AnPastCone struct {
 	MaxApp     int
 }
 
-// Analysis Focus RW
+// AnFocusRW Analysis Focus RW
 type AnFocusRW struct {
 	Enabled bool
 	murel   float64 // tx by adversary = murel * lambda

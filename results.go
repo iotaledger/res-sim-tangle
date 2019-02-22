@@ -33,7 +33,7 @@ type MetricIntInt struct {
 	v    map[int]int
 }
 
-// MetricFloat64Int defines a map from int to floats
+// MetricIntFloat64 defines a map from int to floats
 type MetricIntFloat64 struct {
 	desc string
 	v    map[int]float64
@@ -45,7 +45,7 @@ type MetricFloat64Int struct {
 	v    map[float64]int
 }
 
-// AnFloat64 defines a metric of float64s
+// MetricFloat64Float64 defines a metric of float64s
 type MetricFloat64Float64 struct {
 	desc string
 	v    map[float64]float64

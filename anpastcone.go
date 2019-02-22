@@ -9,7 +9,7 @@ import (
 	"sort"
 )
 
-//PastCone result of simulation
+//PastConeResult PastCone result of simulation
 type PastConeResult struct { //this slices hold the statistics for each approver number mapping over all deltat's
 	counter []MetricFloat64Float64
 	p       []MetricFloat64Float64

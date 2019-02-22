@@ -277,7 +277,7 @@ func (sim *Sim) removeCW(a []uint64, propweight int) {
 	}
 }
 
-// check for particular tx if it is referenced
+// ReferencedByTx checks for particular tx if it is referenced
 func ReferencedByTx(a []uint64, ID int) bool {
 	base := 64
 	baseID := ID / base
@@ -305,6 +305,7 @@ func ReferencedByTx(a []uint64, ID int) bool {
 	// }
 }
 
+// ReferencedByRecentTx checks for particular tx if it is referenced by recent tx
 func (sim *Sim) ReferencedByRecentTx(searchTx, lastTx, numRecent int) bool {
 	for tx := lastTx; tx > lastTx-numRecent && searchTx < tx; tx-- {
 		// fmt.Println("Txnow ", tx)
@@ -330,13 +331,14 @@ func (sim *Sim) isLeftBehind(thisTx int) bool {
 	if thisTx > sim.param.TangleSize-recentTx { // still recent enough to be considered for a root
 		// fmt.Println("-")
 		return false
-	} else { // check if left behind
-		// fmt.Println("+")
-		// only have cw for len(sim.cw) of the txs
-		if sim.ReferencedByRecentTx(thisTx, len(sim.cw)-1, recentTx-1) { // if its not in the most recent cw set abandon the tx.
-			return false
-		}
 	}
+	// check if left behind
+	// fmt.Println("+")
+	// only have cw for len(sim.cw) of the txs
+	if sim.ReferencedByRecentTx(thisTx, len(sim.cw)-1, recentTx-1) { // if its not in the most recent cw set abandon the tx.
+		return false
+	}
+
 	return true
 
 }
