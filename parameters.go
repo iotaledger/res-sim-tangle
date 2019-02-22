@@ -16,6 +16,7 @@ type Parameters struct {
 	maxCutrange  int
 	maxCut       int
 	nRun         int
+	stillrecent  int
 	// - - - Analysis - - -
 	VelocityEnabled bool
 	AnPastCone      AnPastCone
@@ -33,7 +34,6 @@ type AnPastCone struct {
 // Analysis Focus RW
 type AnFocusRW struct {
 	Enabled bool
-	maxiMT  int     // maximum PC length (measured in MT txs)
 	murel   float64 // tx by adversary = murel * lambda
 	nRWs    int     // number of RWs per data point
 }

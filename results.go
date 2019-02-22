@@ -27,14 +27,20 @@ func (a avgTips) String() string {
 	return fmt.Sprintln("E(L):", a.tips)
 }
 
-// StatInt defines a metric of ints
-type StatInt struct {
+// MetricIntInt defines a metric of ints
+type MetricIntInt struct {
 	desc string
 	v    map[int]int
 }
 
-// StatFloat64 defines a metric of float64s
-type StatFloat64 struct {
+// MetricFloat64Int defines a map from int to floats
+type MetricIntFloat64 struct {
+	desc string
+	v    map[int]float64
+}
+
+// MetricFloat64Int defines a metric of float64s
+type MetricFloat64Int struct {
 	desc string
 	v    map[float64]int
 }
@@ -65,6 +71,16 @@ func joinMapFloat64(a, b map[float64]int) map[float64]int {
 	return a
 }
 
+func joinMapIntFloat64(a, b map[int]float64) map[int]float64 {
+	if a == nil {
+		return b
+	}
+	for k, v := range b {
+		a[k] += v
+	}
+	return a
+}
+
 func joinMapFloat64Float64(a, b map[float64]float64) map[float64]float64 {
 	if a == nil {
 		return b
@@ -75,13 +91,19 @@ func joinMapFloat64Float64(a, b map[float64]float64) map[float64]float64 {
 	return a
 }
 
-func joinMapStatInt(a, b StatInt) StatInt {
+func joinMapMetricIntInt(a, b MetricIntInt) MetricIntInt {
 	a.desc = b.desc
 	a.v = joinMapInt(a.v, b.v)
 	return a
 }
 
-func joinMapStatFloat64(a, b StatFloat64) StatFloat64 {
+func joinMapMetricIntFloat64(a, b MetricIntFloat64) MetricIntFloat64 {
+	a.desc = b.desc
+	a.v = joinMapIntFloat64(a.v, b.v)
+	return a
+}
+
+func joinMapMetricFloat64Int(a, b MetricFloat64Int) MetricFloat64Int {
 	a.desc = b.desc
 	a.v = joinMapFloat64(a.v, b.v)
 	return a

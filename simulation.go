@@ -163,6 +163,7 @@ func (p Parameters) initSim(sim *Sim) {
 	} else {
 		sim.param.nRun = 1
 	}
+	sim.param.stillrecent = p.stillrecent
 
 	if p.AnPastCone.MaxApp != 0 {
 		sim.param.AnPastCone.MaxApp = p.AnPastCone.MaxApp
@@ -180,7 +181,6 @@ func (p Parameters) initSim(sim *Sim) {
 		sim.param.AnPastCone.Resolution = 2
 	}
 
-	sim.param.AnFocusRW.maxiMT = p.AnFocusRW.maxiMT
 	sim.param.AnFocusRW.murel = p.AnFocusRW.murel
 	sim.param.AnFocusRW.nRWs = p.AnFocusRW.nRWs
 

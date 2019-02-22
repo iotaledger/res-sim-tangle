@@ -11,9 +11,9 @@ import (
 
 //Velocity result of simulation
 type velocityResult struct {
-	vID        []StatInt //???creates a map[int]int with a keyword
-	vTime      []StatFloat64
-	dApprovers []StatInt
+	vID        []MetricIntInt //???creates a map[int]int with a keyword
+	vTime      []MetricFloat64Int
+	dApprovers []MetricIntInt
 }
 
 //??? use string to create empty value maps to vID, vTime, dApprovers
@@ -21,10 +21,10 @@ func newVelocityResult(veloMetrics []string) *velocityResult {
 	// variables initialization for velocity
 	var result velocityResult
 	for _, metric := range veloMetrics {
-		result.vID = append(result.vID, StatInt{metric, make(map[int]int)})
-		result.vTime = append(result.vTime, StatFloat64{metric, make(map[float64]int)})
+		result.vID = append(result.vID, MetricIntInt{metric, make(map[int]int)})
+		result.vTime = append(result.vTime, MetricFloat64Int{metric, make(map[float64]int)})
 		if metric == "rw" || metric == "all" {
-			result.dApprovers = append(result.dApprovers, StatInt{metric, make(map[int]int)})
+			result.dApprovers = append(result.dApprovers, MetricIntInt{metric, make(map[int]int)})
 		}
 	}
 	return &result
@@ -176,17 +176,14 @@ func (velo *velocityResult) Join(b velocityResult) (r velocityResult) {
 	if velo.vID == nil {
 		return b
 	}
-
 	for i := range b.vID {
-		r.vID = append(r.vID, joinMapStatInt(velo.vID[i], b.vID[i]))
+		r.vID = append(r.vID, joinMapMetricIntInt(velo.vID[i], b.vID[i]))
 	}
-
 	for i := range b.dApprovers {
-		r.dApprovers = append(r.dApprovers, joinMapStatInt(velo.dApprovers[i], b.dApprovers[i]))
+		r.dApprovers = append(r.dApprovers, joinMapMetricIntInt(velo.dApprovers[i], b.dApprovers[i]))
 	}
-
 	for i := range b.vTime {
-		r.vTime = append(r.vTime, joinMapStatFloat64(velo.vTime[i], b.vTime[i]))
+		r.vTime = append(r.vTime, joinMapMetricFloat64Int(velo.vTime[i], b.vTime[i]))
 	}
 	return r
 }
@@ -241,8 +238,8 @@ func (velo velocityResult) Stat(p Parameters) (result string) {
 	return result
 }
 
-// ToString converts a StatInt to a string
-func (s StatInt) ToString(p Parameters, normalized bool) (result string) {
+// ToString converts a MetricIntInt to a string
+func (s MetricIntInt) ToString(p Parameters, normalized bool) (result string) {
 	var keys []int
 	var datapoints int
 	for k := range s.v {
@@ -279,8 +276,8 @@ func (s StatInt) ToString(p Parameters, normalized bool) (result string) {
 	return result
 }
 
-// ToString converts a StatFloat64 to a string
-func (s StatFloat64) ToString(p Parameters, normalized bool) (result string) {
+// ToString converts a MetricFloat64Int to a string
+func (s MetricFloat64Int) ToString(p Parameters, normalized bool) (result string) {
 	var keys []float64
 	var datapoints int
 	for k := range s.v {
@@ -317,8 +314,8 @@ func (s StatFloat64) ToString(p Parameters, normalized bool) (result string) {
 	return result
 }
 
-// Save saves a StatInt on a file
-func (s StatInt) Save(p Parameters, target string, normalized bool) error {
+// Save saves a MetricIntInt on a file
+func (s MetricIntInt) Save(p Parameters, target string, normalized bool) error {
 	var keys []int
 	var datapoints int
 	for k := range s.v {
@@ -370,8 +367,8 @@ func (s StatInt) Save(p Parameters, target string, normalized bool) error {
 	return nil
 }
 
-// Save saves a StatFloat64 as a file
-func (s StatFloat64) Save(p Parameters, target string, normalized bool) error {
+// Save saves a MetricFloat64Int as a file
+func (s MetricFloat64Int) Save(p Parameters, target string, normalized bool) error {
 	var keys []float64
 	var datapoints int
 	for k := range s.v {

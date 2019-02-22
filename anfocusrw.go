@@ -11,9 +11,9 @@ import (
 
 //FocusRW result of simulation
 type FocusRWResult struct { //this slices hold the statistics for each approver number mapping over all deltat's
-	countersuccess []MetricFloat64Float64
-	countertotal   []MetricFloat64Float64
-	prob           []MetricFloat64Float64
+	countersuccess []MetricIntFloat64
+	countertotal   []MetricIntFloat64
+	prob           []MetricIntFloat64
 }
 
 //??? use string to create empty value maps to
@@ -21,9 +21,9 @@ func newFocusRWResult(Metrics []string) *FocusRWResult {
 	// variables initialization for FocusRW
 	var result FocusRWResult
 	for _, metric := range Metrics {
-		result.countersuccess = append(result.countersuccess, MetricFloat64Float64{metric, make(map[float64]float64)})
-		result.countertotal = append(result.countertotal, MetricFloat64Float64{metric, make(map[float64]float64)})
-		result.prob = append(result.prob, MetricFloat64Float64{metric, make(map[float64]float64)})
+		result.countersuccess = append(result.countersuccess, MetricIntFloat64{metric, make(map[int]float64)})
+		result.countertotal = append(result.countertotal, MetricIntFloat64{metric, make(map[int]float64)})
+		result.prob = append(result.prob, MetricIntFloat64{metric, make(map[int]float64)})
 	}
 	return &result
 }
@@ -34,41 +34,49 @@ func (sim *Sim) runAnFocusRW(r *FocusRWResult) {
 	// deltat := 0.
 	pAn := sim.param.AnFocusRW
 	var current Tx
+	var accepttx bool
+	_ = accepttx
+	PCweight := 0
 	// var tsa RandomWalker
 	tsa := BRW{}
 
-	// apply PC for each tx
+	// apply PC for each tx, reveiled PC propto revealed txs since i1
 	counter := 0
-	fmt.Println((sim.param.maxCut-sim.param.minCut)/int(sim.param.Lambda), "h data")
-	for i1 := sim.param.minCut; i1 < sim.param.maxCut; i1++ {
-		fmt.Println(sim.param.maxCut - sim.param.minCut)
+	// fmt.Println((sim.param.maxCut-sim.param.minCut)/int(sim.param.Lambda), "h data")
+	// hidden tips do not have a propagation vector yet ->  i1 < len(sim.cw)
+	// for i1 := sim.param.minCut; i1 < (sim.param.TangleSize-int(sim.param.Lambda)*200) && i1 < len(sim.cw); i1++ {
+	for i1 := sim.param.minCut; i1 < len(sim.cw); i1++ { //consider only tx that are revealed
+		// fmt.Println("-+-+--", i1, "-+-+--")
+		// fmt.Println(sim.param.TangleSize - sim.param.AnFocusRW.acceptalwayslastN)
+		// pauseit()
 		if (i1-sim.param.minCut)%(int(math.Max(100, float64(sim.param.maxCut-sim.param.minCut))/100)) == 0 {
 			counter++
-			fmt.Println(counter, "/", sim.param.maxCut-sim.param.minCut)
+			// fmt.Println(counter, "/", sim.param.maxCut-sim.param.minCut)
 		}
-		// fmt.Println("Tx", i1)
-		// assess for a range of PC lengths
-		for i2 := 1; i2 < int(float64(pAn.maxiMT)*pAn.murel); i2++ {
-			r.countertotal[0].v[float64(i2)/pAn.murel/sim.param.Lambda]++
-			// add weight for each added PC tx
-			sim.addCW(sim.cw[i1]) // add +1 to all ancestors
-			sim.tangle[i1].cw++   // add also +1 to root
 
+		if sim.param.Lambda*sim.param.Alpha < 0.1 {
+			accepttx = true
+		} else {
+			accepttx = !(sim.isLeftBehind(i1))
+		}
+
+		if accepttx {
+			PCweight = int(float64(sim.param.TangleSize-i1) * sim.param.AnFocusRW.murel)
+			sim.addCW(sim.cw[i1], PCweight)                                               // add cw from PC to all ancestors
+			sim.tangle[i1].cw += PCweight                                                 // add also to root
+			r.countertotal[0].v[int(float64(sim.param.TangleSize-i1)/sim.param.Lambda)]++ // add +1 to this particular PC time
 			for i3 := 0; i3 < pAn.nRWs; i3++ {
 				for current, _ = tsa.RandomWalk(sim.tangle[0], sim); (len(sim.approvers[current.id]) > 0) && (current.id < i1); current, _ = tsa.RandomWalk(current, sim) {
 				}
 				if current.id == i1 {
-					r.countersuccess[0].v[float64(i2)/pAn.murel/sim.param.Lambda] += 1. / float64(pAn.nRWs)
+					r.countersuccess[0].v[int(float64(sim.param.TangleSize-i1)/sim.param.Lambda)] += 1. / float64(pAn.nRWs)
 				}
 			}
-		}
-		// remove all added weights
-		for i2 := 1; i2 < int(float64(pAn.maxiMT)*pAn.murel); i2++ {
-			sim.removeCW(sim.cw[i1])
-			sim.tangle[i1].cw--
+			sim.removeCW(sim.cw[i1], PCweight) // remove cw from PC to all ancestors
+			sim.tangle[i1].cw -= PCweight      // remove also from root
 		}
 	}
-	fmt.Println("\nFocus RW Data gathered.")
+	// fmt.Println("\nFocus RW Data gathered.")
 }
 
 func (a *FocusRWResult) Join(b FocusRWResult) (r FocusRWResult) {
@@ -76,13 +84,13 @@ func (a *FocusRWResult) Join(b FocusRWResult) (r FocusRWResult) {
 		return b
 	}
 	for i := range b.countersuccess {
-		r.countersuccess = append(r.countersuccess, joinMapMetricFloat64Float64(a.countersuccess[i], b.countersuccess[i]))
+		r.countersuccess = append(r.countersuccess, joinMapMetricIntFloat64(a.countersuccess[i], b.countersuccess[i]))
 	}
 	for i := range b.countertotal {
-		r.countertotal = append(r.countertotal, joinMapMetricFloat64Float64(a.countertotal[i], b.countertotal[i]))
+		r.countertotal = append(r.countertotal, joinMapMetricIntFloat64(a.countertotal[i], b.countertotal[i]))
 	}
 	for i := range b.prob {
-		r.prob = append(r.prob, joinMapMetricFloat64Float64(a.prob[i], b.prob[i]))
+		r.prob = append(r.prob, joinMapMetricIntFloat64(a.prob[i], b.prob[i]))
 	}
 	return r
 }
@@ -90,7 +98,7 @@ func (a *FocusRWResult) Join(b FocusRWResult) (r FocusRWResult) {
 // evaluate probabilities
 func (r *FocusRWResult) finalprocess(p Parameters) error {
 	for i1 := range r.countersuccess[0].v {
-		r.prob[0].v[i1] = float64(r.countersuccess[0].v[i1]) / float64(r.countertotal[0].v[i1])
+		r.prob[0].v[i1] = r.countersuccess[0].v[i1] / r.countertotal[0].v[i1]
 	}
 	return nil
 }
@@ -131,26 +139,19 @@ func (r FocusRWResult) SaveProb(p Parameters) error {
 	return nil
 }
 
-// Save saves a MetricFloat64Float64 as a file
-func (s MetricFloat64Float64) SaveFocusRW(p Parameters, target string, normalized bool) error {
-	var keys []float64
+// Save saves a MetricIntFloat64 as a file
+func (s MetricIntFloat64) SaveFocusRW(p Parameters, target string, normalized bool) error {
+	var keys []int
 	// var datapoints int
 	for k := range s.v {
 		keys = append(keys, k)
 	}
-	sort.Float64s(keys)
+	sort.Ints(keys)
 
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
-	alphaStr := fmt.Sprintf("%.2f", p.Alpha)
-	var rateType string
-	if p.ConstantRate {
-		rateType = "constant"
-	} else {
-		rateType = "poisson"
-	}
-	f, err := os.Create("data/FocusRW_" + target + "_" + p.TSA + "_" + rateType + "_" + s.desc +
-		"_lambda_" + lambdaStr +
-		"_alpha_" + alphaStr + "_.txt")
+	alphaStr := fmt.Sprintf("%.4f", p.Alpha)
+	murelStr := fmt.Sprintf("%.1f", p.AnFocusRW.murel)
+	f, err := os.Create("data/FocusRW_lambda" + lambdaStr + "_alpha" + alphaStr + "_murel" + murelStr + ".txt")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
 		return err
@@ -158,7 +159,7 @@ func (s MetricFloat64Float64) SaveFocusRW(p Parameters, target string, normalize
 	defer f.Close()
 	// for i, k := range x {
 	for _, k := range keys {
-		_, err = f.WriteString(fmt.Sprintf("%f\t%f\n", k, s.v[k])) // writing...
+		_, err = f.WriteString(fmt.Sprintf("%f\t%f\n", float64(k), s.v[k])) // writing...
 		// _, err = f.WriteString(fmt.Sprintf("%f\t%f\n", k, weigths[i]/float64(datapoints)*norm)) // writing...
 		if err != nil {
 			fmt.Printf("error writing string: %v", err)
