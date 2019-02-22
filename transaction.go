@@ -123,7 +123,7 @@ func updateApprovers(a map[int][]int, t Tx) map[int][]int {
 func (sim *Sim) updateCW(tip Tx) {
 	defer sim.b.track(runningtime("updateCW-BitMask"))
 	sim.cw = append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
-	sim.addCW(sim.cw[tip.id])
+	sim.addCW(sim.cw[tip.id], 1)
 
 }
 
@@ -252,14 +252,91 @@ func cwBitMask(t Tx, cw [][]uint64) []uint64 {
 }
 
 // add BitMask to CW
-func (sim *Sim) addCW(a []uint64) {
+func (sim *Sim) addCW(a []uint64, propweight int) {
 	//defer sim.b.track(runningtime("addCW"))
 	base := 64
 	for i, block := range a { // the i iterates through the blocks, block is the unit64 of the block itself
 		for j := 0; j < base; j++ {
 			if block&(1<<uint(j)) != 0 {
-				sim.tangle[j+(i*base)].cw++
+				sim.tangle[j+(i*base)].cw += propweight
 			}
 		}
 	}
+}
+
+// remove BitMask from CW
+func (sim *Sim) removeCW(a []uint64, propweight int) {
+	//defer sim.b.track(runningtime("addCW"))
+	base := 64
+	for i, block := range a { // the i iterates through the blocks, block is the unit64 of the block itself
+		for j := 0; j < base; j++ {
+			if block&(1<<uint(j)) != 0 {
+				sim.tangle[j+(i*base)].cw -= propweight
+			}
+		}
+	}
+}
+
+// check for particular tx if it is referenced
+func ReferencedByTx(a []uint64, ID int) bool {
+	base := 64
+	baseID := ID / base
+	localID := ID - baseID*base
+	// fmt.Println(" ")
+	// fmt.Println("**************************")
+	// fmt.Println(ID)
+	// fmt.Println(baseID)
+	// fmt.Println(localID)
+	// fmt.Println(13 / base)
+	// fmt.Println(len(a))
+	// fmt.Println(a[baseID])
+	// fmt.Println("**************************")
+	// pauseit()
+	if a[baseID]&(1<<uint(localID)) != 0 {
+		return true
+	}
+	return false
+	// for i, block := range a { // the i iterates through the blocks, block is the unit64 of the block itself
+	// 	for j := 0; j < base; j++ {
+	// 		if block&(1<<uint(j)) != 0 {
+	// 			sim.tangle[j+(i*base)].cw -= propweight
+	// 		}
+	// 	}
+	// }
+}
+
+func (sim *Sim) ReferencedByRecentTx(searchTx, lastTx, numRecent int) bool {
+	for tx := lastTx; tx > lastTx-numRecent && searchTx < tx; tx-- {
+		// fmt.Println("Txnow ", tx)
+		// fmt.Println("searchTx ", searchTx)
+		// fmt.Println("numRecent ", numRecent)
+		// fmt.Println("len(sim.cw) ", len(sim.cw))
+		// pauseit()
+		// fmt.Println(sim.tangle[tx].ref)
+		// fmt.Println(sim.tangle[tx].ref[0])
+		// fmt.Println(sim.tangle[tx].ref[1])
+		// pauseit()
+		if searchTx < sim.tangle[tx].ref[0] { // only check if at least one of tx's approvers is known
+			if ReferencedByTx(sim.cw[tx], searchTx) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (sim *Sim) isLeftBehind(thisTx int) bool {
+	recentTx := 3 * int(sim.param.Lambda)
+	if thisTx > sim.param.TangleSize-recentTx { // still recent enough to be considered for a root
+		// fmt.Println("-")
+		return false
+	} else { // check if left behind
+		// fmt.Println("+")
+		// only have cw for len(sim.cw) of the txs
+		if sim.ReferencedByRecentTx(thisTx, len(sim.cw)-1, recentTx-1) { // if its not in the most recent cw set abandon the tx.
+			return false
+		}
+	}
+	return true
+
 }

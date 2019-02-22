@@ -48,7 +48,7 @@ func mapEq(a, b map[int]int) bool {
 
 func avgMapInt(a, b map[int]int) map[int]int {
 	//j := make(map[int]int)
-	j := joinMapInt(a, b)
+	j := joinMapIntInt(a, b)
 	for k, v := range j {
 		j[k] = v / 2
 	}
