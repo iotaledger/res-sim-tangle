@@ -28,7 +28,7 @@ func main() {
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 10, 0.01)
+	runSimulation(b, "rw", 5, 0)
 
 	printPerformance(b)
 }
@@ -60,7 +60,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		stillrecent: 2 * int(lambda), // when is a tx considered recent, and when is it a candidate for left behind
 
 		// - - - Analysis section - - -
-		VelocityEnabled: true,
+		VelocityEnabled: false,
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 40, 10, 5},
 		//{Enabled, maxiMT, murel, nRW}
