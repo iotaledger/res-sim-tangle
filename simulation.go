@@ -216,6 +216,7 @@ func (p Parameters) initSim(sim *Sim) {
 	}
 
 	sim.param.minCut = p.minCut
+	sim.param.maxCutrange = p.maxCutrange
 	sim.param.maxCut = p.TangleSize - p.maxCutrange
 
 	createDirIfNotExist("data")
