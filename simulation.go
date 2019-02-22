@@ -45,10 +45,14 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		}
 		result.velocity = *vr
 	}
-	if p.AnPastEdgeEnabled {
+	if p.AnPastCone.Enabled {
 		//??? can this be combined into one line?
-		r := newPastEdgeResult([]string{"avg", "1", "2", "3", "4", "5", "rest"})
-		result.PastEdge = *r
+		r := newPastConeResult([]string{"avg", "1", "2", "3", "4", "5", "rest"})
+		result.PastCone = *r
+	}
+	if p.AnFocusRW.Enabled {
+		r := newFocusRWResult([]string{"0.1"})
+		result.FocusRW = *r
 	}
 
 	//fmt.Println(p.nRun)
@@ -109,8 +113,11 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		if p.VelocityEnabled {
 			sim.runVelocityStat(&result.velocity)
 		}
-		if p.AnPastEdgeEnabled {
-			sim.runAnPastEdge(&result.PastEdge)
+		if p.AnPastCone.Enabled {
+			sim.runAnPastCone(&result.PastCone)
+		}
+		if p.AnFocusRW.Enabled {
+			sim.runAnFocusRW(&result.FocusRW)
 		}
 	}
 
@@ -163,22 +170,26 @@ func (p Parameters) initSim(sim *Sim) {
 	} else {
 		sim.param.nRun = 1
 	}
+	sim.param.stillrecent = p.stillrecent
 
-	if p.AnPastEdgeMaxApp != 0 {
-		sim.param.AnPastEdgeMaxApp = p.AnPastEdgeMaxApp
+	if p.AnPastCone.MaxApp != 0 {
+		sim.param.AnPastCone.MaxApp = p.AnPastCone.MaxApp
 	} else {
-		sim.param.AnPastEdgeMaxApp = 2
+		sim.param.AnPastCone.MaxApp = 2
 	}
-	if p.AnPastEdgeMaxT != 0 {
-		sim.param.AnPastEdgeMaxT = p.AnPastEdgeMaxT
+	if p.AnPastCone.MaxT != 0 {
+		sim.param.AnPastCone.MaxT = p.AnPastCone.MaxT
 	} else {
-		sim.param.AnPastEdgeMaxT = 2
+		sim.param.AnPastCone.MaxT = 2
 	}
-	if p.AnPastEdgeResolution != 0 {
-		sim.param.AnPastEdgeResolution = p.AnPastEdgeResolution
+	if p.AnPastCone.Resolution != 0 {
+		sim.param.AnPastCone.Resolution = p.AnPastCone.Resolution
 	} else {
-		sim.param.AnPastEdgeResolution = 2
+		sim.param.AnPastCone.Resolution = 2
 	}
+
+	sim.param.AnFocusRW.murel = p.AnFocusRW.murel
+	sim.param.AnFocusRW.nRWs = p.AnFocusRW.nRWs
 
 	switch strings.ToUpper(p.TSA) {
 	case "URTS":
@@ -204,8 +215,9 @@ func (p Parameters) initSim(sim *Sim) {
 		sim.param.DataPath = p.DataPath
 	}
 
-	sim.param.minCut = 30 * int(sim.param.Lambda)
-	sim.param.maxCut = sim.param.TangleSize - sim.param.minCut
+	sim.param.minCut = p.minCut
+	sim.param.maxCutrange = p.maxCutrange
+	sim.param.maxCut = p.TangleSize - p.maxCutrange
 
 	createDirIfNotExist("data")
 

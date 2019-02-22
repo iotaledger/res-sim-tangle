@@ -1,3 +1,4 @@
 *.exe
 data/*
+figures/*
 .DS_Store
