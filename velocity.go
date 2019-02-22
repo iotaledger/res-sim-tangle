@@ -89,8 +89,8 @@ func (sim Sim) velocityBackURTS(v map[int]int, t map[float64]int) {
 	for i := sim.param.maxCut; i > sim.param.minCut; i-- {
 
 		l := sim.generator.Intn(len(sim.tangle[i].ref))
-		delta := sim.tangle[i].ref[l] - i
-		deltaTime := math.Round((sim.tangle[sim.tangle[i].ref[l]].time-sim.tangle[i].time)*100) / 100
+		delta := i - sim.tangle[i].ref[l]
+		deltaTime := math.Round((sim.tangle[i].time-sim.tangle[sim.tangle[i].ref[l]].time)*100) / 100
 		v[delta]++
 		t[deltaTime]++
 
