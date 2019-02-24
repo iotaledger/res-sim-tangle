@@ -55,12 +55,13 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		maxCutrange:  50 * int(lambda),
 		ConstantRate: false,
 		// nRun:         int(math.Max(10000/lambda, 100)),
-		nRun:        1,
+		nRun:        200,
 		TSA:         tsa,
 		stillrecent: 2 * int(lambda), // when is a tx considered recent, and when is it a candidate for left behind
 
 		// - - - Analysis section - - -
 		VelocityEnabled: false,
+		EntropyEnabled:  true,
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 40, 10, 5},
 		//{Enabled, maxiMT, murel, nRW}

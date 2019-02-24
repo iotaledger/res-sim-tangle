@@ -8,6 +8,7 @@ type Result struct {
 	velocity velocityResult
 	PastCone PastConeResult
 	FocusRW  FocusRWResult
+	entropy  entropyResult
 }
 
 type avgTips struct {
@@ -60,6 +61,32 @@ func joinMapIntInt(a, b map[int]int) map[int]int {
 	}
 	return a
 }
+
+// func avgMapIntInt(a, b map[int]int) map[int]float64 {
+// 	r := make(map[int]float64)
+
+// 	//copy b to r
+// 	for k, v := range b {
+// 		r[k] = float64(v)
+// 	}
+
+// 	if a == nil {
+// 		return r
+// 	}
+
+// 	//fill b with same keys as a
+// 	for k := range a {
+// 		if _, ok := b[k]; !ok {
+// 			b[k] = 0
+// 		}
+// 	}
+// 	//compute avg between a and b
+// 	for k, v := range b {
+// 		a[k] += v
+// 		a[k] /= 2
+// 	}
+// 	return a
+// }
 
 func joinMapFloat64Int(a, b map[float64]int) map[float64]int {
 	if a == nil {

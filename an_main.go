@@ -19,6 +19,11 @@ func (f *Result) SaveResults(p Parameters) {
 		f.FocusRW.finalprocess(p)
 		f.FocusRW.Save(p)
 	}
+	if p.EntropyEnabled {
+		fmt.Println(f.entropy.Stat(p))
+		f.entropy.Save(p)
+		//f.entropy.SaveStat(p)
+	}
 	return
 }
 
@@ -32,6 +37,9 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	}
 	if p.AnFocusRW.Enabled {
 		f.FocusRW = f.FocusRW.Join(batch.FocusRW)
+	}
+	if p.EntropyEnabled {
+		f.entropy = f.entropy.Join(batch.entropy)
 	}
 	f.tips = f.tips.Join(batch.tips)
 }

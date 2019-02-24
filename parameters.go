@@ -19,6 +19,7 @@ type Parameters struct {
 	stillrecent  int
 	// - - - Analysis - - -
 	VelocityEnabled bool
+	EntropyEnabled  bool
 	AnPastCone      AnPastCone
 	AnFocusRW       AnFocusRW
 }

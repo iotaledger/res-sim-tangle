@@ -54,6 +54,10 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		r := newFocusRWResult([]string{"0.1"})
 		result.FocusRW = *r
 	}
+	if p.EntropyEnabled {
+		r := newEntropyResult()
+		result.entropy = *r
+	}
 
 	//fmt.Println(p.nRun)
 	bar := progressbar.New(sim.param.nRun)
@@ -106,6 +110,10 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 
 		}
 
+		//fmt.Println("\n\n")
+		//fmt.Println("Tangle size: ", sim.param.TangleSize)
+		//fmt.Println(ghostWalk(sim.tangle[0], &sim))
+
 		// - - - - - - - - - - - - - - - - - - - - -
 		// data evaluation after each tangle
 		// - - - - - - - - - - - - - - - - - - - - -
@@ -118,6 +126,9 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		}
 		if p.AnFocusRW.Enabled {
 			sim.runAnFocusRW(&result.FocusRW)
+		}
+		if p.EntropyEnabled {
+			sim.runEntropyStat(&result.entropy)
 		}
 	}
 
@@ -210,6 +221,7 @@ func (p Parameters) initSim(sim *Sim) {
 
 	sim.param.ConstantRate = p.ConstantRate
 	sim.param.VelocityEnabled = p.VelocityEnabled
+	sim.param.EntropyEnabled = p.EntropyEnabled
 
 	if p.DataPath != "" {
 		sim.param.DataPath = p.DataPath
