@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
-	"runtime"
 	"strings"
 )
 
 // var nParallelSims = 1
 
 // factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-var nParallelSims = runtime.NumCPU()/2 - 1
+var nParallelSims = 1 //runtime.NumCPU()/2 - 1
 
 func main() {
 

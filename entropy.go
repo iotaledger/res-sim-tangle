@@ -14,7 +14,6 @@ type entropyResult struct {
 	ep   [][]float64
 	mean []float64
 	std  []float64
-	nCol int
 }
 
 func newEntropyResult() *entropyResult {
@@ -110,7 +109,6 @@ func (e *entropyResult) Stat(p Parameters) (result string) {
 	}
 	// make same len for all the rows and fill with 0s if smaller
 	_, nColumns := max(lenRows)
-	e.nCol = nColumns
 	for i, row := range e.ep {
 		for j := 0; j < nColumns-len(row); j++ {
 			e.ep[i] = append(e.ep[i], 0.0)
