@@ -10,10 +10,10 @@ import (
 
 //Velocity result of simulation
 type entropyResult struct {
-	tips MetricIntInt
-	ep   [][]float64
-	mean []float64
-	std  []float64
+	tips MetricIntInt // number of particles reaching specific tips
+	ep   [][]float64  // exit probabilities (number of rows = number of Tangles )
+	mean []float64    // exit probability means over Tangles
+	std  []float64    // exit probability std dev over Tangles
 }
 
 func newEntropyResult() *entropyResult {
@@ -115,7 +115,7 @@ func (e *entropyResult) Stat(p Parameters) (result string) {
 		}
 	}
 
-	// calculate means by extrapolating columns first
+	// calculate means and std deviations by extrapolating columns first
 	for i := 0; i < nColumns; i++ {
 		var c []float64
 		for _, row := range e.ep {
