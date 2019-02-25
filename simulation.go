@@ -133,6 +133,9 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		if p.EntropyEnabled {
 			sim.runEntropyStat(&result.entropy)
 		}
+
+		//for {
+		//}
 	}
 
 	//fmt.Println("E(L):", float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut*2)/sim.param.Lambda/float64(sim.param.nRun))
@@ -234,6 +237,12 @@ func (p Parameters) initSim(sim *Sim) {
 	sim.param.maxCutrange = p.maxCutrange
 	sim.param.maxCut = p.TangleSize - p.maxCutrange
 
+	sim.param.CWMatrixLen = 10 * int(sim.param.Lambda)
+	// for i := 0; i < sim.param.CWMatrixLen; i++ {
+	// 	sim.cw = append(sim.cw, []uint64{})
+	// }
+	//sim.cw = make([][]uint64, sim.param.CWMatrixLen)
+
 	createDirIfNotExist("data")
 
 }
@@ -242,7 +251,9 @@ func clearSim(sim *Sim) {
 	sim.approvers = make(map[int][]int)
 	sim.b = make(Benchmark)
 
-	sim.cw = [][]uint64{}
+	//sim.cw = [][]uint64{}
+	sim.cw = make([][]uint64, sim.param.CWMatrixLen)
+
 	sim.tangle = make([]Tx, sim.param.TangleSize)
 	sim.tips = []int{}
 	sim.hiddenTips = []int{}

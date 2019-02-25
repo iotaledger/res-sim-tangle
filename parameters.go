@@ -17,6 +17,7 @@ type Parameters struct {
 	maxCut       int
 	nRun         int
 	stillrecent  int
+	CWMatrixLen  int
 	// - - - Analysis - - -
 	VelocityEnabled bool
 	EntropyEnabled  bool

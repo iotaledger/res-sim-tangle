@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 )
@@ -122,17 +123,17 @@ func updateApprovers(a map[int][]int, t Tx) map[int][]int {
 	return a
 }
 
-// func (sim *Sim) updateCW(tip Tx) {
-// 	defer sim.b.track(runningtime("updateCW-BitMask"))
-// 	sim.cw = append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
-// 	sim.addCW(sim.cw[tip.id], 1)
-// }
+func (sim *Sim) updateCW(tip Tx) {
+	defer sim.b.track(runningtime("updateCW-BitMask"))
+	sim.cw = append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
+	sim.addCW(sim.cw[tip.id], 1)
+}
 
 func (sim *Sim) updateCWOpt(tip Tx) {
 	defer sim.b.track(runningtime("updateCW-BitMask-Opt"))
 	//TODO: use circular array
 	// sim.cw[tip.id % CWMatrixLen]
-	sim.cw[tip.id%sim.param.CWMatrixLen] = cwBitMaskOpt(sim.tangle[tip.id], sim.cw) //append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
+	sim.cw[tip.id%sim.param.CWMatrixLen] = cwBitMaskOpt(sim.tangle[tip.id], sim) //append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
 	sim.addCW(sim.cw[tip.id%sim.param.CWMatrixLen], 1)
 }
 
@@ -216,6 +217,42 @@ func dfs(t Tx, visited map[int]bool, sim *Sim) {
 	}
 }
 
+func dfsBitMask(t Tx, sim *Sim) []uint64 {
+	set := make(map[int]bool)
+	dfs(t, set, sim)
+	// find max to know size
+	var size, base uint64
+	max := 0
+	for k := range set {
+		if k > max {
+			max = k
+		}
+	}
+	base = 64
+	size = uint64(max) / base
+	refCW := make([]uint64, int(size))
+	for k := range set {
+		l := uint64(k)
+		//update bit
+		refCW[int(size)-1] |= (1 << uint64(l%(base)))
+	}
+
+	// for k := range set {
+	// 	l := uint64(k)
+	// 	if l/base < size {
+	// 		//update bit
+	// 		refCW[int(size)-1] |= (1 << uint64(l%(base)))
+	// 	} else {
+	// 		for i = 0; i <= l/base-size; i++ {
+	// 			refCW = append(refCW, 0) //fill gap
+	// 		}
+	// 		size = l / base
+	// 		refCW[len(refCW)-1] |= 1 << uint64(l%(base)) //add new bit
+	// 	}
+	// }
+	return refCW
+}
+
 func cwBitMask(t Tx, cw [][]uint64) []uint64 {
 	refCW := make([][]uint64, len(t.ref))
 	var i uint64
@@ -260,17 +297,24 @@ func cwBitMask(t Tx, cw [][]uint64) []uint64 {
 
 }
 
-func cwBitMaskOpt(t Tx, cw [][]uint64) []uint64 {
+func cwBitMaskOpt(t Tx, sim *Sim) []uint64 {
 	refCW := make([][]uint64, len(t.ref))
 	var i uint64
 	var base uint64
 	base = 64
 	for k, link := range t.ref {
-		//TODO: add check t.id - link < 50*lambda, if not dfs or additional data structure
 		l := uint64(link)
-		size := uint64(len(cw[link%sim.param.CWMatrixLen]))
-		refCW[k] = make([]uint64, size)
-		copy(refCW[k], cw[link%sim.param.CWMatrixLen])
+		var size uint64
+		//check t.id - link < 50*lambda, if not dfs or additional data structure
+		if t.id-link < sim.param.CWMatrixLen {
+			size = uint64(len(sim.cw[link%sim.param.CWMatrixLen]))
+			refCW[k] = make([]uint64, size)
+			copy(refCW[k], sim.cw[link%sim.param.CWMatrixLen])
+		} else {
+			refCW[k] = dfsBitMask(sim.tangle[link], sim)
+			size = uint64(len(refCW[k]))
+			fmt.Println("DFS")
+		}
 		if l/base < size {
 			refCW[k][int(size)-1] |= (1 << uint64(l%(base))) //add new link
 		} else {
