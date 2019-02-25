@@ -267,7 +267,8 @@ func (p Parameters) printStatVelo(v map[int]int, target string) int {
 	_, variance := stat.MeanVariance(x, weigths)
 	skew := stat.Skew(x, weigths)
 	mode, _ := stat.Mode(x, weigths)
-	median := median(x, weigths)
+	//median := median(x, weigths)
+	median := stat.Quantile(0.5, stat.Empirical, x, weigths)
 
 	fmt.Println("\n", target)
 	fmt.Printf("#Lambda\t\tAlpha\t\tMean\t\tStd\t\tVar\t\tMedian\t\tMode\t\tSkew\t\tMin\t\tMax\t\tN\n")
@@ -421,7 +422,8 @@ func (s MetricIntInt) ToString(p Parameters, normalized bool) (result string) {
 	_, variance := stat.MeanVariance(x, weigths)
 	skew := stat.Skew(x, weigths)
 	mode, _ := stat.Mode(x, weigths)
-	median := median(x, weigths)
+	//median := median(x, weigths)
+	median := stat.Quantile(0.5, stat.Empirical, x, weigths)
 
 	//result += fmt.Sprintf("%s\n", s.desc)
 
@@ -459,7 +461,8 @@ func (s MetricFloat64Int) ToString(p Parameters, normalized bool) (result string
 	_, variance := stat.MeanVariance(x, weigths)
 	skew := stat.Skew(x, weigths)
 	mode, _ := stat.Mode(x, weigths)
-	median := median(x, weigths)
+	//median := median(x, weigths)
+	median := stat.Quantile(0.5, stat.Empirical, x, weigths)
 
 	//result += fmt.Sprintf("%s\n", s.desc)
 

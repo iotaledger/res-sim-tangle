@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 )
@@ -101,7 +100,7 @@ func (sim *Sim) revealTips(t Tx) []int {
 		sim.updateCWOpt(sim.tangle[tip])
 		// if sim.param.TSA == "RW" && sim.param.Alpha != 0 {
 		// 	sim.updateCW(sim.tangle[tip])
-		sim.updateCWDFS(sim.tangle[tip])
+		//sim.updateCWDFS(sim.tangle[tip])
 		// }
 		i++
 		if i >= len(sim.hiddenTips) {
@@ -230,11 +229,11 @@ func dfsBitMask(t Tx, sim *Sim) []uint64 {
 	}
 	base = 64
 	size = uint64(max) / base
-	refCW := make([]uint64, int(size))
+	refCW := make([]uint64, int(size)+1)
 	for k := range set {
 		l := uint64(k)
 		//update bit
-		refCW[int(size)-1] |= (1 << uint64(l%(base)))
+		refCW[int(l/base)] |= (1 << uint64(l%(base)))
 	}
 
 	// for k := range set {
@@ -313,7 +312,7 @@ func cwBitMaskOpt(t Tx, sim *Sim) []uint64 {
 		} else {
 			refCW[k] = dfsBitMask(sim.tangle[link], sim)
 			size = uint64(len(refCW[k]))
-			fmt.Println("DFS")
+			//fmt.Println("DFS")
 		}
 		if l/base < size {
 			refCW[k][int(size)-1] |= (1 << uint64(l%(base))) //add new link

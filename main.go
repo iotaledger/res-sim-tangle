@@ -27,7 +27,7 @@ func main() {
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 1, 0)
+	runSimulation(b, "rw", 100, 0)
 
 	printPerformance(b)
 }
@@ -50,8 +50,8 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		Alpha:      alpha,
 		TangleSize: 500 * int(lambda),
 		// TangleSize:   int(math.Min(3000, (100+math.Max(100, 30.0/alpha/lambda)))) * int(lambda),
-		minCut:       100 * int(lambda),
-		maxCutrange:  50 * int(lambda),
+		minCut:       30 * int(lambda),
+		maxCutrange:  30 * int(lambda),
 		ConstantRate: false,
 		// nRun:         int(math.Max(10000/lambda, 100)),
 		nRun:        1,

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"strings"
 
@@ -116,7 +115,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//fmt.Println(ghostWalk(sim.tangle[0], &sim))
 
 		//Compare CWs
-		fmt.Println("CW comparison:", sim.compareCW())
+		//fmt.Println("CW comparison:", sim.compareCW())
 		// - - - - - - - - - - - - - - - - - - - - -
 		// data evaluation after each tangle
 		// - - - - - - - - - - - - - - - - - - - - -
@@ -237,11 +236,8 @@ func (p Parameters) initSim(sim *Sim) {
 	sim.param.maxCutrange = p.maxCutrange
 	sim.param.maxCut = p.TangleSize - p.maxCutrange
 
-	sim.param.CWMatrixLen = 10 * int(sim.param.Lambda)
-	// for i := 0; i < sim.param.CWMatrixLen; i++ {
-	// 	sim.cw = append(sim.cw, []uint64{})
-	// }
-	//sim.cw = make([][]uint64, sim.param.CWMatrixLen)
+	//set circular matrix to 50*lambda rows to store cw bit masks
+	sim.param.CWMatrixLen = 50 * int(sim.param.Lambda)
 
 	createDirIfNotExist("data")
 
