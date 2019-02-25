@@ -8,7 +8,7 @@ import (
 	"gonum.org/v1/gonum/stat"
 )
 
-//Velocity result of simulation
+//Entropy result of simulation
 type entropyResult struct {
 	tips MetricIntInt // number of particles reaching specific tips
 	ep   [][]float64  // exit probabilities (number of rows = number of Tangles )
@@ -50,7 +50,12 @@ func sortEntropy(v map[int]int) (r []float64) {
 func (sim *Sim) entropyParticleRW(v map[int]int, nParticles int) {
 	for i := 0; i < nParticles; i++ {
 		prev := sim.tangle[0]
-		tsa := URW{}
+		var tsa RandomWalker
+		if sim.param.Alpha > 0 {
+			tsa = BRW{}
+		} else {
+			tsa = URW{}
+		}
 
 		var current Tx
 		for current, _ = tsa.RandomWalk(prev, sim); len(sim.approvers[current.id]) > 0; current, _ = tsa.RandomWalk(current, sim) {
