@@ -10,10 +10,11 @@ import (
 
 //Entropy result of simulation
 type entropyResult struct {
-	tips MetricIntInt // number of particles reaching specific tips
-	ep   [][]float64  // exit probabilities (number of rows = number of Tangles )
-	mean []float64    // exit probability means over Tangles
-	std  []float64    // exit probability std dev over Tangles
+	tips   MetricIntInt // number of particles reaching specific tips
+	ep     [][]float64  // exit probabilities (number of rows = number of Tangles )
+	mean   []float64    // exit probability means over Tangles
+	median []float64    // exit probability medians over Tangles
+	std    []float64    // exit probability std dev over Tangles
 }
 
 func newEntropyResult() *entropyResult {
@@ -50,7 +51,12 @@ func sortEntropy(v map[int]int) (r []float64) {
 func (sim *Sim) entropyParticleRW(v map[int]int, nParticles int) {
 	for i := 0; i < nParticles; i++ {
 		prev := sim.tangle[0]
-		tsa := URW{}
+		var tsa RandomWalker
+		if sim.param.Alpha > 0 {
+			tsa = BRW{}
+		} else {
+			tsa = URW{}
+		}
 
 		var current Tx
 		for current, _ = tsa.RandomWalk(prev, sim); len(sim.approvers[current.id]) > 0; current, _ = tsa.RandomWalk(current, sim) {
@@ -100,7 +106,7 @@ func (e *entropyResult) Save(p Parameters) (err error) {
 
 func (e *entropyResult) Stat(p Parameters) (result string) {
 	result += "#Entropy Stats [exit probabilities]\n"
-	result += "#Index\t\tSingle\t\tMean\t\tStdDev\n"
+	result += "#Index\t\tSingle\t\tMean\t\tStdDev\t\tMedian\n"
 
 	// find len of each row
 	var lenRows []int
@@ -121,13 +127,16 @@ func (e *entropyResult) Stat(p Parameters) (result string) {
 		for _, row := range e.ep {
 			c = append(c, row[i])
 		}
+		sort.Float64s(c)
 		mean, std := stat.MeanStdDev(c, nil)
+		median := stat.Quantile(0.5, stat.Empirical, c, nil)
 		e.mean = append(e.mean, mean)
+		e.median = append(e.median, median)
 		e.std = append(e.std, std)
 	}
 
 	for i := 0; i < nColumns; i++ {
-		result += fmt.Sprintf("%d\t\t%.4f\t\t%.4f\t\t%.4f\n", i, e.ep[0][i], e.mean[i], e.std[i])
+		result += fmt.Sprintf("%d\t\t%.4f\t\t%.4f\t\t%.4f\t\t%.4f\n", i, e.ep[0][i], e.mean[i], e.std[i], e.median[i])
 
 	}
 	return result
