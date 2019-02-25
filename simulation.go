@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 
@@ -114,6 +115,8 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//fmt.Println("Tangle size: ", sim.param.TangleSize)
 		//fmt.Println(ghostWalk(sim.tangle[0], &sim))
 
+		//Compare CWs
+		fmt.Println("CW comparison:", sim.compareCW())
 		// - - - - - - - - - - - - - - - - - - - - -
 		// data evaluation after each tangle
 		// - - - - - - - - - - - - - - - - - - - - -

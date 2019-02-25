@@ -25,7 +25,8 @@ func (sim *Sim) newGenesis() Tx {
 		cw2:           1,
 	}
 	sim.tips = append(sim.tips, 0)
-	sim.cw = append(sim.cw, make([]uint64, 1))
+	//sim.cw = append(sim.cw, make([]uint64, 1))
+	sim.cw[0] = make([]uint64, 1)
 	sim.cw[0][0] = 1
 	return genesis
 
@@ -96,10 +97,11 @@ func (sim *Sim) revealTips(t Tx) []int {
 	for sim.tangle[tip].isVisible(t.time, sim.param.H) {
 		sim.approvers = updateApprovers(sim.approvers, sim.tangle[tip])
 		//sim.updateCW(sim.tangle[tip])
-		if sim.param.TSA == "RW" && sim.param.Alpha != 0 {
-			sim.updateCW(sim.tangle[tip])
-			// 	//sim.updateCWDFS(sim.tangle[tip])
-		}
+		sim.updateCWOpt(sim.tangle[tip])
+		// if sim.param.TSA == "RW" && sim.param.Alpha != 0 {
+		// 	sim.updateCW(sim.tangle[tip])
+		sim.updateCWDFS(sim.tangle[tip])
+		// }
 		i++
 		if i >= len(sim.hiddenTips) {
 			break
@@ -120,11 +122,18 @@ func updateApprovers(a map[int][]int, t Tx) map[int][]int {
 	return a
 }
 
-func (sim *Sim) updateCW(tip Tx) {
-	defer sim.b.track(runningtime("updateCW-BitMask"))
-	sim.cw = append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
-	sim.addCW(sim.cw[tip.id], 1)
+// func (sim *Sim) updateCW(tip Tx) {
+// 	defer sim.b.track(runningtime("updateCW-BitMask"))
+// 	sim.cw = append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
+// 	sim.addCW(sim.cw[tip.id], 1)
+// }
 
+func (sim *Sim) updateCWOpt(tip Tx) {
+	defer sim.b.track(runningtime("updateCW-BitMask-Opt"))
+	//TODO: use circular array
+	// sim.cw[tip.id % CWMatrixLen]
+	sim.cw[tip.id%sim.param.CWMatrixLen] = cwBitMaskOpt(sim.tangle[tip.id], sim.cw) //append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
+	sim.addCW(sim.cw[tip.id%sim.param.CWMatrixLen], 1)
 }
 
 func (sim *Sim) updateCWDFS(tip Tx) {
@@ -218,6 +227,50 @@ func cwBitMask(t Tx, cw [][]uint64) []uint64 {
 		size := uint64(len(cw[link]))
 		refCW[k] = make([]uint64, size)
 		copy(refCW[k], cw[link])
+		if l/base < size {
+			refCW[k][int(size)-1] |= (1 << uint64(l%(base))) //add new link
+		} else {
+			for i = 0; i <= l/base-size; i++ {
+				refCW[k] = append(refCW[k], 0) //fill gap
+			}
+			refCW[k][len(refCW[k])-1] |= 1 << uint64(l%(base)) //add new link
+		}
+	}
+
+	a := []int{}
+	for _, r := range refCW {
+		a = append(a, len(r))
+	}
+	_, max := max(a)
+
+	for i, r := range refCW {
+		if max-len(r) > 0 {
+			padding := make([]uint64, max-len(r))
+			refCW[i] = append(refCW[i], padding...)
+		}
+	}
+
+	or := refCW[0]
+	for i := 1; i < len(t.ref); i++ {
+		for j := 0; j < max; j++ {
+			or[j] = or[j] | refCW[i][j]
+		}
+	}
+	return or
+
+}
+
+func cwBitMaskOpt(t Tx, cw [][]uint64) []uint64 {
+	refCW := make([][]uint64, len(t.ref))
+	var i uint64
+	var base uint64
+	base = 64
+	for k, link := range t.ref {
+		//TODO: add check t.id - link < 50*lambda, if not dfs or additional data structure
+		l := uint64(link)
+		size := uint64(len(cw[link%sim.param.CWMatrixLen]))
+		refCW[k] = make([]uint64, size)
+		copy(refCW[k], cw[link%sim.param.CWMatrixLen])
 		if l/base < size {
 			refCW[k][int(size)-1] |= (1 << uint64(l%(base))) //add new link
 		} else {

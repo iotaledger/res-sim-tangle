@@ -8,7 +8,7 @@ import (
 	"gonum.org/v1/gonum/stat"
 )
 
-//Velocity result of simulation
+//Entropy result of simulation
 type entropyResult struct {
 	tips MetricIntInt // number of particles reaching specific tips
 	ep   [][]float64  // exit probabilities (number of rows = number of Tangles )
