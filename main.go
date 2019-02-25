@@ -28,7 +28,7 @@ func main() {
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 5, 0.1)
+	runSimulation(b, "rw", 5, 0.01)
 
 	printPerformance(b)
 }
