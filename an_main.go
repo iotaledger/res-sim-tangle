@@ -25,7 +25,7 @@ func (f *Result) SaveResults(p Parameters) {
 		//f.entropy.SaveStat(p)
 	}
 	if p.pOrphanEnabled && p.SpineEnabled {
-		fmt.Println(f.pOrphan)
+		fmt.Println(f.op)
 	}
 	return
 }
@@ -45,7 +45,7 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 		f.entropy = f.entropy.Join(batch.entropy)
 	}
 	if p.pOrphanEnabled && p.SpineEnabled {
-		f.pOrphan = f.pOrphan.Join(batch.pOrphan)
+		f.op = f.op.Join(batch.op)
 	}
 	f.tips = f.tips.Join(batch.tips)
 }

@@ -63,7 +63,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	}
 	if p.pOrphanEnabled {
 		r := newPOrphanResult()
-		result.pOrphan = *r
+		result.op = *r
 	}
 
 	//fmt.Println(p.nRun)
@@ -144,7 +144,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			sim.runEntropyStat(&result.entropy)
 		}
 		if p.pOrphanEnabled && p.SpineEnabled {
-			sim.runPOrphan(&result.pOrphan)
+			sim.runOrphaningP(&result.op)
 		}
 
 		//for {

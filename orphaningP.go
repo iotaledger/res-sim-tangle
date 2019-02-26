@@ -3,28 +3,28 @@ package main
 import "fmt"
 
 type pOrphanResult struct {
-	p float64
+	op float64
 }
 
-func (sim *Sim) runPOrphan(result *pOrphanResult) {
+func (sim *Sim) runOrphaningP(result *pOrphanResult) {
 	//remove txs grater than maxCut from both tangle and spine tangle so to have a comparable cone
 	newTangle := sim.tangle[:sim.param.maxCut]
 	newSpineTangle := sliceSpineTangle(sim, sim.param.maxCut)
-	result.p = 1. - float64(len(newSpineTangle))/float64(len(newTangle))
+	result.op = 1. - float64(len(newSpineTangle))/float64(len(newTangle))
 	//fmt.Println("Prob=", result.p)
 }
 
 func (a pOrphanResult) Join(b pOrphanResult) pOrphanResult {
-	if a.p == 0 {
+	if a.op == 0 {
 		return b
 	}
 	var result pOrphanResult
-	result.p = (a.p + b.p) / 2.
+	result.op = (a.op + b.op) / 2.
 	return result
 }
 
 func (a pOrphanResult) String() string {
-	return fmt.Sprintln("Probability of becoming orphan:", a.p)
+	return fmt.Sprintln("Orphaning Probability:", a.op)
 }
 
 func newPOrphanResult() *pOrphanResult {

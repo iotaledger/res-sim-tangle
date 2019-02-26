@@ -141,8 +141,9 @@ func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]i
 
 func (sim *Sim) velocityParticleBackRW(v map[int]int, t map[float64]int, nParticles int) {
 	for i := 0; i < nParticles; i++ {
-		start := sim.generator.Intn(sim.param.maxCutrange) + sim.param.minCut - 1 // -1 just to be sure start is larger than TangleSize
-		prev := sim.tangle[start]
+		//start := sim.generator.Intn(sim.param.maxCutrange) + sim.param.minCut - 1 // -1 just to be sure start is larger than TangleSize
+		_, start := ghostWalk(sim.tangle[0], sim)
+		prev := start
 		var tsa RandomWalker
 		if sim.param.Alpha != 0 {
 			tsa = BRW{}
