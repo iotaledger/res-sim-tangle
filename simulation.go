@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 
@@ -9,14 +10,16 @@ import (
 
 // Sim contains the data structure of a Tangle simulation
 type Sim struct {
-	tangle     []Tx          // A Tangle, i.e., a list of transactions
-	tips       []int         // A list of current available/visible tips
-	hiddenTips []int         // A list of yet unavailable/hidden tips
-	approvers  map[int][]int // A map of direct approvers, e.g., 5 <- 10,13
-	cw         [][]uint64    // Matrix of propagated weigth branches (cw[i][] is the column of bit values forthe ith tx, stored as uint64 blocks)
-	generator  *rand.Rand    // An unsafe random generator
-	param      Parameters    // Set of simulation parameters
-	b          Benchmark     // Data structure to save performance of the simulation
+	tangle         []Tx          // A Tangle, i.e., a list of transactions
+	tips           []int         // A list of current available/visible tips
+	hiddenTips     []int         // A list of yet unavailable/hidden tips
+	approvers      map[int][]int // A map of direct approvers, e.g., 5 <- 10,13
+	cw             [][]uint64    // Matrix of propagated weigth branches (cw[i][] is the column of bit values forthe ith tx, stored as uint64 blocks)
+	generator      *rand.Rand    // An unsafe random generator
+	param          Parameters    // Set of simulation parameters
+	b              Benchmark     // Data structure to save performance of the simulation
+	spineTangle    map[int]Tx
+	spineApprovers map[int][]int
 }
 
 // RunTangle executes the simulation
@@ -40,7 +43,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		if sim.param.TSA != "RW" {
 			vr = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "back"})
 		} else {
-			vr = newVelocityResult([]string{"rw", "all", "first", "last", "back"})
+			vr = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "back"})
 			//vr = newVelocityResult([]string{"rw", "all", "back"})
 		}
 		result.velocity = *vr
@@ -57,6 +60,10 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	if p.EntropyEnabled {
 		r := newEntropyResult()
 		result.entropy = *r
+	}
+	if p.pOrphanEnabled {
+		r := newPOrphanResult()
+		result.pOrphan = *r
 	}
 
 	//fmt.Println(p.nRun)
@@ -110,9 +117,13 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 
 		}
 
-		//fmt.Println("\n\n")
+		fmt.Println("\n\n")
 		//fmt.Println("Tangle size: ", sim.param.TangleSize)
-		//fmt.Println(ghostWalk(sim.tangle[0], &sim))
+
+		if p.SpineEnabled {
+			sim.computeSpine()
+			//printApprovers(sim.spineApprovers)
+		}
 
 		//Compare CWs
 		//fmt.Println("CW comparison:", sim.compareCW())
@@ -131,6 +142,9 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		}
 		if p.EntropyEnabled {
 			sim.runEntropyStat(&result.entropy)
+		}
+		if p.pOrphanEnabled && p.SpineEnabled {
+			sim.runPOrphan(&result.pOrphan)
 		}
 
 		//for {
@@ -227,6 +241,8 @@ func (p Parameters) initSim(sim *Sim) {
 	sim.param.ConstantRate = p.ConstantRate
 	sim.param.VelocityEnabled = p.VelocityEnabled
 	sim.param.EntropyEnabled = p.EntropyEnabled
+	sim.param.SpineEnabled = p.SpineEnabled
+	sim.param.pOrphanEnabled = p.pOrphanEnabled
 
 	if p.DataPath != "" {
 		sim.param.DataPath = p.DataPath
@@ -253,4 +269,7 @@ func clearSim(sim *Sim) {
 	sim.tangle = make([]Tx, sim.param.TangleSize)
 	sim.tips = []int{}
 	sim.hiddenTips = []int{}
+
+	sim.spineTangle = make(map[int]Tx)
+	sim.spineApprovers = make(map[int][]int)
 }

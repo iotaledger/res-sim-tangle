@@ -15,6 +15,7 @@ type TipSelector interface {
 type RandomWalker interface {
 	RandomWalk(Tx, *Sim) (Tx, int)
 	RandomWalkBack(Tx, *Sim) Tx
+	RandomWalkSpine(Tx, *Sim) (Tx, int)
 }
 
 // URTS defines a concrete type of a TSA
@@ -80,6 +81,19 @@ func (URW) RandomWalk(t Tx, sim *Sim) (Tx, int) {
 	return sim.tangle[directApprovers[j]], j
 }
 
+//RandomWalkSpine returns the choosen tip and its index position when walking over the spine Tangle
+func (URW) RandomWalkSpine(t Tx, sim *Sim) (Tx, int) {
+	directApprovers := sim.spineApprovers[t.id]
+	if (len(directApprovers)) == 0 {
+		return t, -1
+	}
+	if (len(directApprovers)) == 1 {
+		return sim.spineTangle[directApprovers[0]], 0
+	}
+	j := rand.Intn(len(directApprovers))
+	return sim.spineTangle[directApprovers[j]], j
+}
+
 //RandomWalkBack returns the choosen tx
 func (URW) RandomWalkBack(t Tx, sim *Sim) Tx {
 	refs := t.ref
@@ -103,17 +117,26 @@ func (BRW) RandomWalk(t Tx, sim *Sim) (choosenTip Tx, approverIndx int) {
 	if (len(directApprovers)) == 1 {
 		return sim.tangle[directApprovers[0]], 0
 	}
-	// nw, ok := cache[t.id]
-	// if !ok {
-	// 	nw = normalizeWeights(directApprovers, sim)
-	// 	cache[t.id] = nw
-	// } else {
-	// 	//fmt.Println("HIT")
-	// }
 
 	nw := normalizeWeights(directApprovers, sim)
 	tip, j := weightedChoose(directApprovers, nw, sim.generator, sim.b)
 	return sim.tangle[tip], j
+}
+
+//RandomWalkSpine returns the chosen tip and its index position when walking over the spine Tangle
+func (BRW) RandomWalkSpine(t Tx, sim *Sim) (choosenTip Tx, approverIndx int) {
+	//defer sim.b.track(runningtime("BRW"))
+	directApprovers := sim.spineApprovers[t.id]
+	if (len(directApprovers)) == 0 {
+		return t, -1
+	}
+	if (len(directApprovers)) == 1 {
+		return sim.spineTangle[directApprovers[0]], 0
+	}
+
+	nw := normalizeWeights(directApprovers, sim)
+	tip, j := weightedChoose(directApprovers, nw, sim.generator, sim.b)
+	return sim.spineTangle[tip], j
 }
 
 //RandomWalkBack returns the chosen tx
@@ -150,31 +173,4 @@ func randomWalk(tsa RandomWalker, t Tx, sim *Sim) []int {
 		}
 	}
 	return tipsApproved
-}
-
-func ghostWalk(t Tx, sim *Sim) (path []int, tip Tx) {
-	defer sim.b.track(runningtime("Ghost RW"))
-
-	var current Tx
-	for current = ghostStep(sim.tangle[0], sim); len(sim.approvers[current.id]) > 0; current = ghostStep(current, sim) {
-		path = append(path, current.id)
-	}
-	return path, current
-}
-
-func ghostStep(t Tx, sim *Sim) Tx {
-	directApprovers := sim.approvers[t.id]
-	if (len(directApprovers)) == 0 {
-		return t
-	}
-	if (len(directApprovers)) == 1 {
-		return sim.tangle[directApprovers[0]]
-	}
-
-	var cws []int
-	for approver := range directApprovers {
-		cws = append(cws, sim.tangle[approver].cw)
-	}
-	maxCW, _ := max(cws)
-	return sim.tangle[directApprovers[maxCW]]
 }

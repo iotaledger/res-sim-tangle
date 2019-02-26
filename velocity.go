@@ -51,14 +51,26 @@ func (sim *Sim) runVelocityStat(result *velocityResult) {
 		sim.velocityBackURTS(result.vID[8].v, result.vTime[8].v)
 	} else {
 		sim.velocityParticleRW(result.vID[0].v, result.vTime[0].v, result.dApprovers[0].v, result.vCW[0].v, result.vCWfirst[0].v, 100000)
-		sim.velocityAll(result.vID[1].v, result.vTime[1].v, result.dApprovers[1].v, result.vCW[1].v, result.vCWfirst[1].v)
-		sim.velocityOfIndexRW(result.vID[2].v, result.vTime[2].v, result.vCW[2].v, result.vCWfirst[2].v, 1, 100000)
-		sim.velocityOfIndexRW(result.vID[3].v, result.vTime[3].v, result.vCW[3].v, result.vCWfirst[3].v, -1, 100000)
+		if sim.param.SpineEnabled {
+			sim.velocityAllSpine(result.vID[1].v, result.vTime[1].v, result.dApprovers[1].v, result.vCW[1].v, result.vCWfirst[1].v)
+			sim.velocityOfIndexRWSpine(result.vID[2].v, result.vTime[2].v, result.vCW[2].v, result.vCWfirst[2].v, 1, 100000)
+			sim.velocityOfIndexRWSpine(result.vID[3].v, result.vTime[3].v, result.vCW[3].v, result.vCWfirst[3].v, -1, 100000)
+			sim.velocityCWLowUpBoundSpine(result.vID[4].v, result.vTime[4].v, result.vCW[4].v, result.vCWfirst[4].v, 1)
+			sim.velocityCWLowUpBoundSpine(result.vID[5].v, result.vTime[5].v, result.vCW[5].v, result.vCWfirst[5].v, -1)
+			sim.velocityParticleBackRW(result.vID[6].v, result.vTime[6].v, 100000)
+		} else {
+			sim.velocityAll(result.vID[1].v, result.vTime[1].v, result.dApprovers[1].v, result.vCW[1].v, result.vCWfirst[1].v)
+			sim.velocityOfIndexRW(result.vID[2].v, result.vTime[2].v, result.vCW[2].v, result.vCWfirst[2].v, 1, 100000)
+			sim.velocityOfIndexRW(result.vID[3].v, result.vTime[3].v, result.vCW[3].v, result.vCWfirst[3].v, -1, 100000)
+			sim.velocityCWLowUpBound(result.vID[4].v, result.vTime[4].v, result.vCW[4].v, result.vCWfirst[4].v, 1)
+			sim.velocityCWLowUpBound(result.vID[5].v, result.vTime[5].v, result.vCW[5].v, result.vCWfirst[5].v, -1)
+			sim.velocityParticleBackRW(result.vID[6].v, result.vTime[6].v, 100000)
+		}
 		//sim.velocityOfIndexRW(result.vID[4].v, result.vTime[4].v, result.vCW[4].v, result.vCWfirst[4].v, 2, 100000)
 		//sim.velocityOfIndexRW(result.vID[5].v, result.vTime[5].v, result.vCW[5].v, result.vCWfirst[5].v, 3, 100000)
 		//sim.velocityOfIndexRW(result.vID[6].v, result.vTime[6].v, result.vCW[6].v, result.vCWfirst[6].v, 4, 100000)
 		//sim.velocityOfOnlyIndex(result.vID[7].v, result.vTime[7].v, result.vCW[7].v, 1)
-		sim.velocityParticleBackRW(result.vID[4].v, result.vTime[4].v, 100000)
+
 	}
 
 }
@@ -99,9 +111,9 @@ func (sim Sim) velocityBackURTS(v map[int]int, t map[float64]int) {
 
 func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]int, w, wFirst map[int]int, nParticles int) {
 	for i := 0; i < nParticles; i++ {
-		//prev := sim.tangle[0]
-		start := sim.generator.Intn(sim.param.minCut)
-		prev := sim.tangle[start]
+		prev := sim.spineTangle[0]
+		//start := sim.generator.Intn(sim.param.minCut)
+		//prev := sim.tangle[start]
 		var tsa RandomWalker
 		if sim.param.Alpha != 0 {
 			tsa = BRW{}
@@ -109,7 +121,7 @@ func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]i
 			tsa = URW{}
 		}
 
-		for current, currentIdx := tsa.RandomWalk(prev, sim); len(sim.approvers[current.id]) > 0; current, currentIdx = tsa.RandomWalk(current, sim) {
+		for current, currentIdx := tsa.RandomWalkSpine(prev, sim); len(sim.spineApprovers[current.id]) > 0; current, currentIdx = tsa.RandomWalkSpine(current, sim) {
 			if current.id > sim.param.minCut && current.id < sim.param.maxCut {
 				delta := current.id - prev.id
 				v[delta]++
@@ -118,7 +130,7 @@ func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]i
 				t[deltaTime]++
 				deltaCW := prev.cw - current.cw
 				w[deltaCW]++
-				if len(sim.approvers[prev.id]) > 1 {
+				if len(sim.spineApprovers[prev.id]) > 1 {
 					wFirst[deltaCW]++
 				}
 			}
@@ -179,7 +191,7 @@ func (sim Sim) velocityOfIndex(v map[int]int, t map[float64]int, w, wFirst map[i
 func (sim *Sim) velocityOfIndexRW(v map[int]int, t map[float64]int, w, wFirst map[int]int, index int, nParticles int) {
 
 	for i := 0; i < nParticles; i++ {
-		start := sim.generator.Intn(sim.param.minCut)
+		start := 0 //sim.generator.Intn(sim.param.minCut)
 
 		for current := sim.tangle[start]; len(sim.approvers[current.id]) > 0 && current.id < sim.param.maxCut; {
 			if index > 0 && len(sim.approvers[current.id]) > index-1 {
@@ -210,6 +222,119 @@ func (sim *Sim) velocityOfIndexRW(v map[int]int, t map[float64]int, w, wFirst ma
 				current = sim.tangle[sim.approvers[current.id][len(sim.approvers[current.id])-1]]
 			} else {
 				break
+			}
+		}
+	}
+}
+
+func (sim *Sim) velocityOfIndexRWSpine(v map[int]int, t map[float64]int, w, wFirst map[int]int, index int, nParticles int) {
+
+	//for i := 0; i < nParticles; i++ {
+	start := 0 //sim.generator.Intn(sim.param.minCut)
+
+	for current := sim.spineTangle[start]; len(sim.spineApprovers[current.id]) > 0 && current.id < sim.param.maxCut; {
+		if index > 0 && len(sim.spineApprovers[current.id]) > index-1 { //lower bound for index = 1
+			delta := sim.spineApprovers[current.id][index-1] - current.id
+			deltaTime := math.Round((sim.spineTangle[sim.spineApprovers[current.id][index-1]].time-sim.spineTangle[current.id].time)*100) / 100
+			deltaCW := sim.spineTangle[current.id].cw - sim.spineTangle[sim.spineApprovers[current.id][index-1]].cw
+			if current.id > sim.param.minCut && current.id < sim.param.maxCut {
+				v[delta]++
+				t[deltaTime]++
+				w[deltaCW]++
+				if len(sim.spineApprovers[current.id]) > 1 {
+					wFirst[deltaCW]++
+				}
+			}
+			current = sim.spineTangle[sim.spineApprovers[current.id][index-1]]
+		} else if index < 0 && len(sim.spineApprovers[current.id]) > 0 { //upper bound
+			delta := sim.spineApprovers[current.id][len(sim.spineApprovers[current.id])-1] - current.id
+			deltaTime := math.Round((sim.spineTangle[sim.spineApprovers[current.id][len(sim.spineApprovers[current.id])-1]].time-sim.spineTangle[current.id].time)*100) / 100
+			deltaCW := sim.spineTangle[current.id].cw - sim.spineTangle[sim.spineApprovers[current.id][len(sim.spineApprovers[current.id])-1]].cw
+			if current.id > sim.param.minCut && current.id < sim.param.maxCut {
+				v[delta]++
+				t[deltaTime]++
+				w[deltaCW]++
+				if len(sim.spineApprovers[current.id]) > 1 {
+					wFirst[deltaCW]++
+				}
+			}
+			current = sim.spineTangle[sim.spineApprovers[current.id][len(sim.spineApprovers[current.id])-1]]
+		} else {
+			break
+		}
+	}
+	//}
+}
+
+func (sim *Sim) velocityCWLowUpBound(v map[int]int, t map[float64]int, w, wFirst map[int]int, index int) {
+
+	start := 0 //sim.generator.Intn(sim.param.minCut)
+
+	for current := sim.tangle[start]; len(sim.approvers[current.id]) > 0 && current.id < sim.param.maxCut; {
+		prev := current
+		if index > 0 && len(sim.approvers[current.id]) > index-1 { //lower bound for index = 1
+			//select approvers with max cw
+			var cws []int
+			for _, approver := range sim.approvers[current.id] {
+				cws = append(cws, sim.tangle[approver].cw)
+			}
+			maxCW, _ := max(cws)
+			current = sim.tangle[sim.approvers[current.id][maxCW]]
+		} else if index < 0 && len(sim.approvers[current.id]) > 0 { //upper bound
+			//select approvers with min cw
+			var cws []int
+			for _, approver := range sim.approvers[current.id] {
+				cws = append(cws, sim.tangle[approver].cw)
+			}
+			minCW, _ := min(cws)
+			current = sim.tangle[sim.approvers[current.id][minCW]]
+		}
+		delta := current.id - prev.id
+		deltaTime := math.Round((current.time-prev.time)*100) / 100
+		deltaCW := prev.cw - current.cw
+		if current.id > sim.param.minCut && current.id < sim.param.maxCut {
+			v[delta]++
+			t[deltaTime]++
+			w[deltaCW]++
+			if len(sim.approvers[current.id]) > 1 {
+				wFirst[deltaCW]++
+			}
+		}
+	}
+}
+
+func (sim *Sim) velocityCWLowUpBoundSpine(v map[int]int, t map[float64]int, w, wFirst map[int]int, index int) {
+
+	start := 0 //sim.generator.Intn(sim.param.minCut)
+
+	for current := sim.spineTangle[start]; len(sim.spineApprovers[current.id]) > 0 && current.id < sim.param.maxCut; {
+		prev := current
+		if index > 0 && len(sim.spineApprovers[current.id]) > index-1 { //lower bound for index = 1
+			//select approvers with max cw
+			var cws []int
+			for _, approver := range sim.spineApprovers[current.id] {
+				cws = append(cws, sim.spineTangle[approver].cw)
+			}
+			maxCW, _ := max(cws)
+			current = sim.spineTangle[sim.spineApprovers[current.id][maxCW]]
+		} else if index < 0 && len(sim.spineApprovers[current.id]) > 0 { //upper bound
+			//select approvers with min cw
+			var cws []int
+			for _, approver := range sim.spineApprovers[current.id] {
+				cws = append(cws, sim.spineTangle[approver].cw)
+			}
+			minCW, _ := min(cws)
+			current = sim.spineTangle[sim.spineApprovers[current.id][minCW]]
+		}
+		delta := current.id - prev.id
+		deltaTime := math.Round((current.time-prev.time)*100) / 100
+		deltaCW := prev.cw - current.cw
+		if current.id > sim.param.minCut && current.id < sim.param.maxCut {
+			v[delta]++
+			t[deltaTime]++
+			w[deltaCW]++
+			if len(sim.spineApprovers[current.id]) > 1 {
+				wFirst[deltaCW]++
 			}
 		}
 	}
@@ -246,65 +371,22 @@ func (sim Sim) velocityAll(v map[int]int, t map[float64]int, d map[int]int, w, w
 	}
 }
 
-func (p Parameters) printStatVelo(v map[int]int, target string) int {
-	var keys []int
-	var datapoints int
-	for k := range v {
-		keys = append(keys, k)
-	}
-	sort.Ints(keys)
+func (sim Sim) velocityAllSpine(v map[int]int, t map[float64]int, d map[int]int, w, wFirst map[int]int) {
+	for i := sim.param.minCut; i < sim.param.maxCut; i++ {
 
-	// calculate statistics
-	var weigths []float64
-	var x []float64
-	for k := range keys {
-		x = append(x, float64(keys[k])/p.Lambda)
-		weigths = append(weigths, float64(v[keys[k]]))
-		datapoints = datapoints + v[keys[k]]
-	}
-
-	var avg, std = stat.MeanStdDev(x, weigths)
-	_, variance := stat.MeanVariance(x, weigths)
-	skew := stat.Skew(x, weigths)
-	mode, _ := stat.Mode(x, weigths)
-	//median := median(x, weigths)
-	median := stat.Quantile(0.5, stat.Empirical, x, weigths)
-
-	fmt.Println("\n", target)
-	fmt.Printf("#Lambda\t\tAlpha\t\tMean\t\tStd\t\tVar\t\tMedian\t\tMode\t\tSkew\t\tMin\t\tMax\t\tN\n")
-	if variance > 10000 {
-		fmt.Printf("%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t%.2f\t\t%.2f\t\t%.3f\t\t%.2f\t\t%.2f\t\t%d\n", p.Lambda, p.Alpha, avg, std, variance, median, mode, skew, x[0], x[len(x)-1], datapoints)
-	} else {
-		fmt.Printf("%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.3f\t\t%.2f\t\t%.2f\t\t%d\n", p.Lambda, p.Alpha, avg, std, variance, median, mode, skew, x[0], x[len(x)-1], datapoints)
-	}
-
-	// save to file for plot
-
-	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
-	alphaStr := fmt.Sprintf("%.2f", p.Alpha)
-	var rateType string
-	if p.ConstantRate {
-		rateType = "constant"
-	} else {
-		rateType = "poisson"
-	}
-	f, err := os.Create("data/velocity_" + rateType + "_" + target +
-		"_lambda_" + lambdaStr +
-		"_alpha_" + alphaStr + "_.txt")
-	if err != nil {
-		fmt.Printf("error creating file: %v", err)
-		return 0
-	}
-	defer f.Close()
-	for i, k := range x {
-		//fmt.Println("Key:", k, "Value:", m[k])
-		_, err = f.WriteString(fmt.Sprintf("%f\t%f\n", k, weigths[i]/float64(datapoints)*p.Lambda)) // writing...
-		if err != nil {
-			fmt.Printf("error writing string: %v", err)
+		d[len(sim.spineApprovers[i])]++
+		for _, a := range sim.spineApprovers[i] {
+			delta := a - i
+			v[delta]++
+			deltaTime := math.Round((sim.spineTangle[a].time-sim.spineTangle[i].time)*100) / 100
+			t[deltaTime]++
+			deltaCW := sim.spineTangle[i].cw - sim.spineTangle[a].cw
+			w[deltaCW]++
+			if len(sim.spineApprovers[i]) > 1 {
+				wFirst[deltaCW]++
+			}
 		}
 	}
-
-	return datapoints
 }
 
 func (velo *velocityResult) Join(b velocityResult) (r velocityResult) {
@@ -418,12 +500,15 @@ func (s MetricIntInt) ToString(p Parameters, normalized bool) (result string) {
 		datapoints = datapoints + s.v[keys[k]]
 	}
 
+	//fmt.Println(s.desc, x, weigths)
+
 	var avg, std = stat.MeanStdDev(x, weigths)
 	_, variance := stat.MeanVariance(x, weigths)
 	skew := stat.Skew(x, weigths)
 	mode, _ := stat.Mode(x, weigths)
 	//median := median(x, weigths)
 	median := stat.Quantile(0.5, stat.Empirical, x, weigths)
+	//median := 0.
 
 	//result += fmt.Sprintf("%s\n", s.desc)
 

@@ -37,6 +37,16 @@ func max(a []int) (int, int) {
 	return idx, max
 }
 
+func min(a []int) (int, int) {
+	idx, min := 0, a[0]
+	for i, val := range a {
+		if val < min {
+			min, idx = val, i
+		}
+	}
+	return idx, min
+}
+
 func mapEq(a, b map[int]int) bool {
 	for k, v := range b {
 		if a[k] != v {
@@ -55,22 +65,22 @@ func avgMapInt(a, b map[int]int) map[int]int {
 	return j
 }
 
-func median(x, weights []float64) float64 {
-	size := 0.0
-	for _, v := range weights {
-		size += v
-	}
+// func median(x, weights []float64) float64 {
+// 	size := 0.0
+// 	for _, v := range weights {
+// 		size += v
+// 	}
 
-	tmp := 0.0
-	for k, v := range weights {
-		tmp += v
-		if (size / 2) < tmp {
-			return x[k]
-		}
-	}
-	return 0
+// 	tmp := 0.0
+// 	for k, v := range weights {
+// 		tmp += v
+// 		if (size / 2) < tmp {
+// 			return x[k]
+// 		}
+// 	}
+// 	return 0
 
-}
+// }
 
 func createDirIfNotExist(dir string) {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {

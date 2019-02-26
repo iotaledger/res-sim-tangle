@@ -9,6 +9,7 @@ type Result struct {
 	PastCone PastConeResult
 	FocusRW  FocusRWResult
 	entropy  entropyResult
+	pOrphan  pOrphanResult
 }
 
 type avgTips struct {

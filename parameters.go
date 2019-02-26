@@ -21,6 +21,8 @@ type Parameters struct {
 	// - - - Analysis - - -
 	VelocityEnabled bool
 	EntropyEnabled  bool
+	SpineEnabled    bool
+	pOrphanEnabled  bool
 	AnPastCone      AnPastCone
 	AnFocusRW       AnFocusRW
 }

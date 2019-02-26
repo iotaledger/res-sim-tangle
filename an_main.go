@@ -8,8 +8,8 @@ import "fmt"
 func (f *Result) SaveResults(p Parameters) {
 	if p.VelocityEnabled {
 		fmt.Println(f.velocity.Stat(p))
-		f.velocity.Save(p)
-		f.velocity.SaveStat(p)
+		//f.velocity.Save(p)
+		//f.velocity.SaveStat(p)
 	}
 	if p.AnPastCone.Enabled {
 		f.PastCone.finalprocess(p)
@@ -21,8 +21,11 @@ func (f *Result) SaveResults(p Parameters) {
 	}
 	if p.EntropyEnabled {
 		fmt.Println(f.entropy.Stat(p))
-		f.entropy.Save(p)
+		//f.entropy.Save(p)
 		//f.entropy.SaveStat(p)
+	}
+	if p.pOrphanEnabled && p.SpineEnabled {
+		fmt.Println(f.pOrphan)
 	}
 	return
 }
@@ -40,6 +43,9 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	}
 	if p.EntropyEnabled {
 		f.entropy = f.entropy.Join(batch.entropy)
+	}
+	if p.pOrphanEnabled && p.SpineEnabled {
+		f.pOrphan = f.pOrphan.Join(batch.pOrphan)
 	}
 	f.tips = f.tips.Join(batch.tips)
 }

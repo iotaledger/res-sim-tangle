@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
-	"runtime"
 	"strings"
 )
 
 // var nParallelSims = 1
 
 // factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-var nParallelSims = runtime.NumCPU()/2 - 1
+var nParallelSims = 1 //runtime.NumCPU()/2 - 1
 
 func main() {
 
@@ -28,7 +27,7 @@ func main() {
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 100, 0)
+	runSimulation(b, "rw", 4, 1)
 
 	printPerformance(b)
 }
@@ -60,6 +59,8 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		stillrecent: 2 * int(lambda), // when is a tx considered recent, and when is it a candidate for left behind
 
 		// - - - Analysis section - - -
+		SpineEnabled:    true,
+		pOrphanEnabled:  true,
 		VelocityEnabled: false,
 		EntropyEnabled:  false,
 		//{Enabled, Resolution, MaxT, MaxApp}
