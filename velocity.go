@@ -439,7 +439,7 @@ func (velo velocityResult) Save(p Parameters) (err error) {
 
 func (velo velocityResult) SaveStat(p Parameters) (err error) {
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
-	alphaStr := fmt.Sprintf("%.2f", p.Alpha)
+	alphaStr := fmt.Sprintf("%.4f", p.Alpha)
 	var rateType string
 	if p.ConstantRate {
 		rateType = "constant"
@@ -514,9 +514,9 @@ func (s MetricIntInt) ToString(p Parameters, normalized bool) (result string) {
 	//result += fmt.Sprintf("%s\n", s.desc)
 
 	if variance > 10000 {
-		result += fmt.Sprintf("%s\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t%.2f\t\t%.2f\t\t%.3f\t\t%.2f\t\t%.2f\t\t%d\n", s.desc, p.Lambda, p.Alpha, avg, std, variance, median, mode, skew, x[0], x[len(x)-1], datapoints)
+		result += fmt.Sprintf("%s\t\t%.2f\t\t%.4f\t\t%.2f\t\t%.2f\t\t%.2f\t%.2f\t\t%.2f\t\t%.3f\t\t%.2f\t\t%.2f\t\t%d\n", s.desc, p.Lambda, p.Alpha, avg, std, variance, median, mode, skew, x[0], x[len(x)-1], datapoints)
 	} else {
-		result += fmt.Sprintf("%s\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.3f\t\t%.2f\t\t%.2f\t\t%d\n", s.desc, p.Lambda, p.Alpha, avg, std, variance, median, mode, skew, x[0], x[len(x)-1], datapoints)
+		result += fmt.Sprintf("%s\t\t%.2f\t\t%.4f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.3f\t\t%.2f\t\t%.2f\t\t%d\n", s.desc, p.Lambda, p.Alpha, avg, std, variance, median, mode, skew, x[0], x[len(x)-1], datapoints)
 	}
 	return result
 }
@@ -553,15 +553,15 @@ func (s MetricFloat64Int) ToString(p Parameters, normalized bool) (result string
 	//result += fmt.Sprintf("%s\n", s.desc)
 
 	if variance > 10000 {
-		result += fmt.Sprintf("%s\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t%.2f\t\t%.2f\t\t%.3f\t\t%.2f\t\t%.2f\t\t%d\n", s.desc, p.Lambda, p.Alpha, avg, std, variance, median, mode, skew, x[0], x[len(x)-1], datapoints)
+		result += fmt.Sprintf("%s\t\t%.2f\t\t%.4f\t\t%.2f\t\t%.2f\t\t%.2f\t%.2f\t\t%.2f\t\t%.3f\t\t%.2f\t\t%.2f\t\t%d\n", s.desc, p.Lambda, p.Alpha, avg, std, variance, median, mode, skew, x[0], x[len(x)-1], datapoints)
 	} else {
-		result += fmt.Sprintf("%s\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.3f\t\t%.2f\t\t%.2f\t\t%d\n", s.desc, p.Lambda, p.Alpha, avg, std, variance, median, mode, skew, x[0], x[len(x)-1], datapoints)
+		result += fmt.Sprintf("%s\t\t%.2f\t\t%.4f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.3f\t\t%.2f\t\t%.2f\t\t%d\n", s.desc, p.Lambda, p.Alpha, avg, std, variance, median, mode, skew, x[0], x[len(x)-1], datapoints)
 	}
 	return result
 }
 
 // Save saves a MetricIntInt on a file
-func (s MetricIntInt) Save(p Parameters, target string, normalized bool) error {
+func (s MetricIntInt) Save(p Parameters, aType, target string, normalized bool) error {
 	var keys []int
 	var datapoints int
 	for k := range s.v {
@@ -584,14 +584,14 @@ func (s MetricIntInt) Save(p Parameters, target string, normalized bool) error {
 	// save to file for plot
 
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
-	alphaStr := fmt.Sprintf("%.2f", p.Alpha)
+	alphaStr := fmt.Sprintf("%.4f", p.Alpha)
 	var rateType string
 	if p.ConstantRate {
 		rateType = "constant"
 	} else {
 		rateType = "poisson"
 	}
-	f, err := os.Create("data/velocity_" + target + "_" + p.TSA + "_" + rateType + "_" + s.desc +
+	f, err := os.Create("data/" + aType + "_" + target + "_" + p.TSA + "_" + rateType + "_" + s.desc +
 		"_lambda_" + lambdaStr +
 		"_alpha_" + alphaStr + "_.txt")
 	if err != nil {
@@ -601,7 +601,7 @@ func (s MetricIntInt) Save(p Parameters, target string, normalized bool) error {
 	defer f.Close()
 	for i, k := range x {
 		//fmt.Println("Key:", k, "Value:", m[k])
-		if target == "approvers" {
+		if target == "approvers" || !normalized {
 			_, err = f.WriteString(fmt.Sprintf("%d\t%f\n", int(k), weigths[i]/float64(datapoints)*norm)) // writing...
 		} else {
 			_, err = f.WriteString(fmt.Sprintf("%f\t%f\n", k, weigths[i]/float64(datapoints)*norm)) // writing...
@@ -636,7 +636,7 @@ func (s MetricFloat64Int) Save(p Parameters, target string, normalized bool) err
 	// save to file for plot
 
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
-	alphaStr := fmt.Sprintf("%.2f", p.Alpha)
+	alphaStr := fmt.Sprintf("%.4f", p.Alpha)
 	var rateType string
 	if p.ConstantRate {
 		rateType = "constant"
@@ -662,7 +662,7 @@ func (s MetricFloat64Int) Save(p Parameters, target string, normalized bool) err
 
 func (velo velocityResult) SaveVID(p Parameters) error {
 	for _, velocity := range velo.vID {
-		velocity.Save(p, "ID", true)
+		velocity.Save(p, "velocity", "ID", true)
 	}
 	return nil
 }
@@ -676,21 +676,21 @@ func (velo velocityResult) SaveVTime(p Parameters) error {
 
 func (velo velocityResult) saveApprovers(p Parameters) error {
 	for _, velocity := range velo.dApprovers {
-		velocity.Save(p, "approvers", false)
+		velocity.Save(p, "velocity", "approvers", false)
 	}
 	return nil
 }
 
 func (velo velocityResult) saveCW(p Parameters) error {
 	for _, velocity := range velo.vCW {
-		velocity.Save(p, "cw", true)
+		velocity.Save(p, "velocity", "cw", true)
 	}
 	return nil
 }
 
 func (velo velocityResult) saveCWfirst(p Parameters) error {
 	for _, velocity := range velo.vCWfirst {
-		velocity.Save(p, "cw-first", true)
+		velocity.Save(p, "velocity", "cw-first", true)
 	}
 	return nil
 }

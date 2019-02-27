@@ -19,12 +19,14 @@ type Parameters struct {
 	stillrecent  int
 	CWMatrixLen  int
 	// - - - Analysis - - -
-	VelocityEnabled bool
-	EntropyEnabled  bool
-	SpineEnabled    bool
-	pOrphanEnabled  bool
-	AnPastCone      AnPastCone
-	AnFocusRW       AnFocusRW
+	CountTipsEnabled  bool
+	CWAnalysisEnabled bool
+	VelocityEnabled   bool
+	EntropyEnabled    bool
+	SpineEnabled      bool
+	pOrphanEnabled    bool
+	AnPastCone        AnPastCone
+	AnFocusRW         AnFocusRW
 }
 
 // AnPastCone Analysis Past Cone

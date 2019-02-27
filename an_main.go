@@ -2,10 +2,36 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 //SaveResults saves result
 func (f *Result) SaveResults(p Parameters) {
+	if p.CountTipsEnabled {
+		f.tips.Statistics(p)
+		fmt.Println(f.tips.ToString(p))
+		//fmt.Println(f.tips.nTipsToString(p, 0))
+		f.tips.Save(p, 0)
+		// //debug
+		// var keys []int
+		// for k := range f.tips.tPDF.v {
+		// 	keys = append(keys, k)
+		// }
+		// sort.Ints(keys)
+
+		// for _, v := range keys {
+		// 	fmt.Println(v, f.tips.tPDF.v[v], f.tips.pdf[0].v[v])
+		// }
+		// //fmt.Println(f.tips.pdf[0])
+		// //fmt.Println(f.tips.tPDF)
+	}
+	if p.CWAnalysisEnabled {
+		f.cw.Statistics(p)
+		//fmt.Println(f.cw.ToString(p))
+		fmt.Println(f.cw.cwToString(p, 0))
+		f.cw.Save(p, 0)
+	}
 	if p.VelocityEnabled {
 		fmt.Println(f.velocity.Stat(p))
 		//f.velocity.Save(p)
@@ -21,7 +47,7 @@ func (f *Result) SaveResults(p Parameters) {
 	}
 	if p.EntropyEnabled {
 		fmt.Println(f.entropy.Stat(p))
-		//f.entropy.Save(p)
+		f.entropy.Save(p)
 		//f.entropy.SaveStat(p)
 	}
 	if p.pOrphanEnabled && p.SpineEnabled {
@@ -47,5 +73,10 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	if p.pOrphanEnabled && p.SpineEnabled {
 		f.op = f.op.Join(batch.op)
 	}
-	f.tips = f.tips.Join(batch.tips)
+	if p.CountTipsEnabled {
+		f.tips = f.tips.Join(batch.tips)
+	}
+	if p.CWAnalysisEnabled {
+		f.cw = f.cw.Join(batch.cw)
+	}
 }

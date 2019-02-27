@@ -1,32 +1,14 @@
 package main
 
-import "fmt"
-
 // Result is the data structure containing all the results of a simulation
 type Result struct {
-	tips     avgTips
+	tips     tipsResult
 	velocity velocityResult
 	PastCone PastConeResult
 	FocusRW  FocusRWResult
 	entropy  entropyResult
 	op       pOrphanResult
-}
-
-type avgTips struct {
-	tips float64
-}
-
-func (a avgTips) Join(b avgTips) avgTips {
-	if a.tips == 0 {
-		return b
-	}
-	var result avgTips
-	result.tips = (a.tips + b.tips) / 2.
-	return result
-}
-
-func (a avgTips) String() string {
-	return fmt.Sprintln("E(L):", a.tips)
+	cw       cwResult
 }
 
 // MetricIntInt defines a metric of ints

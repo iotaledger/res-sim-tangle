@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 )
 
 // var nParallelSims = 1
 
 // factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-var nParallelSims = 1 //runtime.NumCPU()/2 - 1
+var nParallelSims = runtime.NumCPU()/2 - 1
 
 func main() {
 
@@ -27,7 +28,7 @@ func main() {
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 4, 1)
+	runSimulation(b, "rw", 100, 0.01)
 
 	printPerformance(b)
 }
@@ -48,21 +49,23 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		//H:          1,
 		Lambda:     lambda,
 		Alpha:      alpha,
-		TangleSize: 500 * int(lambda),
+		TangleSize: 100 * int(lambda),
 		// TangleSize:   int(math.Min(3000, (100+math.Max(100, 30.0/alpha/lambda)))) * int(lambda),
 		minCut:       30 * int(lambda),
 		maxCutrange:  30 * int(lambda),
 		ConstantRate: false,
 		// nRun:         int(math.Max(10000/lambda, 100)),
-		nRun:        1,
+		nRun:        200,
 		TSA:         tsa,
 		stillrecent: 2 * int(lambda), // when is a tx considered recent, and when is it a candidate for left behind
 
 		// - - - Analysis section - - -
-		SpineEnabled:    true,
-		pOrphanEnabled:  true,
-		VelocityEnabled: false,
-		EntropyEnabled:  false,
+		CountTipsEnabled:  true,
+		CWAnalysisEnabled: true,
+		SpineEnabled:      false,
+		pOrphanEnabled:    false,
+		VelocityEnabled:   false,
+		EntropyEnabled:    false,
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 40, 10, 5},
 		//{Enabled, maxiMT, murel, nRW}
@@ -86,7 +89,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 	}
 
 	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
-	fmt.Println(f.tips)
+	//fmt.Println(f.tips)
 	// if p.VelocityEnabled {
 	// 	fmt.Println(f.velocity.Stat(p))
 	// 	f.velocity.Save(p)

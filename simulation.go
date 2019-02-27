@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"strings"
 
@@ -28,7 +27,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	defer performance.track(runningtime("total"))
 	//fmt.Println(p)
 	sim := Sim{}
-	var nTips int
+	//var nTips int
 
 	var result Result
 
@@ -37,6 +36,14 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	// - - - - - - - - - - - - - - - - - - - - -
 	// initiate analysis variables
 	// - - - - - - - - - - - - - - - - - - - - -
+	if p.CountTipsEnabled {
+		r := newTipsResult(*p)
+		result.tips = *r
+	}
+	if p.CWAnalysisEnabled {
+		r := newCWResult(*p)
+		result.cw = *r
+	}
 	if p.VelocityEnabled {
 		//???is there a way this can be defined in the velocity.go file
 		var vr *velocityResult
@@ -111,13 +118,16 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			sim.tangle[i] = t
 			sim.hiddenTips = append(sim.hiddenTips, t.id)
 
-			if i > sim.param.minCut && i < sim.param.maxCut {
-				nTips += len(sim.tips)
+			// if i > sim.param.minCut && i < sim.param.maxCut {
+			// 	nTips += len(sim.tips)
+			// }
+			if p.CountTipsEnabled {
+				sim.countTips(i, run, &result.tips)
 			}
 
 		}
 
-		fmt.Println("\n\n")
+		//fmt.Println("\n\n")
 		//fmt.Println("Tangle size: ", sim.param.TangleSize)
 
 		if p.SpineEnabled {
@@ -130,7 +140,13 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		// - - - - - - - - - - - - - - - - - - - - -
 		// data evaluation after each tangle
 		// - - - - - - - - - - - - - - - - - - - - -
-		result.tips.tips = float64(nTips) / float64(sim.param.TangleSize-sim.param.minCut*2) / sim.param.Lambda / float64(sim.param.nRun)
+		//result.tips.tips = float64(nTips) / float64(sim.param.TangleSize-sim.param.minCut*2) / sim.param.Lambda / float64(sim.param.nRun)
+		if p.CountTipsEnabled {
+			//sim.runTipsStat(&result.tips)
+		}
+		if p.CWAnalysisEnabled {
+			sim.fillCW(run, &result.cw)
+		}
 		if p.VelocityEnabled {
 			sim.runVelocityStat(&result.velocity)
 		}
@@ -243,6 +259,7 @@ func (p Parameters) initSim(sim *Sim) {
 	sim.param.EntropyEnabled = p.EntropyEnabled
 	sim.param.SpineEnabled = p.SpineEnabled
 	sim.param.pOrphanEnabled = p.pOrphanEnabled
+	sim.param.CountTipsEnabled = p.CountTipsEnabled
 
 	if p.DataPath != "" {
 		sim.param.DataPath = p.DataPath
