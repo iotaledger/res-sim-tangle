@@ -32,5 +32,5 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	if p.AnFocusRW.Enabled {
 		f.FocusRW = f.FocusRW.Join(batch.FocusRW)
 	}
-	f.tips = f.tips.Join(batch.tips)
+	f.avgtips = f.avgtips.Join(batch.avgtips)
 }

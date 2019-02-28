@@ -37,6 +37,19 @@ func max(a []int) (int, int) {
 	return idx, max
 }
 
+func max2(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func min2(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func mapEq(a, b map[int]int) bool {
 	for k, v := range b {
 		if a[k] != v {

@@ -1,30 +1,34 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"sort"
+)
 
 // Result is the data structure containing all the results of a simulation
 type Result struct {
-	tips     avgTips
+	avgtips  avgTips
 	velocity velocityResult
 	PastCone PastConeResult
 	FocusRW  FocusRWResult
 }
 
 type avgTips struct {
-	tips float64
+	val float64
 }
 
 func (a avgTips) Join(b avgTips) avgTips {
-	if a.tips == 0 {
+	if a.val == 0 {
 		return b
 	}
 	var result avgTips
-	result.tips = (a.tips + b.tips) / 2.
+	result.val = (a.val + b.val) / 2.
 	return result
 }
 
 func (a avgTips) String() string {
-	return fmt.Sprintln("E(L):", a.tips)
+	return fmt.Sprintln("E(L):", a.val)
 }
 
 // MetricIntInt defines a metric of ints
@@ -91,6 +95,16 @@ func joinMapFloat64Float64(a, b map[float64]float64) map[float64]float64 {
 	return a
 }
 
+func (s MetricFloat64Float64) getkeys() []float64 {
+	// var datapoints int
+	var keys []float64
+	for k := range s.v {
+		keys = append(keys, k)
+	}
+	sort.Float64s(keys)
+	return keys
+}
+
 func joinMapMetricIntInt(a, b MetricIntInt) MetricIntInt {
 	a.desc = b.desc
 	a.v = joinMapIntInt(a.v, b.v)
@@ -113,4 +127,36 @@ func joinMapMetricFloat64Float64(a, b MetricFloat64Float64) MetricFloat64Float64
 	a.desc = b.desc
 	a.v = joinMapFloat64Float64(a.v, b.v)
 	return a
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//  saves an array of MetricFloat64Float64 to a file
+func SaveArrayMetricFloat64Float64(p Parameters, filename string, r []MetricFloat64Float64) error {
+	for _, v := range r {
+		v.SaveMetricFloat64Float64(p, filename, true)
+	}
+	return nil
+}
+func (m MetricFloat64Float64) SaveMetricFloat64Float64(p Parameters, filename string, normalized bool) error {
+	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
+	alphaStr := fmt.Sprintf("%.4f", p.Alpha)
+
+	if len(m.getkeys()) > 0 {
+		f, err := os.Create("data/" + filename + "__" + m.desc + "__TSA=" + p.TSA + "_lambda=" + lambdaStr + "_alpha=" + alphaStr + ".txt")
+		if err != nil {
+			fmt.Printf("error creating file: %v", err)
+			return err
+		}
+		defer f.Close()
+		// for i, k := range x {
+		for _, k := range m.getkeys() {
+			_, err = f.WriteString(fmt.Sprintf("%f\t%f\n", k, m.v[k])) // writing...
+			// _, err = f.WriteString(fmt.Sprintf("%f\t%f\n", k, weigths[i]/float64(datapoints)*norm)) // writing...
+			if err != nil {
+				fmt.Printf("error writing string: %v", err)
+			}
+		}
+	}
+
+	return nil
 }
