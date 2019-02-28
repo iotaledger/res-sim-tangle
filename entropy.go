@@ -26,9 +26,10 @@ func newEntropyResult() *entropyResult {
 func (sim *Sim) runEntropyStat(result *entropyResult) {
 	result.tips = MetricIntInt{"Tips", make(map[int]int)}
 	if sim.param.TSA != "RW" {
-		//
+		sim.entropyURTS(result.tips.v, 100000)
+		result.ep = append(result.ep, sortEntropy(result.tips.v))
 	} else {
-		sim.entropyParticleRW(result.tips.v, 100000)
+		sim.entropyParticleRW(result.tips.v, 1000000)
 		result.ep = append(result.ep, sortEntropy(result.tips.v))
 	}
 }
@@ -46,6 +47,16 @@ func sortEntropy(v map[int]int) (r []float64) {
 		r[i] = float64(val) / datapoints
 	}
 	return r
+}
+
+func (sim *Sim) entropyURTS(v map[int]int, nParticles int) {
+	// for i := 0; i < nParticles; i++ {
+	// 	tip := sim.generator.Intn(len(sim.tips))
+	// 	v[sim.tips[tip]]++
+	// }
+	for i := 0; i < len(sim.tips); i++ {
+		v[i]++
+	}
 }
 
 func (sim *Sim) entropyParticleRW(v map[int]int, nParticles int) {

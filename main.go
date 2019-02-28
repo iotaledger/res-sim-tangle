@@ -28,7 +28,7 @@ func main() {
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 100, 0.01)
+	runSimulation(b, "rw", 100, 0.1)
 
 	printPerformance(b)
 }
@@ -61,11 +61,11 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 
 		// - - - Analysis section - - -
 		CountTipsEnabled:  true,
-		CWAnalysisEnabled: true,
+		CWAnalysisEnabled: false,
 		SpineEnabled:      false,
 		pOrphanEnabled:    false,
 		VelocityEnabled:   false,
-		EntropyEnabled:    false,
+		EntropyEnabled:    true,
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 40, 10, 5},
 		//{Enabled, maxiMT, murel, nRW}
