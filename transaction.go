@@ -96,10 +96,10 @@ func (sim *Sim) revealTips(t Tx) []int {
 	tip := sim.hiddenTips[i]
 	for sim.tangle[tip].isVisible(t.time, sim.param.H) {
 		sim.approvers = updateApprovers(sim.approvers, sim.tangle[tip])
-		//sim.updateCW(sim.tangle[tip])
-		if sim.param.TSA == "RW" && sim.param.Alpha != 0 {
-			sim.updateCWOpt(sim.tangle[tip])
-		}
+		sim.updateCWOpt(sim.tangle[tip])
+		//if sim.param.TSA == "RW" && sim.param.Alpha != 0 {
+		//	sim.updateCWOpt(sim.tangle[tip])
+		//}
 		// if sim.param.TSA == "RW" && sim.param.Alpha != 0 {
 		// 	sim.updateCW(sim.tangle[tip])
 		//sim.updateCWDFS(sim.tangle[tip])

@@ -46,10 +46,13 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	if p.VelocityEnabled {
 		//???is there a way this can be defined in the velocity.go file
 		var vr *velocityResult
+		//mt.Println(sim.param.TSA)
 		if sim.param.TSA != "RW" {
 			vr = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "back"}, sim.param)
 		} else {
 			vr = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "back"}, sim.param)
+			//vr = newVelocityResult([]string{"rw", "all", "first"}, sim.param)
+			//fmt.Println(*vr)
 			//vr = newVelocityResult([]string{"rw", "all", "back"})
 		}
 		result.velocity = *vr

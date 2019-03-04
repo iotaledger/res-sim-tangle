@@ -37,15 +37,16 @@ func newVelocityResult(veloMetrics []string, param Parameters) *velocityResult {
 	}
 	if param.SpineEnabled {
 		for _, metric := range veloMetrics {
-			result.vID = append(result.vID, MetricIntInt{metric + "-spine", make(map[int]int)})
-			result.vTime = append(result.vTime, MetricFloat64Int{metric + "-spine", make(map[float64]int)})
 			if metric != "back" {
-				result.vCW = append(result.vCW, MetricIntInt{metric + "-spine", make(map[int]int)})
+				result.vID = append(result.vID, MetricIntInt{"S" + metric, make(map[int]int)})
+				result.vTime = append(result.vTime, MetricFloat64Int{"S" + metric, make(map[float64]int)})
+
+				result.vCW = append(result.vCW, MetricIntInt{"S" + metric, make(map[int]int)})
 				if metric != "only-1" {
-					result.vCWfirst = append(result.vCWfirst, MetricIntInt{metric + "-spine", make(map[int]int)})
+					result.vCWfirst = append(result.vCWfirst, MetricIntInt{"S" + metric, make(map[int]int)})
 				}
 				if metric == "rw" || metric == "all" {
-					result.dApprovers = append(result.dApprovers, MetricIntInt{metric + "-spine", make(map[int]int)})
+					result.dApprovers = append(result.dApprovers, MetricIntInt{"S" + metric, make(map[int]int)})
 				}
 			}
 		}
@@ -65,6 +66,7 @@ func (sim *Sim) runVelocityStat(result *velocityResult) {
 		sim.velocityOfOnlyIndex(result.vID[7].v, result.vTime[7].v, result.vCW[7].v, 1)
 		sim.velocityBackURTS(result.vID[8].v, result.vTime[8].v)
 	} else {
+		//fmt.Println(len(result.vID), len(result.vTime), len(result.dApprovers), len(result.vCW), len(result.vCWfirst))
 		sim.velocityParticleRW(result.vID[0].v, result.vTime[0].v, result.dApprovers[0].v, result.vCW[0].v, result.vCWfirst[0].v, 100000)
 		sim.velocityAll(result.vID[1].v, result.vTime[1].v, result.dApprovers[1].v, result.vCW[1].v, result.vCWfirst[1].v)
 		sim.velocityOfIndexRW(result.vID[2].v, result.vTime[2].v, result.vCW[2].v, result.vCWfirst[2].v, 1, 100000)
@@ -79,13 +81,7 @@ func (sim *Sim) runVelocityStat(result *velocityResult) {
 			sim.velocityOfIndexRWSpine(result.vID[10].v, result.vTime[10].v, result.vCW[9].v, result.vCWfirst[9].v, -1, 100000)
 			sim.velocityCWLowUpBoundSpine(result.vID[11].v, result.vTime[11].v, result.vCW[10].v, result.vCWfirst[10].v, 1)
 			sim.velocityCWLowUpBoundSpine(result.vID[12].v, result.vTime[12].v, result.vCW[11].v, result.vCWfirst[11].v, -1)
-			//sim.velocityParticleBackRW(result.vID[6].v, result.vTime[6].v, 100000)
 		}
-		//sim.velocityOfIndexRW(result.vID[4].v, result.vTime[4].v, result.vCW[4].v, result.vCWfirst[4].v, 2, 100000)
-		//sim.velocityOfIndexRW(result.vID[5].v, result.vTime[5].v, result.vCW[5].v, result.vCWfirst[5].v, 3, 100000)
-		//sim.velocityOfIndexRW(result.vID[6].v, result.vTime[6].v, result.vCW[6].v, result.vCWfirst[6].v, 4, 100000)
-		//sim.velocityOfOnlyIndex(result.vID[7].v, result.vTime[7].v, result.vCW[7].v, 1)
-
 	}
 
 }
@@ -236,41 +232,42 @@ func (sim Sim) velocityOfIndex(v map[int]int, t map[float64]int, w, wFirst map[i
 
 func (sim *Sim) velocityOfIndexRW(v map[int]int, t map[float64]int, w, wFirst map[int]int, index int, nParticles int) {
 
-	for i := 0; i < nParticles; i++ {
-		start := 0 //sim.generator.Intn(sim.param.minCut)
+	//for i := 0; i < nParticles; i++ {
+	start := 0 //sim.generator.Intn(sim.param.minCut)
 
-		for current := sim.tangle[start]; len(sim.approvers[current.id]) > 0 && current.id < sim.param.maxCut; {
-			if index > 0 && len(sim.approvers[current.id]) > index-1 {
-				delta := sim.approvers[current.id][index-1] - current.id
-				deltaTime := math.Round((sim.tangle[sim.approvers[current.id][index-1]].time-sim.tangle[current.id].time)*100) / 100
-				deltaCW := sim.tangle[current.id].cw - sim.tangle[sim.approvers[current.id][index-1]].cw
-				if current.id > sim.param.minCut {
-					v[delta]++
-					t[deltaTime]++
-					w[deltaCW]++
-					if len(sim.approvers[current.id]) > 1 {
-						wFirst[deltaCW]++
-					}
+	for current := sim.tangle[start]; len(sim.approvers[current.id]) > 0 && current.id < sim.param.maxCut; {
+		if index > 0 && len(sim.approvers[current.id]) > index-1 {
+			delta := sim.approvers[current.id][index-1] - current.id
+			deltaTime := math.Round((sim.tangle[sim.approvers[current.id][index-1]].time-sim.tangle[current.id].time)*100) / 100
+			deltaCW := sim.tangle[current.id].cw - sim.tangle[sim.approvers[current.id][index-1]].cw
+			if current.id > sim.param.minCut {
+				v[delta]++
+				t[deltaTime]++
+				w[deltaCW]++
+				if len(sim.approvers[current.id]) > 1 {
+					wFirst[deltaCW]++
 				}
-				current = sim.tangle[sim.approvers[current.id][index-1]]
-			} else if index < 0 && len(sim.approvers[current.id]) > 1 {
-				delta := sim.approvers[current.id][len(sim.approvers[current.id])-1] - current.id
-				deltaTime := math.Round((sim.tangle[sim.approvers[current.id][len(sim.approvers[current.id])-1]].time-sim.tangle[current.id].time)*100) / 100
-				deltaCW := sim.tangle[current.id].cw - sim.tangle[sim.approvers[current.id][len(sim.approvers[current.id])-1]].cw
-				if current.id > sim.param.minCut {
-					v[delta]++
-					t[deltaTime]++
-					w[deltaCW]++
-					if len(sim.approvers[current.id]) > 1 {
-						wFirst[deltaCW]++
-					}
-				}
-				current = sim.tangle[sim.approvers[current.id][len(sim.approvers[current.id])-1]]
-			} else {
-				break
 			}
+			current = sim.tangle[sim.approvers[current.id][index-1]]
+		} else if index < 0 && len(sim.approvers[current.id]) > 0 {
+
+			delta := sim.approvers[current.id][len(sim.approvers[current.id])-1] - current.id
+			deltaTime := math.Round((sim.tangle[sim.approvers[current.id][len(sim.approvers[current.id])-1]].time-sim.tangle[current.id].time)*100) / 100
+			deltaCW := sim.tangle[current.id].cw - sim.tangle[sim.approvers[current.id][len(sim.approvers[current.id])-1]].cw
+			if current.id > sim.param.minCut {
+				v[delta]++
+				t[deltaTime]++
+				w[deltaCW]++
+				if len(sim.approvers[current.id]) > 1 {
+					wFirst[deltaCW]++
+				}
+			}
+			current = sim.tangle[sim.approvers[current.id][len(sim.approvers[current.id])-1]]
+		} else {
+			break
 		}
 	}
+	//}
 }
 
 func (sim *Sim) velocityOfIndexRWSpine(v map[int]int, t map[float64]int, w, wFirst map[int]int, index int, nParticles int) {
@@ -526,6 +523,10 @@ func (velo velocityResult) Stat(p Parameters) (result string) {
 
 // ToString converts a MetricIntInt to a string
 func (s MetricIntInt) ToString(p Parameters, normalized bool) (result string) {
+	if len(s.v) == 0 {
+		fmt.Println("Empty " + s.desc + " slice")
+		return ""
+	}
 	var keys []int
 	var datapoints int
 	for k := range s.v {
@@ -568,6 +569,10 @@ func (s MetricIntInt) ToString(p Parameters, normalized bool) (result string) {
 
 // ToString converts a MetricFloat64Int to a string
 func (s MetricFloat64Int) ToString(p Parameters, normalized bool) (result string) {
+	if len(s.v) == 0 {
+		fmt.Println("Empty " + s.desc + " slice")
+		return ""
+	}
 	var keys []float64
 	var datapoints int
 	for k := range s.v {
@@ -594,7 +599,7 @@ func (s MetricFloat64Int) ToString(p Parameters, normalized bool) (result string
 	mode, _ := stat.Mode(x, weigths)
 	//median := median(x, weigths)
 	median := stat.Quantile(0.5, stat.Empirical, x, weigths)
-
+	//median := 0.0
 	//result += fmt.Sprintf("%s\n", s.desc)
 
 	if variance > 10000 {
