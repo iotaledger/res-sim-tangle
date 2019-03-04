@@ -48,9 +48,9 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//???is there a way this can be defined in the velocity.go file
 		var vr *velocityResult
 		if sim.param.TSA != "RW" {
-			vr = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "back"})
+			vr = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "back"}, sim.param)
 		} else {
-			vr = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "back"})
+			vr = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "back"}, sim.param)
 			//vr = newVelocityResult([]string{"rw", "all", "back"})
 		}
 		result.velocity = *vr
@@ -258,6 +258,9 @@ func (p Parameters) initSim(sim *Sim) {
 	sim.param.VelocityEnabled = p.VelocityEnabled
 	sim.param.EntropyEnabled = p.EntropyEnabled
 	sim.param.SpineEnabled = p.SpineEnabled
+	if sim.param.TSA == "URTS" || sim.param.Alpha == 0 {
+		sim.param.SpineEnabled = false
+	}
 	sim.param.pOrphanEnabled = p.pOrphanEnabled
 	sim.param.CountTipsEnabled = p.CountTipsEnabled
 

@@ -9,7 +9,7 @@ import (
 // var nParallelSims = 1
 
 // factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-var nParallelSims = runtime.NumCPU()/2 - 1
+var nParallelSims = runtime.NumCPU()
 
 func main() {
 
@@ -35,7 +35,7 @@ func main() {
 
 func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 	defer b.track(runningtime("TSA=" + strings.ToUpper(tsa) + ", Lambda=" + fmt.Sprintf("%.2f", lambda) + ", Alpha=" + fmt.Sprintf("%.4f", alpha) + "\tTime"))
-
+	totalRun := 1000 / nParallelSims
 	//this is only a temporary code to provide the correct tangle size
 	tmpHelp := 30.0 / alpha / lambda
 	_ = tmpHelp
@@ -55,17 +55,17 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		maxCutrange:  30 * int(lambda),
 		ConstantRate: false,
 		// nRun:         int(math.Max(10000/lambda, 100)),
-		nRun:        200,
+		nRun:        totalRun,
 		TSA:         tsa,
 		stillrecent: 2 * int(lambda), // when is a tx considered recent, and when is it a candidate for left behind
 
 		// - - - Analysis section - - -
 		CountTipsEnabled:  true,
 		CWAnalysisEnabled: false,
-		SpineEnabled:      false,
+		SpineEnabled:      true,
 		pOrphanEnabled:    false,
-		VelocityEnabled:   false,
-		EntropyEnabled:    true,
+		VelocityEnabled:   true,
+		EntropyEnabled:    false,
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 40, 10, 5},
 		//{Enabled, maxiMT, murel, nRW}

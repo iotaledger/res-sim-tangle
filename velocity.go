@@ -19,7 +19,7 @@ type velocityResult struct {
 }
 
 //??? use string to create empty value maps to vID, vTime, dApprovers
-func newVelocityResult(veloMetrics []string) *velocityResult {
+func newVelocityResult(veloMetrics []string, param Parameters) *velocityResult {
 	// variables initialization for velocity
 	var result velocityResult
 	for _, metric := range veloMetrics {
@@ -32,6 +32,21 @@ func newVelocityResult(veloMetrics []string) *velocityResult {
 			}
 			if metric == "rw" || metric == "all" {
 				result.dApprovers = append(result.dApprovers, MetricIntInt{metric, make(map[int]int)})
+			}
+		}
+	}
+	if param.SpineEnabled {
+		for _, metric := range veloMetrics {
+			result.vID = append(result.vID, MetricIntInt{metric + "-spine", make(map[int]int)})
+			result.vTime = append(result.vTime, MetricFloat64Int{metric + "-spine", make(map[float64]int)})
+			if metric != "back" {
+				result.vCW = append(result.vCW, MetricIntInt{metric + "-spine", make(map[int]int)})
+				if metric != "only-1" {
+					result.vCWfirst = append(result.vCWfirst, MetricIntInt{metric + "-spine", make(map[int]int)})
+				}
+				if metric == "rw" || metric == "all" {
+					result.dApprovers = append(result.dApprovers, MetricIntInt{metric + "-spine", make(map[int]int)})
+				}
 			}
 		}
 	}
@@ -51,20 +66,20 @@ func (sim *Sim) runVelocityStat(result *velocityResult) {
 		sim.velocityBackURTS(result.vID[8].v, result.vTime[8].v)
 	} else {
 		sim.velocityParticleRW(result.vID[0].v, result.vTime[0].v, result.dApprovers[0].v, result.vCW[0].v, result.vCWfirst[0].v, 100000)
+		sim.velocityAll(result.vID[1].v, result.vTime[1].v, result.dApprovers[1].v, result.vCW[1].v, result.vCWfirst[1].v)
+		sim.velocityOfIndexRW(result.vID[2].v, result.vTime[2].v, result.vCW[2].v, result.vCWfirst[2].v, 1, 100000)
+		sim.velocityOfIndexRW(result.vID[3].v, result.vTime[3].v, result.vCW[3].v, result.vCWfirst[3].v, -1, 100000)
+		sim.velocityCWLowUpBound(result.vID[4].v, result.vTime[4].v, result.vCW[4].v, result.vCWfirst[4].v, 1)
+		sim.velocityCWLowUpBound(result.vID[5].v, result.vTime[5].v, result.vCW[5].v, result.vCWfirst[5].v, -1)
+		sim.velocityParticleBackRW(result.vID[6].v, result.vTime[6].v, 100000)
 		if sim.param.SpineEnabled {
-			sim.velocityAllSpine(result.vID[1].v, result.vTime[1].v, result.dApprovers[1].v, result.vCW[1].v, result.vCWfirst[1].v)
-			sim.velocityOfIndexRWSpine(result.vID[2].v, result.vTime[2].v, result.vCW[2].v, result.vCWfirst[2].v, 1, 100000)
-			sim.velocityOfIndexRWSpine(result.vID[3].v, result.vTime[3].v, result.vCW[3].v, result.vCWfirst[3].v, -1, 100000)
-			sim.velocityCWLowUpBoundSpine(result.vID[4].v, result.vTime[4].v, result.vCW[4].v, result.vCWfirst[4].v, 1)
-			sim.velocityCWLowUpBoundSpine(result.vID[5].v, result.vTime[5].v, result.vCW[5].v, result.vCWfirst[5].v, -1)
-			sim.velocityParticleBackRW(result.vID[6].v, result.vTime[6].v, 100000)
-		} else {
-			sim.velocityAll(result.vID[1].v, result.vTime[1].v, result.dApprovers[1].v, result.vCW[1].v, result.vCWfirst[1].v)
-			sim.velocityOfIndexRW(result.vID[2].v, result.vTime[2].v, result.vCW[2].v, result.vCWfirst[2].v, 1, 100000)
-			sim.velocityOfIndexRW(result.vID[3].v, result.vTime[3].v, result.vCW[3].v, result.vCWfirst[3].v, -1, 100000)
-			sim.velocityCWLowUpBound(result.vID[4].v, result.vTime[4].v, result.vCW[4].v, result.vCWfirst[4].v, 1)
-			sim.velocityCWLowUpBound(result.vID[5].v, result.vTime[5].v, result.vCW[5].v, result.vCWfirst[5].v, -1)
-			sim.velocityParticleBackRW(result.vID[6].v, result.vTime[6].v, 100000)
+			sim.velocityParticleRWSpine(result.vID[7].v, result.vTime[7].v, result.dApprovers[2].v, result.vCW[6].v, result.vCWfirst[6].v, 100000)
+			sim.velocityAllSpine(result.vID[8].v, result.vTime[8].v, result.dApprovers[3].v, result.vCW[7].v, result.vCWfirst[7].v)
+			sim.velocityOfIndexRWSpine(result.vID[9].v, result.vTime[9].v, result.vCW[8].v, result.vCWfirst[8].v, 1, 100000)
+			sim.velocityOfIndexRWSpine(result.vID[10].v, result.vTime[10].v, result.vCW[9].v, result.vCWfirst[9].v, -1, 100000)
+			sim.velocityCWLowUpBoundSpine(result.vID[11].v, result.vTime[11].v, result.vCW[10].v, result.vCWfirst[10].v, 1)
+			sim.velocityCWLowUpBoundSpine(result.vID[12].v, result.vTime[12].v, result.vCW[11].v, result.vCWfirst[11].v, -1)
+			//sim.velocityParticleBackRW(result.vID[6].v, result.vTime[6].v, 100000)
 		}
 		//sim.velocityOfIndexRW(result.vID[4].v, result.vTime[4].v, result.vCW[4].v, result.vCWfirst[4].v, 2, 100000)
 		//sim.velocityOfIndexRW(result.vID[5].v, result.vTime[5].v, result.vCW[5].v, result.vCWfirst[5].v, 3, 100000)
@@ -110,6 +125,36 @@ func (sim Sim) velocityBackURTS(v map[int]int, t map[float64]int) {
 }
 
 func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]int, w, wFirst map[int]int, nParticles int) {
+	for i := 0; i < nParticles; i++ {
+		prev := sim.tangle[0]
+		//start := sim.generator.Intn(sim.param.minCut)
+		//prev := sim.tangle[start]
+		var tsa RandomWalker
+		if sim.param.Alpha != 0 {
+			tsa = BRW{}
+		} else {
+			tsa = URW{}
+		}
+
+		for current, currentIdx := tsa.RandomWalk(prev, sim); len(sim.approvers[current.id]) > 0; current, currentIdx = tsa.RandomWalk(current, sim) {
+			if current.id > sim.param.minCut && current.id < sim.param.maxCut {
+				delta := current.id - prev.id
+				v[delta]++
+				d[currentIdx+1]++
+				deltaTime := math.Round((current.time-prev.time)*100) / 100
+				t[deltaTime]++
+				deltaCW := prev.cw - current.cw
+				w[deltaCW]++
+				if len(sim.approvers[prev.id]) > 1 {
+					wFirst[deltaCW]++
+				}
+			}
+			prev = current
+		}
+	}
+}
+
+func (sim *Sim) velocityParticleRWSpine(v map[int]int, t map[float64]int, d map[int]int, w, wFirst map[int]int, nParticles int) {
 	for i := 0; i < nParticles; i++ {
 		prev := sim.spineTangle[0]
 		//start := sim.generator.Intn(sim.param.minCut)
