@@ -34,8 +34,8 @@ func (f *Result) SaveResults(p Parameters) {
 	}
 	if p.VelocityEnabled {
 		fmt.Println(f.velocity.Stat(p))
-		//f.velocity.Save(p)
-		//f.velocity.SaveStat(p)
+		f.velocity.Save(p)
+		f.velocity.SaveStat(p)
 	}
 	if p.AnPastCone.Enabled {
 		f.PastCone.finalprocess(p)

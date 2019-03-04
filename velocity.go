@@ -524,7 +524,7 @@ func (velo velocityResult) Stat(p Parameters) (result string) {
 // ToString converts a MetricIntInt to a string
 func (s MetricIntInt) ToString(p Parameters, normalized bool) (result string) {
 	if len(s.v) == 0 {
-		fmt.Println("Empty " + s.desc + " slice")
+		//fmt.Println("Empty " + s.desc + " slice")
 		return ""
 	}
 	var keys []int
@@ -570,7 +570,7 @@ func (s MetricIntInt) ToString(p Parameters, normalized bool) (result string) {
 // ToString converts a MetricFloat64Int to a string
 func (s MetricFloat64Int) ToString(p Parameters, normalized bool) (result string) {
 	if len(s.v) == 0 {
-		fmt.Println("Empty " + s.desc + " slice")
+		//fmt.Println("Empty " + s.desc + " slice")
 		return ""
 	}
 	var keys []float64
