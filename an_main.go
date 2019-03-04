@@ -79,4 +79,5 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	if p.CWAnalysisEnabled {
 		f.cw = f.cw.Join(batch.cw)
 	}
+	f.avgtips = f.avgtips.Join(batch.avgtips)
 }
