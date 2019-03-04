@@ -14,10 +14,10 @@ var nParallelSims = runtime.NumCPU()/2 - 1
 func main() {
 
 	b := make(Benchmark)
-	// lambdas := []float64{1, 2, 3, 6, 10, 20, 30, 60, 100, 200, 300, 600}
-	// lambdas := []float64{600, 300}
-	// // alphas := []float64{0.001, 0.01, 0.1}
-	// alphas := []float64{0.1}
+	// lambdas := []float64{10}
+	// // lambdas := []float64{1, 2, 3, 6, 10, 20, 30, 60, 100, 200, 300, 600}
+	// // lambdas := []float64{600, 300}
+	// alphas := []float64{0.01}
 	// for _, lambda := range lambdas {
 	// 	for _, alpha := range alphas {
 	// 		// if (alpha * lambda) < 10 {
@@ -28,7 +28,7 @@ func main() {
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 100, 0.1)
+	runSimulation(b, "rw", 10, 0.1)
 
 	printPerformance(b)
 }
@@ -36,40 +36,35 @@ func main() {
 func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 	defer b.track(runningtime("TSA=" + strings.ToUpper(tsa) + ", Lambda=" + fmt.Sprintf("%.2f", lambda) + ", Alpha=" + fmt.Sprintf("%.4f", alpha) + "\tTime"))
 
-	//this is only a temporary code to provide the correct tangle size
-	tmpHelp := 30.0 / alpha / lambda
-	_ = tmpHelp
-	if alpha*lambda > 1 {
-		tmpHelp = 100
-	}
-
 	//lambda := 100.
 	p := Parameters{
 		//K:          2,
 		//H:          1,
-		Lambda:     lambda,
-		Alpha:      alpha,
-		TangleSize: 100 * int(lambda),
+		Lambda:      lambda,
+		Alpha:       alpha,
+		TangleSize:  200 * int(lambda),
+		CWMatrixLen: 50 * int(lambda), // reduce CWMatrix to this len
 		// TangleSize:   int(math.Min(3000, (100+math.Max(100, 30.0/alpha/lambda)))) * int(lambda),
-		minCut:       30 * int(lambda),
-		maxCutrange:  30 * int(lambda),
+		minCut:       51 * int(lambda), // cut data close to the genesis
+		maxCutrange:  50 * int(lambda), // cut data for the most recent txs, not applied for every analysis
+		stillrecent:  2 * int(lambda),  // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate: false,
 		// nRun:         int(math.Max(10000/lambda, 100)),
-		nRun:        200,
-		TSA:         tsa,
-		stillrecent: 2 * int(lambda), // when is a tx considered recent, and when is it a candidate for left behind
+		nRun: 1,
+		TSA:  tsa,
 
 		// - - - Analysis section - - -
-		CountTipsEnabled:  true,
+		CountTipsEnabled:  false,
 		CWAnalysisEnabled: false,
 		SpineEnabled:      false,
 		pOrphanEnabled:    false,
 		VelocityEnabled:   false,
-		EntropyEnabled:    true,
+		EntropyEnabled:    false,
+		// VelocityEnabled: false,
 		//{Enabled, Resolution, MaxT, MaxApp}
-		AnPastCone: AnPastCone{false, 40, 10, 5},
+		AnPastCone: AnPastCone{false, 5, 40, 5},
 		//{Enabled, maxiMT, murel, nRW}
-		AnFocusRW: AnFocusRW{false, 0.3, 30},
+		AnFocusRW: AnFocusRW{false, 0.2, 30},
 	}
 
 	c := make(chan bool, nParallelSims)
@@ -89,7 +84,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 	}
 
 	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
-	//fmt.Println(f.tips)
+	fmt.Println(f.avgtips)
 	// if p.VelocityEnabled {
 	// 	fmt.Println(f.velocity.Stat(p))
 	// 	f.velocity.Save(p)

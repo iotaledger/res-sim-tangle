@@ -30,7 +30,6 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	//var nTips int
 
 	var result Result
-
 	p.initSim(&sim)
 
 	// - - - - - - - - - - - - - - - - - - - - -
@@ -87,6 +86,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//rand.Seed(p.Seed + int64(run))
 
 		sim.tangle[0] = sim.newGenesis()
+		nTips := 0
 
 		if p.Seed == int64(1) {
 			bar.Add(1)
@@ -94,6 +94,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 
 		// counter := 0
 		for i := 1; i < sim.param.TangleSize; i++ {
+
 			//generate new tx
 			t := newTx(&sim, sim.tangle[i-1])
 			// fmt.Println("tx", i)
@@ -118,15 +119,14 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			sim.tangle[i] = t
 			sim.hiddenTips = append(sim.hiddenTips, t.id)
 
-			// if i > sim.param.minCut && i < sim.param.maxCut {
-			// 	nTips += len(sim.tips)
-			// }
+			if i > sim.param.minCut && i < sim.param.maxCut {
+				nTips += len(sim.tips)
+			}
 			if p.CountTipsEnabled {
 				sim.countTips(i, run, &result.tips)
 			}
 
 		}
-
 		//fmt.Println("\n\n")
 		//fmt.Println("Tangle size: ", sim.param.TangleSize)
 
@@ -140,7 +140,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		// - - - - - - - - - - - - - - - - - - - - -
 		// data evaluation after each tangle
 		// - - - - - - - - - - - - - - - - - - - - -
-		//result.tips.tips = float64(nTips) / float64(sim.param.TangleSize-sim.param.minCut*2) / sim.param.Lambda / float64(sim.param.nRun)
+		result.avgtips.val = float64(nTips) / float64(sim.param.TangleSize-sim.param.minCut-sim.param.maxCutrange) / sim.param.Lambda / float64(sim.param.nRun)
 		if p.CountTipsEnabled {
 			//sim.runTipsStat(&result.tips)
 		}
@@ -270,7 +270,7 @@ func (p Parameters) initSim(sim *Sim) {
 	sim.param.maxCut = p.TangleSize - p.maxCutrange
 
 	//set circular matrix to 50*lambda rows to store cw bit masks
-	sim.param.CWMatrixLen = 50 * int(sim.param.Lambda)
+	sim.param.CWMatrixLen = p.CWMatrixLen
 
 	createDirIfNotExist("data")
 
