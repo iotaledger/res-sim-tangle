@@ -58,10 +58,14 @@ func (a pOrphanResult) Join(b pOrphanResult) pOrphanResult {
 }
 
 func (a pOrphanResult) String() string {
-	result := fmt.Sprintln("Orphanage Probability:", stat.Mean(a.op, nil))
-	result += fmt.Sprintln("Tip Orphanage Probability:", stat.Mean(a.top, nil))
-	result += fmt.Sprintln("Orphanage Probability 2:", stat.Mean(a.op2, nil))
-	result += fmt.Sprintln("Tip Orphanage Probability 2:", stat.Mean(a.top2, nil))
+	mean, std := stat.MeanStdDev(a.op, nil)
+	result := fmt.Sprintln("Orphanage Probability [mean, StdDev]:", mean, std)
+	mean, std = stat.MeanStdDev(a.top, nil)
+	result += fmt.Sprintln("Tip Orphanage Probability [mean, StdDev]:", mean, std)
+	mean, std = stat.MeanStdDev(a.op2, nil)
+	result += fmt.Sprintln("Orphanage Probability 2 [mean, StdDev]:", mean, std)
+	mean, std = stat.MeanStdDev(a.top2, nil)
+	result += fmt.Sprintln("Tip Orphanage Probability 2: [mean, StdDev]:", mean, std)
 	result += fmt.Sprintln("Avg approval time [Tangle, Spine, Orphan]", stat.Mean(a.tTangle, nil), stat.Mean(a.tSpine, nil), stat.Mean(a.tOrphan, nil))
 	return result
 }
