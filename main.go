@@ -28,7 +28,7 @@ func main() {
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 100, 1)
+	runSimulation(b, "rw", 100, 0.01)
 
 	printPerformance(b)
 }
@@ -43,7 +43,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		Lambda:      lambda,
 		Alpha:       alpha,
 		TangleSize:  200 * int(lambda),
-		CWMatrixLen: 50 * int(lambda), // reduce CWMatrix to this len
+		CWMatrixLen: 200 * int(lambda), // reduce CWMatrix to this len
 		// TangleSize:   int(math.Min(3000, (100+math.Max(100, 30.0/alpha/lambda)))) * int(lambda),
 		minCut:       51 * int(lambda), // cut data close to the genesis
 		maxCutrange:  50 * int(lambda), // cut data for the most recent txs, not applied for every analysis

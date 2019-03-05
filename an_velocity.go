@@ -230,6 +230,32 @@ func (sim Sim) velocityOfIndex(v map[int]int, t map[float64]int, w, wFirst map[i
 	}
 }
 
+func (sim Sim) velocityOfIndexSpine(v map[int]int, t map[float64]int, w, wFirst map[int]int, index int) {
+	for i := sim.param.minCut; i < sim.param.maxCut; i++ {
+		if index > 0 && len(sim.spineApprovers[i]) > index-1 {
+			delta := sim.spineApprovers[i][index-1] - i
+			v[delta]++
+			deltaTime := math.Round((sim.spineTangle[sim.spineApprovers[i][index-1]].time-sim.spineTangle[i].time)*100) / 100
+			t[deltaTime]++
+			deltaCW := sim.spineTangle[i].cw - sim.spineTangle[sim.spineApprovers[i][index-1]].cw
+			w[deltaCW]++
+			if len(sim.spineApprovers[i]) > 1 {
+				wFirst[deltaCW]++
+			}
+		} else if index < 0 && len(sim.spineApprovers[i]) > 1 {
+			delta := sim.spineApprovers[i][len(sim.spineApprovers[i])-1] - i
+			v[delta]++
+			deltaTime := math.Round((sim.spineTangle[sim.spineApprovers[i][len(sim.spineApprovers[i])-1]].time-sim.spineTangle[i].time)*100) / 100
+			t[deltaTime]++
+			deltaCW := sim.spineTangle[i].cw - sim.spineTangle[sim.spineApprovers[i][len(sim.spineApprovers[i])-1]].cw
+			w[deltaCW]++
+			if len(sim.spineApprovers[i]) > 1 {
+				wFirst[deltaCW]++
+			}
+		}
+	}
+}
+
 func (sim *Sim) velocityOfIndexRW(v map[int]int, t map[float64]int, w, wFirst map[int]int, index int, nParticles int) {
 
 	//for i := 0; i < nParticles; i++ {

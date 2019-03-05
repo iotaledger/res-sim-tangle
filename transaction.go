@@ -390,7 +390,7 @@ func ReferencedByTx(a []uint64, ID int) bool {
 	// fmt.Println(a[baseID])
 	// fmt.Println("**************************")
 	// pauseit()
-	if a[baseID]&(1<<uint(localID)) != 0 {
+	if len(a) > baseID && a[baseID]&(1<<uint(localID)) != 0 {
 		return true
 	}
 	return false
