@@ -1,15 +1,19 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"gonum.org/v1/gonum/stat"
+)
 
 type pOrphanResult struct {
-	op      float64 // orphanage probability - probability of tx left behind
-	top     float64 // tip orphanage probability - probability of tips left behind
-	op2     float64
-	top2    float64
-	tTangle float64
-	tSpine  float64
-	tOrphan float64
+	op      []float64 // orphanage probability - probability of tx left behind
+	top     []float64 // tip orphanage probability - probability of tips left behind
+	op2     []float64
+	top2    []float64
+	tTangle []float64
+	tSpine  []float64
+	tOrphan []float64
 }
 
 func (sim *Sim) runOrphaningP(result *pOrphanResult) {
@@ -19,45 +23,46 @@ func (sim *Sim) runOrphaningP(result *pOrphanResult) {
 	newSpineTangle := sliceMap(sim.spineTangle, sim.param.maxCut)
 
 	// calculate op
-	result.op = 1. - float64(len(newSpineTangle))/float64(len(newTangle))
+	result.op = append(result.op, 1.-float64(len(newSpineTangle))/float64(len(newTangle)))
 
 	// calculate top by finding all tips left behind and dividing that number over all txs
+	top := 0.
 	for tx := range newTangle {
 		if len(sim.approvers[tx]) == 0 {
-			result.top++
+			top++
 		}
 	}
-	result.top /= float64(len(newTangle))
+	result.top = append(result.top, top/float64(len(newTangle)))
 
-	result.tTangle = getAverageApprovalTime(sliceToMap(newTangle))
-	result.tSpine = getAverageApprovalTime(newSpineTangle)
+	result.tTangle = append(result.tTangle, getAverageApprovalTime(sliceToMap(newTangle)))
+	result.tSpine = append(result.tSpine, getAverageApprovalTime(newSpineTangle))
 	orphanTangle := getOrphanTxs(sim)
-	result.tOrphan = getAverageApprovalTime(orphanTangle)
+	result.tOrphan = append(result.tOrphan, getAverageApprovalTime(orphanTangle))
 
 	sim.runOrphanageRecent(result)
 }
 
 func (a pOrphanResult) Join(b pOrphanResult) pOrphanResult {
-	if a.op == 0 {
+	if a.op == nil {
 		return b
 	}
 	var result pOrphanResult
-	result.op = (a.op + b.op) / 2.
-	result.top = (a.top + b.top) / 2.
-	result.op2 = (a.op2 + b.op2) / 2.
-	result.top2 = (a.top2 + b.top2) / 2.
-	result.tTangle = (a.tTangle + b.tTangle) / 2.
-	result.tSpine = (a.tSpine + b.tSpine) / 2.
-	result.tOrphan = (a.tOrphan + b.tOrphan) / 2.
+	result.op = append(a.op, b.op...)
+	result.top = append(a.top, b.top...)
+	result.op2 = append(a.op2, b.op2...)
+	result.top2 = append(a.top2, b.top2...)
+	result.tTangle = append(a.tTangle, b.tTangle...)
+	result.tSpine = append(a.tSpine, b.tSpine...)
+	result.tOrphan = append(a.tOrphan, b.tOrphan...)
 	return result
 }
 
 func (a pOrphanResult) String() string {
-	result := fmt.Sprintln("Orphanage Probability:", a.op)
-	result += fmt.Sprintln("Tip Orphanage Probability:", a.top)
-	result += fmt.Sprintln("Orphanage Probability 2:", a.op2)
-	result += fmt.Sprintln("Tip Orphanage Probability 2:", a.top2)
-	result += fmt.Sprintln("Avg approval time [Tangle, Spine, Orphan]", a.tTangle, a.tSpine, a.tOrphan)
+	result := fmt.Sprintln("Orphanage Probability:", stat.Mean(a.op, nil))
+	result += fmt.Sprintln("Tip Orphanage Probability:", stat.Mean(a.top, nil))
+	result += fmt.Sprintln("Orphanage Probability 2:", stat.Mean(a.op2, nil))
+	result += fmt.Sprintln("Tip Orphanage Probability 2:", stat.Mean(a.top2, nil))
+	result += fmt.Sprintln("Avg approval time [Tangle, Spine, Orphan]", stat.Mean(a.tTangle, nil), stat.Mean(a.tSpine, nil), stat.Mean(a.tOrphan, nil))
 	return result
 }
 
@@ -199,6 +204,6 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) {
 		}
 	}
 
-	result.op2 = 1 - float64(len(ones))/float64(len(sim.tangle[:sim.param.maxCut]))
-	result.top2 = float64(top) / float64(len(sim.tangle[:sim.param.maxCut]))
+	result.op2 = append(result.op2, 1-float64(len(ones))/float64(len(sim.tangle[:sim.param.maxCut])))
+	result.top2 = append(result.top2, float64(top)/float64(len(sim.tangle[:sim.param.maxCut])))
 }
