@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"sort"
+
+	"gonum.org/v1/gonum/stat"
 )
 
 // Result is the data structure containing all the results of a simulation
@@ -19,20 +21,20 @@ type Result struct {
 }
 
 type avgTips struct {
-	val float64
+	val []float64
 }
 
 func (a avgTips) Join(b avgTips) avgTips {
-	if a.val == 0 {
+	if a.val == nil {
 		return b
 	}
 	var result avgTips
-	result.val = (a.val + b.val) / 2.
+	result.val = append(a.val, b.val...)
 	return result
 }
 
 func (a avgTips) String() string {
-	return fmt.Sprintln("E(L):", a.val)
+	return fmt.Sprintln("E(L):", stat.Mean(a.val, nil))
 }
 
 // MetricIntInt defines a metric of ints

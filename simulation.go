@@ -146,7 +146,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		// - - - - - - - - - - - - - - - - - - - - -
 		// data evaluation after each tangle
 		// - - - - - - - - - - - - - - - - - - - - -
-		result.avgtips.val = float64(nTips) / float64(sim.param.TangleSize-sim.param.minCut-sim.param.maxCutrange) / sim.param.Lambda / float64(sim.param.nRun)
+		result.avgtips.val = append(result.avgtips.val, float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut-sim.param.maxCutrange)/sim.param.Lambda)
 		if p.CountTipsEnabled {
 			//sim.runTipsStat(&result.tips)
 		}
