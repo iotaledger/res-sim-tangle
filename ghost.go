@@ -1,9 +1,9 @@
 package main
 
 func (sim *Sim) computeSpine() {
-	_, spikeTip := ghostWalk(sim.tangle[0], sim)
+	_, spineTip := ghostWalk(sim.tangle[0], sim)
 	set := make(map[int]bool)
-	dfs(spikeTip, set, sim)
+	dfs(spineTip, set, sim)
 	//fmt.Println(len(set))
 	// add genesis
 	sim.spineTangle[0] = sim.tangle[0]

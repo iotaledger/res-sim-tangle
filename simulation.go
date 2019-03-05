@@ -133,6 +133,9 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//fmt.Println("\n\n")
 		//fmt.Println("Tangle size: ", sim.param.TangleSize)
 
+		//	fmt.Println(getCWgrowth(sim.tangle[sim.param.TangleSize-10*int(sim.param.Lambda)], &sim))
+		//fmt.Println(sim.tangle[sim.param.TangleSize-10*int(sim.param.Lambda)].cw)
+
 		if p.SpineEnabled {
 			sim.computeSpine()
 			//printApprovers(sim.spineApprovers)

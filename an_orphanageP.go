@@ -154,12 +154,16 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) {
 	size := 0
 	_, lastVisibleTx := max(sim.tips)
 
+	// finding the size of coneUnionBitMask
 	for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.stillrecent; tx-- {
 		if len(sim.cw[tx]) > size {
 			size = len(sim.cw[tx])
 		}
 	}
+	//data structure to keep information about directly and indirectly referenced txs
 	coneUnionBitMask := make([]uint64, size)
+
+	//oring all the cones
 	for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.stillrecent; tx-- {
 		for block := 0; block < len(sim.cw[tx]); block++ {
 			coneUnionBitMask[block] |= sim.cw[tx][block]
