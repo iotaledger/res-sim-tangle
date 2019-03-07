@@ -28,7 +28,7 @@ func main() {
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 100, 0.01)
+	runSimulation(b, "rw", 10, 1)
 
 	printPerformance(b)
 }
@@ -42,25 +42,25 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		//H:          1,
 		Lambda:      lambda,
 		Alpha:       alpha,
-		TangleSize:  600 * int(lambda),
-		CWMatrixLen: 600 * int(lambda), // reduce CWMatrix to this len
+		TangleSize:  200 * int(lambda),
+		CWMatrixLen: 200 * int(lambda), // reduce CWMatrix to this len
 		// TangleSize:   int(math.Min(3000, (100+math.Max(100, 30.0/alpha/lambda)))) * int(lambda),
-		minCut:       51 * int(lambda), // cut data close to the genesis
-		maxCutrange:  5 * int(lambda),  // cut data for the most recent txs, not applied for every analysis
+		minCut:       10 * int(lambda), // cut data close to the genesis
+		maxCutrange:  10 * int(lambda), // cut data for the most recent txs, not applied for every analysis
 		stillrecent:  2 * int(lambda),  // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate: false,
 		// nRun:         int(math.Max(10000/lambda, 100)),
-		nRun: 4,
+		nRun: 2,
 		TSA:  tsa,
 
 		// - - - Analysis section - - -
-		CountTipsEnabled:  false,
-		CWAnalysisEnabled: false,
-		SpineEnabled:      true,
-		pOrphanEnabled:    true,
-		VelocityEnabled:   false,
-		EntropyEnabled:    false,
-		// VelocityEnabled: false,
+		CountTipsEnabled:     false,
+		CWAnalysisEnabled:    false,
+		SpineEnabled:         true,
+		pOrphanEnabled:       true, // calculate orphanage probability
+		pOrphanLinFitEnabled: true, // also apply linear fit, numerically expensive
+		VelocityEnabled:      false,
+		EntropyEnabled:       false,
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 5, 40, 5},
 		//{Enabled, maxiMT, murel, nRW}
@@ -85,14 +85,6 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 
 	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
 	fmt.Println(f.avgtips)
-	// if p.VelocityEnabled {
-	// 	fmt.Println(f.velocity.Stat(p))
-	// 	f.velocity.Save(p)
-	// 	f.velocity.SaveStat(p)
-	// }
-	// if p.AnPastEdgeEnabled {
-	// 	f.PastEdge.Save(p)
-	// }
 	f.SaveResults(p)
 }
 

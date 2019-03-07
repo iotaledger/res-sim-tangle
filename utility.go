@@ -107,9 +107,27 @@ func pauseit() {
 	reader := bufio.NewReader(os.Stdin)
 	// fmt.Print("Enter.")
 	text, _ := reader.ReadString('\n')
-	fmt.Println(text)
+	fmt.Print(text)
 	// fmt.Println("Enter texttext: ")
 	// text2 := ""
 	// fmt.Scanln(text2)
 	// fmt.Println(text2)
+}
+
+// create range of ints
+func makeRangeInt(min, max int) []int {
+	a := make([]int, max-min+1)
+	for i := range a {
+		a[i] = min + i
+	}
+	return a
+}
+
+// mean value of ints
+func meanInt(v []int) float64 {
+	a := 0
+	for _, i := range v {
+		a += i
+	}
+	return float64(a) / float64(len(v))
 }

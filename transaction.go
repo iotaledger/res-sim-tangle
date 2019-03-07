@@ -380,41 +380,18 @@ func ReferencedByTx(a []uint64, ID int) bool {
 	base := 64
 	baseID := ID / base
 	localID := ID - baseID*base
-	// fmt.Println(" ")
-	// fmt.Println("**************************")
-	// fmt.Println(ID)
-	// fmt.Println(baseID)
-	// fmt.Println(localID)
-	// fmt.Println(13 / base)
-	// fmt.Println(len(a))
-	// fmt.Println(a[baseID])
-	// fmt.Println("**************************")
-	// pauseit()
-	if len(a) > baseID && a[baseID]&(1<<uint(localID)) != 0 {
-		return true
+	// if len(a) > baseID && a[baseID]&(1<<uint(localID)) != 0 {
+	if len(a) > baseID {
+		if a[baseID]&(1<<uint(localID)) != 0 {
+			return true
+		}
 	}
 	return false
-	// for i, block := range a { // the i iterates through the blocks, block is the unit64 of the block itself
-	// 	for j := 0; j < base; j++ {
-	// 		if block&(1<<uint(j)) != 0 {
-	// 			sim.tangle[j+(i*base)].cw -= propweight
-	// 		}
-	// 	}
-	// }
 }
 
 // ReferencedByRecentTx checks for particular tx if it is referenced by recent tx
 func (sim *Sim) ReferencedByRecentTx(searchTx, lastTx, numRecent int) bool {
 	for tx := lastTx; tx > lastTx-numRecent && searchTx < tx; tx-- {
-		// fmt.Println("Txnow ", tx)
-		// fmt.Println("searchTx ", searchTx)
-		// fmt.Println("numRecent ", numRecent)
-		// fmt.Println("len(sim.cw) ", len(sim.cw))
-		// pauseit()
-		// fmt.Println(sim.tangle[tx].ref)
-		// fmt.Println(sim.tangle[tx].ref[0])
-		// fmt.Println(sim.tangle[tx].ref[1])
-		// pauseit()
 		if searchTx < sim.tangle[tx].ref[0] { // only check if at least one of tx's approvers is known
 			if ReferencedByTx(sim.cw[tx], searchTx) {
 				return true
@@ -439,4 +416,28 @@ func (sim *Sim) isLeftBehind(thisTx int) bool {
 
 	return true
 
+}
+
+//return a ordered list of IDs from a map[int]Tx
+func returnIDlist(tanglepart map[int]Tx) []int {
+	a := make([]int, len(tanglepart))
+	counter := 0
+	for id := range tanglepart {
+		a[counter] = id
+		counter++
+	}
+	help := 0
+	for i1 := 0; i1 < len(a)-1; {
+		if a[i1+1] < a[i1] {
+			help = a[i1]
+			a[i1] = a[i1+1]
+			a[i1+1] = help
+			if i1 > 0 {
+				i1--
+			}
+		} else {
+			i1++
+		}
+	}
+	return a
 }

@@ -25,13 +25,12 @@ type Sim struct {
 func (p *Parameters) RunTangle() (Result, Benchmark) {
 	performance := make(Benchmark)
 	defer performance.track(runningtime("total"))
-	//fmt.Println(p)
 	sim := Sim{}
-	//var nTips int
 
 	var result Result
 	p.initSim(&sim)
 
+	// ??? move this initialisation to an_main.go
 	// - - - - - - - - - - - - - - - - - - - - -
 	// initiate analysis variables
 	// - - - - - - - - - - - - - - - - - - - - -
@@ -71,7 +70,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		result.entropy = *r
 	}
 	if p.pOrphanEnabled {
-		r := newPOrphanResult()
+		r := newPOrphanResult(p)
 		result.op = *r
 	}
 
@@ -105,16 +104,6 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			//update set of tips before running TSA, increase the wb matrix here
 			sim.tips = append(sim.tips, sim.tipsUpdate(t)...)
 
-			// fmt.Println("sim.tips", sim.tips)
-			// fmt.Println("sim.hiddenTips", sim.hiddenTips)
-			// fmt.Println("sim.cw,sim.cw")
-			// fmt.Println("len(sim.cw)", len(sim.cw))
-			// for ; counter < len(sim.cw); counter++ {
-			// 	fmt.Println("Counter now=", counter)
-			// 	fmt.Println(sim.cw[counter][0])
-			// 	fmt.Println(strconv.FormatInt(int64(sim.cw[counter][0]), 2))
-			// }
-
 			//run TSA to select k(2) tips to approve
 			t.ref = sim.param.tsa.TipSelect(t, &sim) //sim.tipsSelection(t, sim.vTips)
 
@@ -122,13 +111,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			sim.tangle[i] = t
 			sim.hiddenTips = append(sim.hiddenTips, t.id)
 
-			if i > sim.param.minCut && i < sim.param.maxCut {
-				nTips += len(sim.tips)
-			}
-			if p.CountTipsEnabled {
-				sim.countTips(i, run, &result.tips)
-			}
-
+			result.EvaluateAfterTx(&sim, p, run, i)
 		}
 		//fmt.Println("\n\n")
 		//fmt.Println("Tangle size: ", sim.param.TangleSize)
@@ -136,41 +119,11 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//	fmt.Println(getCWgrowth(sim.tangle[sim.param.TangleSize-10*int(sim.param.Lambda)], &sim))
 		//fmt.Println(sim.tangle[sim.param.TangleSize-10*int(sim.param.Lambda)].cw)
 
-		if p.SpineEnabled {
-			sim.computeSpine()
-			//printApprovers(sim.spineApprovers)
-		}
-
 		//Compare CWs
 		//fmt.Println("CW comparison:", sim.compareCW())
-		// - - - - - - - - - - - - - - - - - - - - -
 		// data evaluation after each tangle
-		// - - - - - - - - - - - - - - - - - - - - -
 		result.avgtips.val = append(result.avgtips.val, float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut-sim.param.maxCutrange)/sim.param.Lambda)
-		if p.CountTipsEnabled {
-			//sim.runTipsStat(&result.tips)
-		}
-		if p.CWAnalysisEnabled {
-			sim.fillCW(run, &result.cw)
-		}
-		if p.VelocityEnabled {
-			sim.runVelocityStat(&result.velocity)
-		}
-		if p.AnPastCone.Enabled {
-			sim.runAnPastCone(&result.PastCone)
-		}
-		if p.AnFocusRW.Enabled {
-			sim.runAnFocusRW(&result.FocusRW)
-		}
-		if p.EntropyEnabled {
-			sim.runEntropyStat(&result.entropy)
-		}
-		if p.pOrphanEnabled && p.SpineEnabled {
-			sim.runOrphaningP(&result.op)
-		}
-
-		//for {
-		//}
+		result.EvaluateTangle(&sim, p, run)
 	}
 
 	//fmt.Println("E(L):", float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut*2)/sim.param.Lambda/float64(sim.param.nRun))
@@ -268,6 +221,7 @@ func (p Parameters) initSim(sim *Sim) {
 		sim.param.SpineEnabled = false
 	}
 	sim.param.pOrphanEnabled = p.pOrphanEnabled
+	sim.param.pOrphanLinFitEnabled = p.pOrphanLinFitEnabled
 	sim.param.CountTipsEnabled = p.CountTipsEnabled
 
 	if p.DataPath != "" {

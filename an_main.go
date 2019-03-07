@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-//SaveResults saves result
+//save results at end of simulation
 func (f *Result) SaveResults(p Parameters) {
 	if p.CountTipsEnabled {
 		f.tips.Statistics(p)
@@ -54,6 +54,50 @@ func (f *Result) SaveResults(p Parameters) {
 		fmt.Println(f.op)
 	}
 	return
+}
+
+//Evaluate after each tx
+func (result *Result) EvaluateAfterTx(sim *Sim, p *Parameters, run, i int) {
+	// ??? the following lines seems to make no sense. can we remove it?
+	// if i > sim.param.minCut && i < sim.param.maxCut {
+	// 	nTips += len(sim.tips)
+	// }
+	if p.CountTipsEnabled {
+		sim.countTips(i, run, &result.tips)
+	}
+	if p.pOrphanEnabled && p.pOrphanLinFitEnabled && p.SpineEnabled {
+		sim.runAnOPLinfit(i, &result.op, run)
+	}
+}
+
+//Evaluate after each Tangle
+func (result *Result) EvaluateTangle(sim *Sim, p *Parameters, run int) {
+	if p.SpineEnabled {
+		sim.computeSpine()
+		//printApprovers(sim.spineApprovers)
+	}
+
+	if p.CountTipsEnabled {
+		//sim.runTipsStat(&result.tips)
+	}
+	if p.CWAnalysisEnabled {
+		sim.fillCW(run, &result.cw)
+	}
+	if p.VelocityEnabled {
+		sim.runVelocityStat(&result.velocity)
+	}
+	if p.AnPastCone.Enabled {
+		sim.runAnPastCone(&result.PastCone)
+	}
+	if p.AnFocusRW.Enabled {
+		sim.runAnFocusRW(&result.FocusRW)
+	}
+	if p.EntropyEnabled {
+		sim.runEntropyStat(&result.entropy)
+	}
+	if p.pOrphanEnabled && p.SpineEnabled {
+		sim.runOrphaningP(&result.op)
+	}
 }
 
 //JoinResults joins result
