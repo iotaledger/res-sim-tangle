@@ -45,8 +45,8 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		TangleSize:  200 * int(lambda),
 		CWMatrixLen: 200 * int(lambda), // reduce CWMatrix to this len
 		// TangleSize:   int(math.Min(3000, (100+math.Max(100, 30.0/alpha/lambda)))) * int(lambda),
-		minCut:       10 * int(lambda), // cut data close to the genesis
-		maxCutrange:  10 * int(lambda), // cut data for the most recent txs, not applied for every analysis
+		minCut:       51 * int(lambda), // cut data close to the genesis
+		maxCutrange:  50 * int(lambda), // cut data for the most recent txs, not applied for every analysis
 		stillrecent:  2 * int(lambda),  // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate: false,
 		// nRun:         int(math.Max(10000/lambda, 100)),

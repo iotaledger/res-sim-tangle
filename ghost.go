@@ -1,6 +1,7 @@
 package main
 
 func (sim *Sim) computeSpine() {
+	sim.spineTangle = make(map[int]Tx)
 	_, spineTip := ghostWalk(sim.tangle[0], sim)
 	set := make(map[int]bool)
 	dfs(spineTip, set, sim)
