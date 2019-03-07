@@ -20,6 +20,8 @@ type pOrphanResult struct {
 	top2        []float64
 	op3         []float64 // linear regression
 	top3        []float64
+	op4         []float64 // sum Ghost cone + N recent cones
+	top4        []float64
 	nTipsAtID   []int // for each index record the number of tips
 	nOrphanAtID []int // for each index record the number of orphaned txs
 	tTangle     []float64
@@ -29,9 +31,9 @@ type pOrphanResult struct {
 
 func (sim *Sim) runOrphaningP(result *pOrphanResult) {
 	// remove txs grater than maxCut from both tangle and spine tangle so to have a comparable cone
-	newTangle := sim.tangle[:sim.param.maxCut]
+	newTangle := sim.tangle[sim.param.minCut:sim.param.maxCut]
 	// calculate spine Tangle up to maxCut (all txs (directly/indirectly) referenced by a GHOST particle (alpha = infinity)
-	newSpineTangle := sliceMap(sim.spineTangle, sim.param.maxCut)
+	newSpineTangle := sliceMap(sim.spineTangle, sim.param.minCut, sim.param.maxCut)
 
 	result.tTangle = append(result.tTangle, getAverageApprovalTime(sliceToMap(newTangle)))
 	result.tSpine = append(result.tSpine, getAverageApprovalTime(newSpineTangle))
@@ -40,11 +42,13 @@ func (sim *Sim) runOrphaningP(result *pOrphanResult) {
 
 	sim.runOrphanageGHOST(result, newTangle, newSpineTangle) // calculate op
 
-	sim.runOrphanageRecent(result) // calculate op2
+	recentTipsCones := sim.runOrphanageRecent(result) // calculate op2
 
 	if sim.param.pOrphanLinFitEnabled {
 		sim.runOrphanageLinFit(result) // calculate op3
 	}
+
+	sim.runOrphanageGHOSTRecent(result, newTangle, newSpineTangle, recentTipsCones)
 }
 
 func (a pOrphanResult) Join(b pOrphanResult) pOrphanResult {
@@ -58,6 +62,8 @@ func (a pOrphanResult) Join(b pOrphanResult) pOrphanResult {
 	result.top2 = append(a.top2, b.top2...)
 	result.op3 = append(a.op3, b.op3...)
 	result.top3 = append(a.top3, b.top3...)
+	result.op4 = append(a.op4, b.op4...)
+	result.top4 = append(a.top4, b.top4...)
 	result.tTangle = append(a.tTangle, b.tTangle...)
 	result.tSpine = append(a.tSpine, b.tSpine...)
 	result.tOrphan = append(a.tOrphan, b.tOrphan...)
@@ -79,6 +85,10 @@ func (a pOrphanResult) String() string {
 	result += fmt.Sprintf("Orphanage Probability 3 [mean, StdDev]:\t\t%.5f\t%.5f\n", mean, std)
 	mean, std = stat.MeanStdDev(a.top3, nil)
 	result += fmt.Sprintf("Tip Orphanage Probability 3: [mean, StdDev]:\t%.5f\t%.5f\n", mean, std)
+	mean, std = stat.MeanStdDev(a.op4, nil)
+	result += fmt.Sprintf("Orphanage Probability 4 [mean, StdDev]:\t\t%.5f\t%.5f\n", mean, std)
+	mean, std = stat.MeanStdDev(a.top4, nil)
+	result += fmt.Sprintf("Tip Orphanage Probability 4: [mean, StdDev]:\t%.5f\t%.5f\n", mean, std)
 	result += fmt.Sprintf("Avg approval time [Tangle, Spine, Orphan]:\t%.5f\t%.5f\t%.5f\n", stat.Mean(a.tTangle, nil), stat.Mean(a.tSpine, nil), stat.Mean(a.tOrphan, nil))
 	return result
 }
@@ -93,10 +103,10 @@ func newPOrphanResult(p *Parameters) *pOrphanResult {
 	return &result
 }
 
-func sliceMap(m map[int]Tx, uBound int) map[int]Tx {
+func sliceMap(m map[int]Tx, lBound, uBound int) map[int]Tx {
 	result := make(map[int]Tx)
 	for k, v := range m {
-		if k < uBound {
+		if k < uBound && k >= lBound {
 			result[k] = v
 		}
 	}
@@ -104,8 +114,8 @@ func sliceMap(m map[int]Tx, uBound int) map[int]Tx {
 }
 
 func getOrphanTxs(sim *Sim) map[int]Tx {
-	newTangle := sim.tangle[:sim.param.maxCut]
-	newSpineTangle := sliceMap(sim.spineTangle, sim.param.maxCut)
+	newTangle := sim.tangle[sim.param.minCut:sim.param.maxCut]
+	newSpineTangle := sliceMap(sim.spineTangle, sim.param.minCut, sim.param.maxCut)
 	result := make(map[int]Tx)
 
 	for k, v := range newTangle {
@@ -180,15 +190,33 @@ func (sim *Sim) runOrphanageGHOST(result *pOrphanResult, newTangle []Tx, newSpin
 
 	// calculate top by finding all tips left behind and dividing that number over all txs
 	top := 0.
-	for tx := range newTangle {
-		if len(sim.approvers[tx]) == 0 {
+	for _, tx := range newTangle {
+		if len(sim.approvers[tx.id]) == 0 {
 			top++
 		}
 	}
 	result.top = append(result.top, top/float64(len(newTangle)))
 }
 
-func (sim *Sim) runOrphanageRecent(result *pOrphanResult) {
+func (sim *Sim) runOrphanageGHOSTRecent(result *pOrphanResult, newTangle []Tx, newSpineTangle, coneRecent map[int]Tx) {
+	// calculate op
+	sum := newSpineTangle
+	for k, v := range coneRecent {
+		sum[k] = v
+	}
+	result.op4 = append(result.op4, 1.-float64(len(sum))/float64(len(newTangle)))
+
+	// calculate top by finding all tips left behind and dividing that number over all txs
+	top := 0.
+	for _, tx := range newTangle {
+		if len(sim.approvers[tx.id]) == 0 {
+			top++
+		}
+	}
+	result.top4 = append(result.top4, top/float64(len(newTangle)))
+}
+
+func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
 	var base uint
 	base = 64
 	size := 0
@@ -216,9 +244,9 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) {
 		var i uint
 		for i = 0; i < base; i++ {
 			id := block*int(base) + int(i)
-			if id < sim.param.maxCut {
-				if coneUnionBitMask[block]&(1<<i) != 0 {
-					// if (coneUnionBitMask[block]>>i)&1 == 1 {
+			if id < sim.param.maxCut && id >= sim.param.minCut {
+				//if coneUnionBitMask[block]&(1<<i) != 0 {
+				if (coneUnionBitMask[block]>>i)&1 == 1 {
 					ones[id] = sim.tangle[id]
 				} else {
 					zeros[id] = sim.tangle[id]
@@ -232,8 +260,8 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) {
 	// 	dfs(sim.tangle[tx], set, sim)
 	// }
 
-	ones = sliceMap(ones, sim.param.maxCut)
-	zeros = sliceMap(zeros, sim.param.maxCut)
+	//ones = sliceMap(ones, sim.param.minCut, sim.param.maxCut)
+	//zeros = sliceMap(zeros, sim.param.minCut, sim.param.maxCut)
 	top := 0
 	for id := range zeros {
 		if len(sim.approvers[id]) == 0 {
@@ -241,8 +269,9 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) {
 		}
 	}
 
-	result.op2 = append(result.op2, 1-float64(len(ones))/float64(sim.param.maxCut))
-	result.top2 = append(result.top2, float64(top)/float64(sim.param.maxCut))
+	result.op2 = append(result.op2, 1-float64(len(ones))/float64(sim.param.maxCut-sim.param.minCut))
+	result.top2 = append(result.top2, float64(top)/float64(sim.param.maxCut-sim.param.minCut))
+	return ones
 }
 
 // how many txs are orphaned at a given index
