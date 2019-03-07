@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+
+	"gonum.org/v1/gonum/stat"
 )
 
 // var nParallelSims = 1
@@ -14,26 +16,44 @@ var nParallelSims = runtime.NumCPU()/2 - 1
 func main() {
 
 	b := make(Benchmark)
-	// lambdas := []float64{10}
-	// // lambdas := []float64{1, 2, 3, 6, 10, 20, 30, 60, 100, 200, 300, 600}
-	// // lambdas := []float64{600, 300}
-	// alphas := []float64{0.01}
-	// for _, lambda := range lambdas {
-	// 	for _, alpha := range alphas {
-	// 		// if (alpha * lambda) < 10 {
-	// 		runSimulation(b, "rw", lambda, alpha)
-	// 		// }
-	// 	}
-	// }
+	//var ratio string
+	var total string
+	lambdas := []float64{100}
+	// lambdas := []float64{1, 2, 3, 6, 10, 20, 30, 60, 100, 200, 300, 600}
+	// lambdas := []float64{600, 300}
+	//alphas := []float64{0}
+	for _, lambda := range lambdas {
+		//for _, alpha := range alphas {
+		for alpha := 0.001; alpha <= 0.1; alpha += 0.001 {
+			//for lambda := 1.; lambda <= 100; lambda++ {
+			// if (alpha * lambda) < 10 {
+			r := runSimulation(b, "rw", lambda, alpha)
+			ratio := fmt.Sprintf("%.3f", alpha)
+
+			for _, m := range []string{"rw", "backU", "backB", "CW-Max"} {
+				x, y := r.velocity.getTimeMetric(m)
+				ratio += fmt.Sprintf("\t%.5f", stat.Mean(x, y))
+			}
+			ratio += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op, nil))
+			ratio += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top, nil))
+			ratio += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op2, nil))
+			ratio += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top2, nil))
+			ratio += fmt.Sprintf("\n")
+
+			total += ratio
+			fmt.Println(ratio)
+		}
+	}
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 10, 1)
+	//r := runSimulation(b, "rw", 100, 0.005)
+	fmt.Println(total)
 
-	printPerformance(b)
+	//printPerformance(b)
 }
 
-func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
+func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 	defer b.track(runningtime("TSA=" + strings.ToUpper(tsa) + ", Lambda=" + fmt.Sprintf("%.2f", lambda) + ", Alpha=" + fmt.Sprintf("%.4f", alpha) + "\tTime"))
 
 	//lambda := 100.
@@ -86,6 +106,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
 	fmt.Println(f.avgtips)
 	f.SaveResults(p)
+	return f
 }
 
 func run(p Parameters, r *Result, c chan bool) {
