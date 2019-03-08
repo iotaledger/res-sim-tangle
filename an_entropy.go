@@ -10,11 +10,15 @@ import (
 
 //Entropy result of simulation
 type entropyResult struct {
-	tips   MetricIntInt // number of particles reaching specific tips
-	ep     [][]float64  // exit probabilities (number of rows = number of Tangles )
-	mean   []float64    // exit probability means over Tangles
-	median []float64    // exit probability medians over Tangles
-	std    []float64    // exit probability std dev over Tangles
+	tips    MetricIntInt // number of particles reaching specific tips
+	ep      [][]float64  // exit probabilities (number of rows = number of Tangles )
+	mean    []float64    // exit probability means over Tangles
+	median  []float64    // exit probability medians over Tangles
+	std     []float64    // exit probability std dev over Tangles
+	ep2     [][]float64  // exit probabilities (number of rows = number of Tangles), ep2 maps onto 2lambda intervals
+	mean2   []float64    // exit probability means over Tangles
+	median2 []float64    // exit probability medians over Tangles
+	std2    []float64    // exit probability std dev over Tangles
 }
 
 func newEntropyResult() *entropyResult {
@@ -24,16 +28,24 @@ func newEntropyResult() *entropyResult {
 }
 
 func (sim *Sim) runEntropyStat(result *entropyResult) {
+	Nparticle := 100000
 	result.tips = MetricIntInt{"Tips", make(map[int]int)}
 	if sim.param.TSA != "RW" {
-		sim.entropyURTS(result.tips.v, 1000000)
+		sim.entropyURTS(result.tips.v, Nparticle)
 		result.ep = append(result.ep, sortEntropy(result.tips.v))
+		// fmt.Println(result.ep)
+		result.ep2 = append(result.ep2, mapEntropy01(sortEntropy(result.tips.v), sim.param))
+		// fmt.Println(result.ep2)
+		// fmt.Println("in here")
+		// pauseit()
 	} else {
-		sim.entropyParticleRW(result.tips.v, 1000000)
+		sim.entropyParticleRW(result.tips.v, Nparticle)
 		result.ep = append(result.ep, sortEntropy(result.tips.v))
+		result.ep2 = append(result.ep2, mapEntropy01(sortEntropy(result.tips.v), sim.param))
 	}
 }
 
+//sort the exit probabilities from max to min
 func sortEntropy(v map[int]int) (r []float64) {
 	r = make([]float64, len(v))
 	var values []int
@@ -49,6 +61,42 @@ func sortEntropy(v map[int]int) (r []float64) {
 	return r
 }
 
+// map the exit probabilites from 0-1
+func mapEntropy01(r []float64, p Parameters) (m []float64) {
+	m = make([]float64, int(p.Lambda)*2)
+	fillboxes := float64(len(m)) / float64(len(r))
+	leftboxes := 0.
+	remainer := 0.
+	vID := 0
+	for i1 := 0; i1 < len(r); i1++ {
+		if remainer+fillboxes < 1 { // next r[i1] fits still into the same box
+			m[vID] += r[i1]
+			remainer += fillboxes
+		} else {
+			m[vID] += r[i1] * (1 - remainer) / fillboxes
+			vID++
+			leftboxes = fillboxes - (1 - remainer)
+			for ; leftboxes > 1; leftboxes-- {
+				m[vID] += r[i1] / fillboxes
+				vID++
+			}
+			if vID == 2*int(p.Lambda) && leftboxes < 1e-6 { // this is just some overflow due to some precission error
+				vID--
+			}
+			if leftboxes > 0 { //could be zero now
+				m[vID] += leftboxes * r[i1] / fillboxes
+				remainer = leftboxes
+			}
+		}
+	}
+	if vID < 2*int(p.Lambda)-1 || vID > 2*int(p.Lambda) { //brief check if we are one of those indices
+		fmt.Println("Error: vID=", vID, " != ", 2*int(p.Lambda))
+		pauseit()
+	}
+	return m
+}
+
+// calculate exit probabilities and save in v
 func (sim *Sim) entropyURTS(v map[int]int, nParticles int) {
 	for i := 0; i < nParticles; i++ {
 		tip := sim.generator.Intn(len(sim.tips))
@@ -59,6 +107,7 @@ func (sim *Sim) entropyURTS(v map[int]int, nParticles int) {
 	// }
 }
 
+// calculate exit probabilities and save in v
 func (sim *Sim) entropyParticleRW(v map[int]int, nParticles int) {
 	for i := 0; i < nParticles; i++ {
 		prev := sim.tangle[0]
@@ -68,11 +117,9 @@ func (sim *Sim) entropyParticleRW(v map[int]int, nParticles int) {
 		} else {
 			tsa = URW{}
 		}
-
 		var current Tx
 		for current, _ = tsa.RandomWalk(prev, sim); len(sim.approvers[current.id]) > 0; current, _ = tsa.RandomWalk(current, sim) {
 		}
-
 		v[current.id]++
 	}
 }
@@ -83,10 +130,12 @@ func (a *entropyResult) Join(b entropyResult) (r entropyResult) {
 	}
 	r.ep = append(r.ep, a.ep...)
 	r.ep = append(r.ep, b.ep...)
+	r.ep2 = append(r.ep2, a.ep2...)
+	r.ep2 = append(r.ep2, b.ep2...)
 	return r
 }
 
-func (e *entropyResult) Save(p Parameters) (err error) {
+func (e *entropyResult) Save(p Parameters, str string) (err error) {
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
 	alphaStr := fmt.Sprintf("%.4f", p.Alpha)
 	var rateType string
@@ -97,7 +146,7 @@ func (e *entropyResult) Save(p Parameters) (err error) {
 	}
 	f, err := os.Create("data/entropy_stat_" + p.TSA + "_" + rateType +
 		"_lambda_" + lambdaStr +
-		"_alpha_" + alphaStr + "_.txt")
+		"_alpha_" + alphaStr + "_" + str + ".txt")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
 		return err
@@ -124,6 +173,7 @@ func (e *entropyResult) Stat(p Parameters) (result string) {
 	for _, row := range e.ep {
 		lenRows = append(lenRows, len(row))
 	}
+
 	// make same len for all the rows and fill with 0s if smaller
 	_, nColumns := max(lenRows)
 	for i, row := range e.ep {

@@ -28,7 +28,7 @@ func main() {
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 10, 1)
+	runSimulation(b, "rw", 10, 0)
 
 	printPerformance(b)
 }
@@ -42,25 +42,25 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		//H:          1,
 		Lambda:      lambda,
 		Alpha:       alpha,
-		TangleSize:  200 * int(lambda),
-		CWMatrixLen: 200 * int(lambda), // reduce CWMatrix to this len
+		TangleSize:  150 * int(lambda),
+		CWMatrixLen: 150 * int(lambda), // reduce CWMatrix to this len
 		// TangleSize:   int(math.Min(3000, (100+math.Max(100, 30.0/alpha/lambda)))) * int(lambda),
 		minCut:       51 * int(lambda), // cut data close to the genesis
 		maxCutrange:  50 * int(lambda), // cut data for the most recent txs, not applied for every analysis
 		stillrecent:  2 * int(lambda),  // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate: false,
 		// nRun:         int(math.Max(10000/lambda, 100)),
-		nRun: 2,
+		nRun: 100,
 		TSA:  tsa,
 
 		// - - - Analysis section - - -
 		CountTipsEnabled:     false,
 		CWAnalysisEnabled:    false,
-		SpineEnabled:         true,
-		pOrphanEnabled:       true, // calculate orphanage probability
-		pOrphanLinFitEnabled: true, // also apply linear fit, numerically expensive
+		SpineEnabled:         false,
+		pOrphanEnabled:       false, // calculate orphanage probability
+		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
 		VelocityEnabled:      false,
-		EntropyEnabled:       false,
+		EntropyEnabled:       true,
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 5, 40, 5},
 		//{Enabled, maxiMT, murel, nRW}

@@ -47,7 +47,14 @@ func (f *Result) SaveResults(p Parameters) {
 	}
 	if p.EntropyEnabled {
 		fmt.Println(f.entropy.Stat(p))
-		f.entropy.Save(p)
+		f.entropy.Save(p, "ep")
+		//  the following way was the easiest way, otherwise it would have been necessary to copy a huge amount of functions
+		f.entropy.ep = f.entropy.ep2
+		f.entropy.mean = f.entropy.mean2
+		f.entropy.median = f.entropy.median2
+		f.entropy.std = f.entropy.std2
+		fmt.Println(f.entropy.Stat(p))
+		f.entropy.Save(p, "ep2")
 		//f.entropy.SaveStat(p)
 	}
 	if p.pOrphanEnabled && p.SpineEnabled {
