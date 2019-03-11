@@ -16,48 +16,10 @@ var nParallelSims = runtime.NumCPU()/2 - 1
 func main() {
 
 	b := make(Benchmark)
-	//var ratio string
-	var total string
-	lambdas := []float64{50}
-	// lambdas := []float64{1, 2, 3, 6, 10, 20, 30, 60, 100, 200, 300, 600}
-	// lambdas := []float64{600, 300}
-	//alphas := []float64{0, 0.01, 0.1, 1}
-	alphas := []float64{1000000.}
-	var banner string
-	for _, lambda := range lambdas {
-		for _, alpha := range alphas {
-			//for alpha := 0.001; alpha <= 0.1; alpha += 0.001 {
-			//for lambda := 1.; lambda <= 100; lambda++ {
-			// if (alpha * lambda) < 10 {
-			r := runSimulation(b, "rw", lambda, alpha)
-			if banner == "" {
-				banner += fmt.Sprintf("#alpha\t")
-				for _, m := range r.velocity.vTime {
-					banner += fmt.Sprintf("%v\t", m.desc)
-				}
-				banner += fmt.Sprintf("OP\tTOP\n")
-			}
-
-			output := fmt.Sprintf("%.3f", alpha)
-			for _, m := range r.velocity.vTime {
-				x, y := r.velocity.getTimeMetric(m.desc)
-				output += fmt.Sprintf("\t%.5f", stat.Mean(x, y))
-			}
-			// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op, nil))
-			// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top, nil))
-			output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op2, nil))
-			output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top2, nil))
-			output += fmt.Sprintf("\n")
-
-			total += output
-			fmt.Println(output)
-		}
-	}
-
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	//r := runSimulation(b, "rw", 100, 0.005)
-	fmt.Println(banner + total)
+	runSimulation(b, "rw", 100, 0.005)
+	//fmt.Println(runForAlphasLambdas())
 
 	//printPerformance(b)
 }
@@ -123,4 +85,46 @@ func run(p Parameters, r *Result, c chan bool) {
 	b := make(Benchmark)
 	*r, b = p.RunTangle()
 	printPerformance(b)
+}
+
+func runForAlphasLambdas() string {
+	b := make(Benchmark)
+	//var ratio string
+	var total string
+	lambdas := []float64{50}
+	// lambdas := []float64{1, 2, 3, 6, 10, 20, 30, 60, 100, 200, 300, 600}
+	// lambdas := []float64{600, 300}
+	//alphas := []float64{0, 0.01, 0.1, 1}
+	alphas := []float64{1000000.}
+	var banner string
+	for _, lambda := range lambdas {
+		for _, alpha := range alphas {
+			//for alpha := 0.001; alpha <= 0.1; alpha += 0.001 {
+			//for lambda := 1.; lambda <= 100; lambda++ {
+			// if (alpha * lambda) < 10 {
+			r := runSimulation(b, "rw", lambda, alpha)
+			if banner == "" {
+				banner += fmt.Sprintf("#alpha\t")
+				for _, m := range r.velocity.vTime {
+					banner += fmt.Sprintf("%v\t", m.desc)
+				}
+				banner += fmt.Sprintf("OP\tTOP\n")
+			}
+
+			output := fmt.Sprintf("%.3f", alpha)
+			for _, m := range r.velocity.vTime {
+				x, y := r.velocity.getTimeMetric(m.desc)
+				output += fmt.Sprintf("\t%.5f", stat.Mean(x, y))
+			}
+			// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op, nil))
+			// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top, nil))
+			output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op2, nil))
+			output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top2, nil))
+			output += fmt.Sprintf("\n")
+
+			total += output
+			fmt.Println(output)
+		}
+	}
+	return banner + total
 }
