@@ -48,3 +48,20 @@ func ghostStep(t Tx, sim *Sim) Tx {
 	maxCW, _ := max(cws)
 	return sim.tangle[directApprovers[maxCW]]
 }
+
+func ghostWalkBack(t Tx, sim *Sim) Tx {
+	refs := t.ref
+	if len(refs) == 0 {
+		return t
+	}
+	if (len(refs)) == 1 {
+		return sim.tangle[refs[0]]
+	}
+	var cws []int
+	for _, ref := range refs {
+		cws = append(cws, sim.tangle[ref].cw)
+	}
+	//fmt.Println(cws)
+	maxCW, _ := max(cws)
+	return sim.tangle[refs[maxCW]]
+}
