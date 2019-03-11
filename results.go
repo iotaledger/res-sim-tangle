@@ -14,7 +14,7 @@ type Result struct {
 	velocity velocityResult
 	PastCone PastConeResult
 	FocusRW  FocusRWResult
-	entropy  entropyResult
+	exitProb exitProbResult
 	op       pOrphanResult
 	cw       cwResult
 	avgtips  avgTips //??
