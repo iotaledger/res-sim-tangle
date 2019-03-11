@@ -18,37 +18,46 @@ func main() {
 	b := make(Benchmark)
 	//var ratio string
 	var total string
-	lambdas := []float64{100}
+	lambdas := []float64{50}
 	// lambdas := []float64{1, 2, 3, 6, 10, 20, 30, 60, 100, 200, 300, 600}
 	// lambdas := []float64{600, 300}
-	//alphas := []float64{0}
+	//alphas := []float64{0, 0.01, 0.1, 1}
+	alphas := []float64{1000000.}
+	var banner string
 	for _, lambda := range lambdas {
-		//for _, alpha := range alphas {
-		for alpha := 0.001; alpha <= 0.1; alpha += 0.001 {
+		for _, alpha := range alphas {
+			//for alpha := 0.001; alpha <= 0.1; alpha += 0.001 {
 			//for lambda := 1.; lambda <= 100; lambda++ {
 			// if (alpha * lambda) < 10 {
 			r := runSimulation(b, "rw", lambda, alpha)
-			ratio := fmt.Sprintf("%.3f", alpha)
-
-			for _, m := range []string{"rw", "backU", "backB", "CW-Max"} {
-				x, y := r.velocity.getTimeMetric(m)
-				ratio += fmt.Sprintf("\t%.5f", stat.Mean(x, y))
+			if banner == "" {
+				banner += fmt.Sprintf("#alpha\t")
+				for _, m := range r.velocity.vTime {
+					banner += fmt.Sprintf("%v\t", m.desc)
+				}
+				banner += fmt.Sprintf("OP\tTOP\n")
 			}
-			ratio += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op, nil))
-			ratio += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top, nil))
-			ratio += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op2, nil))
-			ratio += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top2, nil))
-			ratio += fmt.Sprintf("\n")
 
-			total += ratio
-			fmt.Println(ratio)
+			output := fmt.Sprintf("%.3f", alpha)
+			for _, m := range r.velocity.vTime {
+				x, y := r.velocity.getTimeMetric(m.desc)
+				output += fmt.Sprintf("\t%.5f", stat.Mean(x, y))
+			}
+			// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op, nil))
+			// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top, nil))
+			output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op2, nil))
+			output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top2, nil))
+			output += fmt.Sprintf("\n")
+
+			total += output
+			fmt.Println(output)
 		}
 	}
 
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
 	//r := runSimulation(b, "rw", 100, 0.005)
-	fmt.Println(total)
+	fmt.Println(banner + total)
 
 	//printPerformance(b)
 }
@@ -70,16 +79,16 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		stillrecent:  2 * int(lambda),  // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate: false,
 		// nRun:         int(math.Max(10000/lambda, 100)),
-		nRun: 2,
+		nRun: 200,
 		TSA:  tsa,
 
 		// - - - Analysis section - - -
 		CountTipsEnabled:     false,
 		CWAnalysisEnabled:    false,
 		SpineEnabled:         true,
-		pOrphanEnabled:       true, // calculate orphanage probability
-		pOrphanLinFitEnabled: true, // also apply linear fit, numerically expensive
-		VelocityEnabled:      false,
+		pOrphanEnabled:       true,  // calculate orphanage probability
+		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
+		VelocityEnabled:      true,
 		EntropyEnabled:       false,
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 5, 40, 5},

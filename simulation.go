@@ -49,7 +49,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		if sim.param.TSA != "RW" {
 			vr = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "CW-Max", "CW-Min", "CWMaxRW", "CWMinRW", "backU"}, sim.param)
 		} else {
-			vr = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "backU", "backB"}, sim.param)
+			vr = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "backU", "backB", "URW", "backG"}, sim.param)
 			//vr = newVelocityResult([]string{"rw", "all", "first"}, sim.param)
 			//fmt.Println(*vr)
 			//vr = newVelocityResult([]string{"rw", "all", "back"})
