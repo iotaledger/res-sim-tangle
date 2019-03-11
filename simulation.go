@@ -217,6 +217,7 @@ func (p Parameters) initSim(sim *Sim) {
 	sim.param.VelocityEnabled = p.VelocityEnabled
 	sim.param.ExitProbEnabled = p.ExitProbEnabled
 	sim.param.ExitProbNparticle = p.ExitProbNparticle
+	sim.param.ExitProb2NHisto = p.ExitProb2NHisto
 	sim.param.SpineEnabled = p.SpineEnabled
 	if sim.param.TSA == "URTS" || sim.param.Alpha == 0 {
 		sim.param.SpineEnabled = false

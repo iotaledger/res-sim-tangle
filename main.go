@@ -62,6 +62,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		VelocityEnabled:      false,
 		ExitProbEnabled:      true,
 		ExitProbNparticle:    10000, // number of sample particles to calculate distribution
+		ExitProb2NHisto:      20,    // N of Histogram columns for exitProb2
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 5, 40, 5},
 		//{Enabled, maxiMT, murel, nRW}

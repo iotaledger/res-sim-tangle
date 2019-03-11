@@ -15,7 +15,7 @@ type exitProbResult struct {
 	mean    []float64    // exit probability means over Tangles
 	median  []float64    // exit probability medians over Tangles
 	std     []float64    // exit probability std dev over Tangles
-	ep2     [][]float64  // exit probabilities (number of rows = number of Tangles), ep2 maps onto 2lambda intervals
+	ep2     [][]float64  // exit probabilities (number of rows = number of Tangles), ep2 maps onto ExitProb2NHisto intervals
 	mean2   []float64    // exit probability means over Tangles
 	median2 []float64    // exit probability medians over Tangles
 	std2    []float64    // exit probability std dev over Tangles
@@ -34,14 +34,14 @@ func (sim *Sim) runExitProbStat(result *exitProbResult) {
 		sim.exitProbURTS(result.tips.v, sim.param.ExitProbNparticle)
 		result.ep = append(result.ep, sortExitProb(result.tips.v))
 		// fmt.Println(result.ep)
-		result.ep2 = append(result.ep2, mapExitProb01(sortExitProb(result.tips.v), sim.param))
+		result.ep2 = append(result.ep2, mapExitProb2(sortExitProb(result.tips.v), sim.param))
 		// fmt.Println(result.ep2)
 		// fmt.Println("in here")
 		// pauseit()
 	} else {
 		sim.exitProbParticleRW(result.tips.v, sim.param.ExitProbNparticle)
 		result.ep = append(result.ep, sortExitProb(result.tips.v))
-		result.ep2 = append(result.ep2, mapExitProb01(sortExitProb(result.tips.v), sim.param))
+		result.ep2 = append(result.ep2, mapExitProb2(sortExitProb(result.tips.v), sim.param))
 	}
 }
 
@@ -62,8 +62,9 @@ func sortExitProb(v map[int]int) (r []float64) {
 }
 
 // map the exit probabilites from 0-1
-func mapExitProb01(r []float64, p Parameters) (m []float64) {
-	m = make([]float64, int(p.Lambda)*2)
+func mapExitProb2(r []float64, p Parameters) (m []float64) {
+	// m = make([]float64, int(p.Lambda)*2)
+	m = make([]float64, p.ExitProb2NHisto)
 	fillboxes := float64(len(m)) / float64(len(r))
 	leftboxes := 0.
 	remainer := 0.
@@ -80,7 +81,8 @@ func mapExitProb01(r []float64, p Parameters) (m []float64) {
 				m[vID] += r[i1] / fillboxes
 				vID++
 			}
-			if vID == 2*int(p.Lambda) && leftboxes < 1e-6 { // this is just some overflow due to some precission error
+			// if vID == 2*int(p.Lambda) && leftboxes < 1e-6 { // this is just some overflow due to some precission error
+			if vID == p.ExitProb2NHisto && leftboxes < 1e-6 { // this is just some overflow due to some precission error
 				vID--
 			}
 			if leftboxes > 0 { //could be zero now
@@ -89,8 +91,10 @@ func mapExitProb01(r []float64, p Parameters) (m []float64) {
 			}
 		}
 	}
-	if vID < 2*int(p.Lambda)-1 || vID > 2*int(p.Lambda) { //brief check if we are one of those indices
-		fmt.Println("Error: vID=", vID, " != ", 2*int(p.Lambda))
+	// if vID < 2*int(p.Lambda)-1 || vID > 2*int(p.Lambda) { //brief check if we are one of those indices
+	if vID < p.ExitProb2NHisto-1 || vID > p.ExitProb2NHisto { //brief check if we are one of those indices
+		// fmt.Println("Error: vID=", vID, " != ", 2*int(p.Lambda))
+		fmt.Println("Error: vID=", vID, " != ", p.ExitProb2NHisto)
 		pauseit()
 	}
 	return m

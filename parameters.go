@@ -24,6 +24,7 @@ type Parameters struct {
 	VelocityEnabled   bool
 	ExitProbEnabled   bool
 	ExitProbNparticle int
+	ExitProb2NHisto   int
 
 	SpineEnabled         bool
 	pOrphanEnabled       bool
