@@ -60,7 +60,8 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) {
 		pOrphanEnabled:       false, // calculate orphanage probability
 		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
 		VelocityEnabled:      false,
-		EntropyEnabled:       true,
+		ExitProbEnabled:      true,
+		ExitProbNparticle:    10000, // number of sample particles to calculate distribution
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 5, 40, 5},
 		//{Enabled, maxiMT, murel, nRW}

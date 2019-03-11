@@ -65,9 +65,9 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		r := newFocusRWResult([]string{"0.1"})
 		result.FocusRW = *r
 	}
-	if p.EntropyEnabled {
-		r := newEntropyResult()
-		result.entropy = *r
+	if p.ExitProbEnabled {
+		r := newExitProbResult()
+		result.exitProb = *r
 	}
 	if p.pOrphanEnabled {
 		r := newPOrphanResult(p)
@@ -215,7 +215,8 @@ func (p Parameters) initSim(sim *Sim) {
 
 	sim.param.ConstantRate = p.ConstantRate
 	sim.param.VelocityEnabled = p.VelocityEnabled
-	sim.param.EntropyEnabled = p.EntropyEnabled
+	sim.param.ExitProbEnabled = p.ExitProbEnabled
+	sim.param.ExitProbNparticle = p.ExitProbNparticle
 	sim.param.SpineEnabled = p.SpineEnabled
 	if sim.param.TSA == "URTS" || sim.param.Alpha == 0 {
 		sim.param.SpineEnabled = false

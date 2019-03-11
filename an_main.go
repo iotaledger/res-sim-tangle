@@ -45,17 +45,18 @@ func (f *Result) SaveResults(p Parameters) {
 		f.FocusRW.finalprocess(p)
 		f.FocusRW.Save(p)
 	}
-	if p.EntropyEnabled {
-		fmt.Println(f.entropy.Stat(p))
-		f.entropy.Save(p, "ep")
-		//  the following way was the easiest way, otherwise it would have been necessary to copy a huge amount of functions
-		f.entropy.ep = f.entropy.ep2
-		f.entropy.mean = f.entropy.mean2
-		f.entropy.median = f.entropy.median2
-		f.entropy.std = f.entropy.std2
-		fmt.Println(f.entropy.Stat(p))
-		f.entropy.Save(p, "ep2")
-		//f.entropy.SaveStat(p)
+	if p.ExitProbEnabled {
+		f.exitProb.Save(p)
+		// fmt.Println(f.exitProb.Stat(p))
+		// f.exitProb.SaveExitProb(p, "ep")
+		// //  the following way was the easiest way, otherwise it would have been necessary to copy a huge amount of functions
+		// f.exitProb.ep = f.exitProb.ep2
+		// f.exitProb.mean = f.exitProb.mean2
+		// f.exitProb.median = f.exitProb.median2
+		// f.exitProb.std = f.exitProb.std2
+		// fmt.Println(f.exitProb.Stat(p))
+		// f.exitProb.SaveExitProb(p, "ep2")
+		// //f.exitProb.SaveStat(p)
 	}
 	if p.pOrphanEnabled && p.SpineEnabled {
 		fmt.Println(f.op)
@@ -99,8 +100,8 @@ func (result *Result) EvaluateTangle(sim *Sim, p *Parameters, run int) {
 	if p.AnFocusRW.Enabled {
 		sim.runAnFocusRW(&result.FocusRW)
 	}
-	if p.EntropyEnabled {
-		sim.runEntropyStat(&result.entropy)
+	if p.ExitProbEnabled {
+		sim.runExitProbStat(&result.exitProb)
 	}
 	if p.pOrphanEnabled && p.SpineEnabled {
 		sim.runOrphaningP(&result.op)
@@ -118,8 +119,8 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	if p.AnFocusRW.Enabled {
 		f.FocusRW = f.FocusRW.Join(batch.FocusRW)
 	}
-	if p.EntropyEnabled {
-		f.entropy = f.entropy.Join(batch.entropy)
+	if p.ExitProbEnabled {
+		f.exitProb = f.exitProb.Join(batch.exitProb)
 	}
 	if p.pOrphanEnabled && p.SpineEnabled {
 		f.op = f.op.Join(batch.op)

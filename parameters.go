@@ -19,10 +19,12 @@ type Parameters struct {
 	stillrecent  int
 	CWMatrixLen  int
 	// - - - Analysis - - -
-	CountTipsEnabled     bool
-	CWAnalysisEnabled    bool
-	VelocityEnabled      bool
-	EntropyEnabled       bool
+	CountTipsEnabled  bool
+	CWAnalysisEnabled bool
+	VelocityEnabled   bool
+	ExitProbEnabled   bool
+	ExitProbNparticle int
+
 	SpineEnabled         bool
 	pOrphanEnabled       bool
 	pOrphanLinFitEnabled bool
