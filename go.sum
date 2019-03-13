@@ -1,0 +1,8 @@
+github.com/capossele/GoGraphviz/graphviz v0.0.0-20190313095341-7802999d6878 h1:AUo5YXpHwK4a/ka9zbmXEWpzi4KUc/sV1Ac7/y1Tkw8=
+github.com/capossele/GoGraphviz/graphviz v0.0.0-20190313095341-7802999d6878/go.mod h1:LyNnDpEc8cjVOTmW6Qy2rooOtEdQTzx488CTppzR/Nk=
+github.com/schollz/progressbar v1.0.0 h1:gbyFReLHDkZo8mxy/dLWMr+Mpb1MokGJ1FqCiqacjZM=
+github.com/schollz/progressbar v1.0.0/go.mod h1:/l9I7PC3L3erOuz54ghIRKUEFcosiWfLvJv+Eq26UMs=
+golang.org/x/exp v0.0.0-20190125153040-c74c464bbbf2/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
+golang.org/x/tools v0.0.0-20190206041539-40960b6deb8e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
+gonum.org/v1/gonum v0.0.0-20190312223110-e28f136e01a8 h1:ydI/ZIWZ7BIeR4qs4epCV2Pw1owzB9je1qxtb9Od8Bc=
+gonum.org/v1/gonum v0.0.0-20190312223110-e28f136e01a8/go.mod h1:jevfED4GnIEnJrWW55YmY9DMhajHcnkqVnEXmEtMyNI=

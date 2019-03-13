@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"runtime"
 	"strings"
 
 	"gonum.org/v1/gonum/stat"
@@ -11,14 +10,14 @@ import (
 // var nParallelSims = 1
 
 // factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-var nParallelSims = runtime.NumCPU()/2 - 1
+var nParallelSims = 1 //runtime.NumCPU()/2 - 1
 
 func main() {
 
 	b := make(Benchmark)
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 100, 0)
+	runSimulation(b, "rw", 1, 0)
 	//fmt.Println(runForAlphasLambdas())
 
 	//printPerformance(b)
@@ -33,15 +32,15 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		//H:          1,
 		Lambda:      lambda,
 		Alpha:       alpha,
-		TangleSize:  150 * int(lambda),
-		CWMatrixLen: 150 * int(lambda), // reduce CWMatrix to this len
+		TangleSize:  50 * int(lambda),
+		CWMatrixLen: 50 * int(lambda), // reduce CWMatrix to this len
 		// TangleSize:   int(math.Min(3000, (100+math.Max(100, 30.0/alpha/lambda)))) * int(lambda),
 		minCut:       51 * int(lambda), // cut data close to the genesis
 		maxCutrange:  50 * int(lambda), // cut data for the most recent txs, not applied for every analysis
 		stillrecent:  2 * int(lambda),  // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate: false,
 		// nRun:         int(math.Max(10000/lambda, 100)),
-		nRun: 200,
+		nRun: 1,
 		TSA:  tsa,
 
 		// - - - Analysis section - - -
@@ -51,7 +50,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		pOrphanEnabled:       false, // calculate orphanage probability
 		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
 		VelocityEnabled:      false,
-		ExitProbEnabled:      true,
+		ExitProbEnabled:      false,
 		ExitProbNparticle:    10000, // number of sample particles to calculate distribution
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 5, 40, 5},

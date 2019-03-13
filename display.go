@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"sort"
+
+	"github.com/capossele/GoGraphviz/graphviz"
 )
 
 //func printCWRef(a map[int][]uint64) {
@@ -79,4 +81,34 @@ func printTips(a map[int]bool) {
 	sort.Ints(keys)
 
 	fmt.Println(keys)
+}
+
+func (sim *Sim) visualizeTangle() {
+	G := createTangleGraph(0, sim)
+	G.GenerateDOT(os.Stdout)
+}
+
+func createTangleGraph(tx int, sim *Sim) *graphviz.Graph {
+	G := &graphviz.Graph{}
+	visited := make(map[int]bool)
+	rootNode := make(map[int]int)
+	addSubGraph(tx, sim, visited, rootNode, G)
+	G.DefaultNodeAttribute(graphviz.Shape, graphviz.ShapeCircle)
+	G.GraphAttribute(graphviz.NodeSep, "0.3")
+	G.MakeDirected()
+	return G
+}
+
+func addSubGraph(tx int, sim *Sim, visited map[int]bool, rootNode map[int]int, G *graphviz.Graph) int {
+	if _, ok := visited[tx]; !ok {
+		//add new node if does not exist yet
+		rootNode[tx] = G.AddNode(fmt.Sprint(tx))
+		visited[tx] = true
+	}
+
+	for _, i := range unique(sim.approvers[tx]) {
+		node := addSubGraph(i, sim, visited, rootNode, G)
+		G.AddEdge(node, rootNode[tx], "")
+	}
+	return rootNode[tx]
 }
