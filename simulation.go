@@ -126,7 +126,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		result.EvaluateTangle(&sim, p, run)
 
 		//Visualize the Tangle
-		//sim.visualizeTangle()
+		sim.visualizeTangle()
 	}
 
 	//fmt.Println("E(L):", float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut*2)/sim.param.Lambda/float64(sim.param.nRun))
