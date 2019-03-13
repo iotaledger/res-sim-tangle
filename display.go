@@ -100,11 +100,17 @@ func createTangleGraph(tx int, sim *Sim) *graphviz.Graph {
 }
 
 func addTransactions(sim *Sim, nodeMap map[int]int, G *graphviz.Graph) {
-	for tx := range sim.approvers {
+	var keys []int
+	for key := range sim.approvers {
+		keys = append(keys, key)
+	}
+	sort.Ints(keys)
+
+	for tx := range keys {
 		nodeMap[tx] = G.AddNode(fmt.Sprint(tx))
 	}
 
-	for tx := range sim.approvers {
+	for tx := range keys {
 		for _, i := range unique(sim.approvers[tx]) {
 			if _, ok := nodeMap[i]; !ok {
 				nodeMap[i] = G.AddNode(fmt.Sprint(i))
