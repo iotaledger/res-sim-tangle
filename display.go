@@ -115,7 +115,7 @@ func addTransactions(sim *Sim, nodeMap map[int]int, G *graphviz.Graph) {
 			if _, ok := nodeMap[i]; !ok {
 				nodeMap[i] = G.AddNode(fmt.Sprint(i))
 			}
-			G.AddEdge(nodeMap[i], nodeMap[tx], "")
+			G.AddEdge(nodeMap[i], nodeMap[tx], fmt.Sprintf("%.4f", sim.tangle[i].time))
 		}
 	}
 }
