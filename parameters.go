@@ -37,7 +37,8 @@ type Parameters struct {
 	//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
 	//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
 	//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
-	drawTangleMode int
+	drawTangleMode        int
+	horizontalOrientation bool
 }
 
 // AnPastCone Analysis Past Cone

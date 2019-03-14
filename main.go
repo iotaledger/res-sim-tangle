@@ -58,6 +58,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		AnFocusRW: AnFocusRW{false, 0.2, 30},
 
 		// - - - Drawing - - -
+		//
 		//drawTangleMode = 0: drawing disabled
 		//drawTangleMode = 1: simple Tangle with/without highlighed path
 		//drawTangleMode = 2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
@@ -65,7 +66,8 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
 		//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
 		//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
-		drawTangleMode: 1,
+		drawTangleMode:        -1,
+		horizontalOrientation: true,
 	}
 
 	c := make(chan bool, nParallelSims)

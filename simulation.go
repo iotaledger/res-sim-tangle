@@ -143,6 +143,8 @@ func (p Parameters) initSim(sim *Sim) {
 
 	clearSim(sim)
 
+	sim.param = p
+
 	if p.K != 0 {
 		sim.param.K = p.K
 	} else {
@@ -161,17 +163,17 @@ func (p Parameters) initSim(sim *Sim) {
 		sim.param.Lambda = 1
 	}
 
-	if p.Alpha != 0 {
-		sim.param.Alpha = p.Alpha
-	} else {
-		sim.param.Alpha = 0
-	}
+	// if p.Alpha != 0 {
+	// 	sim.param.Alpha = p.Alpha
+	// } else {
+	// 	sim.param.Alpha = 0
+	// }
 
-	if p.TangleSize != 0 {
-		sim.param.TangleSize = p.TangleSize
-	} else {
-		sim.param.TangleSize = 0
-	}
+	// if p.TangleSize != 0 {
+	// 	sim.param.TangleSize = p.TangleSize
+	// } else {
+	// 	sim.param.TangleSize = 0
+	// }
 
 	if p.Seed != 0 {
 		sim.param.Seed = p.Seed
@@ -184,7 +186,8 @@ func (p Parameters) initSim(sim *Sim) {
 	} else {
 		sim.param.nRun = 1
 	}
-	sim.param.stillrecent = p.stillrecent
+
+	//sim.param.stillrecent = p.stillrecent
 
 	if p.AnPastCone.MaxApp != 0 {
 		sim.param.AnPastCone.MaxApp = p.AnPastCone.MaxApp
@@ -202,8 +205,8 @@ func (p Parameters) initSim(sim *Sim) {
 		sim.param.AnPastCone.Resolution = 2
 	}
 
-	sim.param.AnFocusRW.murel = p.AnFocusRW.murel
-	sim.param.AnFocusRW.nRWs = p.AnFocusRW.nRWs
+	//sim.param.AnFocusRW.murel = p.AnFocusRW.murel
+	//sim.param.AnFocusRW.nRWs = p.AnFocusRW.nRWs
 
 	switch strings.ToUpper(p.TSA) {
 	case "URTS":
@@ -222,30 +225,31 @@ func (p Parameters) initSim(sim *Sim) {
 		sim.param.tsa = URTS{}
 	}
 
-	sim.param.ConstantRate = p.ConstantRate
-	sim.param.VelocityEnabled = p.VelocityEnabled
-	sim.param.ExitProbEnabled = p.ExitProbEnabled
-	sim.param.ExitProbNparticle = p.ExitProbNparticle
-	sim.param.SpineEnabled = p.SpineEnabled
+	// sim.param.ConstantRate = p.ConstantRate
+	// sim.param.VelocityEnabled = p.VelocityEnabled
+	// sim.param.ExitProbEnabled = p.ExitProbEnabled
+	// sim.param.ExitProbNparticle = p.ExitProbNparticle
+	// sim.param.SpineEnabled = p.SpineEnabled
 	if sim.param.TSA == "URTS" || sim.param.Alpha == 0 {
 		sim.param.SpineEnabled = false
 	}
-	sim.param.pOrphanEnabled = p.pOrphanEnabled
-	sim.param.pOrphanLinFitEnabled = p.pOrphanLinFitEnabled
-	sim.param.CountTipsEnabled = p.CountTipsEnabled
+	// sim.param.pOrphanEnabled = p.pOrphanEnabled
+	// sim.param.pOrphanLinFitEnabled = p.pOrphanLinFitEnabled
+	// sim.param.CountTipsEnabled = p.CountTipsEnabled
 
-	if p.DataPath != "" {
-		sim.param.DataPath = p.DataPath
-	}
+	// if p.DataPath != "" {
+	// 	sim.param.DataPath = p.DataPath
+	// }
 
-	sim.param.minCut = p.minCut
-	sim.param.maxCutrange = p.maxCutrange
+	// sim.param.minCut = p.minCut
+	// sim.param.maxCutrange = p.maxCutrange
 	sim.param.maxCut = p.TangleSize - p.maxCutrange
 
 	//set circular matrix to 50*lambda rows to store cw bit masks
-	sim.param.CWMatrixLen = p.CWMatrixLen
+	// sim.param.CWMatrixLen = p.CWMatrixLen
 
 	createDirIfNotExist("data")
+	createDirIfNotExist("graph")
 
 }
 

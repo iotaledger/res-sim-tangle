@@ -28,7 +28,7 @@ import (
 func (sim *Sim) visualizeTangle(path map[int]int, mode int) {
 	G := createTangleGraph(0, sim, path, mode)
 	fmt.Println("\n")
-	f, err := os.Create("TangleGraph.dot")
+	f, err := os.Create("graph/TangleGraph.dot")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
 		//return err
@@ -59,6 +59,9 @@ func createTangleGraph(tx int, sim *Sim, path map[int]int, mode int) *graphviz.G
 	sortRankTransactons(sim, nodeTxs, G)
 	G.DefaultNodeAttribute(graphviz.Shape, graphviz.ShapeCircle)
 	G.GraphAttribute(graphviz.NodeSep, "0.3")
+	if sim.param.horizontalOrientation {
+		G.GraphAttribute("rankdir", "RL")
+	}
 	//G.GraphAttribute("bgcolor", "transparent")
 	G.MakeDirected()
 	return G
