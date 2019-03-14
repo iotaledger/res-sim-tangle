@@ -1,3 +1,10 @@
+// Functions within this file uses Graphviz to define a graph.
+// Output file is in dot format, thus, it is recommended to install Graphviz
+// and use the dot command to produce a png/pdf of the graph.
+// e.g., cat TangleGraph.dot | dot  -Tpng -o graph.png
+//
+// VS code has a nice plugin to preview a .dot file called Graphviz Preview
+
 package main
 
 import (
