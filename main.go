@@ -32,8 +32,8 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		//H:          1,
 		Lambda:      lambda,
 		Alpha:       alpha,
-		TangleSize:  10 * int(lambda),
-		CWMatrixLen: 10 * int(lambda), // reduce CWMatrix to this len
+		TangleSize:  30 * int(lambda),
+		CWMatrixLen: 100 * int(lambda), // reduce CWMatrix to this len
 		// TangleSize:   int(math.Min(3000, (100+math.Max(100, 30.0/alpha/lambda)))) * int(lambda),
 		minCut:       51 * int(lambda), // cut data close to the genesis
 		maxCutrange:  50 * int(lambda), // cut data for the most recent txs, not applied for every analysis
@@ -56,6 +56,16 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		AnPastCone: AnPastCone{false, 5, 40, 5},
 		//{Enabled, maxiMT, murel, nRW}
 		AnFocusRW: AnFocusRW{false, 0.2, 30},
+
+		// - - - Drawing - - -
+		//drawTangleMode = 0: drawing disabled
+		//drawTangleMode = 1: simple Tangle with/without highlighed path
+		//drawTangleMode = 2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
+		//drawTangleMode = 3: Tangle with tx visiting probability in red gradients
+		//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
+		//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
+		//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
+		drawTangleMode: 1,
 	}
 
 	c := make(chan bool, nParallelSims)

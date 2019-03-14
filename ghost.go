@@ -24,6 +24,9 @@ func ghostWalk(t Tx, sim *Sim) (path []int, tip Tx) {
 	defer sim.b.track(runningtime("Ghost RW"))
 
 	var current Tx
+	//add genesis to path
+	path = append(path, 0)
+	//add rest of the path
 	for current = ghostStep(sim.tangle[0], sim); len(sim.approvers[current.id]) > 0; current = ghostStep(current, sim) {
 		path = append(path, current.id)
 		//fmt.Println(current.id, "\t", len(sim.approvers[current.id]), sim.tangle[current.id].cw)

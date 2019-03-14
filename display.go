@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-
-	"github.com/capossele/GoGraphviz/graphviz"
 )
 
 //func printCWRef(a map[int][]uint64) {
@@ -81,41 +79,4 @@ func printTips(a map[int]bool) {
 	sort.Ints(keys)
 
 	fmt.Println(keys)
-}
-
-func (sim *Sim) visualizeTangle() {
-	G := createTangleGraph(0, sim)
-	fmt.Println("\n")
-	G.GenerateDOT(os.Stdout)
-}
-
-func createTangleGraph(tx int, sim *Sim) *graphviz.Graph {
-	G := &graphviz.Graph{}
-	nodeTxs := make(map[int]int)
-	addTransactions(sim, nodeTxs, G)
-	G.DefaultNodeAttribute(graphviz.Shape, graphviz.ShapeCircle)
-	G.GraphAttribute(graphviz.NodeSep, "0.3")
-	G.MakeDirected()
-	return G
-}
-
-func addTransactions(sim *Sim, nodeMap map[int]int, G *graphviz.Graph) {
-	var keys []int
-	for key := range sim.approvers {
-		keys = append(keys, key)
-	}
-	sort.Ints(keys)
-
-	for tx := range keys {
-		nodeMap[tx] = G.AddNode(fmt.Sprint(tx))
-	}
-
-	for tx := range keys {
-		for _, i := range unique(sim.approvers[tx]) {
-			if _, ok := nodeMap[i]; !ok {
-				nodeMap[i] = G.AddNode(fmt.Sprint(i))
-			}
-			G.AddEdge(nodeMap[i], nodeMap[tx], fmt.Sprintf("%.4f", sim.tangle[i].time))
-		}
-	}
 }

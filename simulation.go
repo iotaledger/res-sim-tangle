@@ -112,6 +112,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			sim.hiddenTips = append(sim.hiddenTips, t.id)
 
 			result.EvaluateAfterTx(&sim, p, run, i)
+
 		}
 		//fmt.Println("\n\n")
 		//fmt.Println("Tangle size: ", sim.param.TangleSize)
@@ -126,7 +127,12 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		result.EvaluateTangle(&sim, p, run)
 
 		//Visualize the Tangle
-		sim.visualizeTangle()
+		if p.drawTangleMode > 0 {
+			sim.visualizeTangle(nil, p.drawTangleMode)
+		} else if p.drawTangleMode < 0 {
+			sim.visualizeRW()
+		}
+
 	}
 
 	//fmt.Println("E(L):", float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut*2)/sim.param.Lambda/float64(sim.param.nRun))
