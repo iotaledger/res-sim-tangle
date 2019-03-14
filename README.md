@@ -78,7 +78,7 @@ Ghost particle path and its cone
 ![Tangle](images/GhostCone.png)
 
 Visiting probability in red gradients
-![Tangle](images/vistingP.png)
+![Tangle](images/visitingP.png)
 
 Random walker path
 ![Tangle](images/RW.png)
