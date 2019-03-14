@@ -29,7 +29,7 @@ func newFocusRWResult(Metrics []string) *FocusRWResult {
 }
 
 // add PCs and get probabilities
-func (sim *Sim) runAnFocusRW(r *FocusRWResult) {
+func (sim *Sim) evalTangle_AnFocusRW(r *FocusRWResult) {
 	// base := 64
 	// deltat := 0.
 	pAn := sim.param.AnFocusRW

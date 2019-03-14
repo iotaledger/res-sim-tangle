@@ -131,3 +131,19 @@ func meanInt(v []int) float64 {
 	}
 	return float64(a) / float64(len(v))
 }
+
+func Factorial(n float64) (result float64) {
+	if n > 0 {
+		result = n * Factorial(n-1)
+		return result
+	}
+	return 1
+}
+
+//return the modulo in float numbers
+func ModFloat(a float64, b float64) float64 {
+	for a > 0 {
+		a -= b
+	}
+	return a + b
+}

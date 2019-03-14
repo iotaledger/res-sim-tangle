@@ -7,6 +7,7 @@ import (
 	"github.com/schollz/progressbar"
 )
 
+// ??? is there a reason why approvers is not part of the tx variable, i.e. Tx has the field app []int? This would seem much more intuitive...
 // Sim contains the data structure of a Tangle simulation
 type Sim struct {
 	tangle         []Tx          // A Tangle, i.e., a list of transactions
@@ -72,6 +73,10 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	if p.pOrphanEnabled {
 		r := newPOrphanResult(p)
 		result.op = *r
+	}
+	if p.DistSlicesEnabled {
+		r := newDistSlicesResult()
+		result.DistSlices = *r
 	}
 
 	//fmt.Println(p.nRun)
@@ -225,6 +230,9 @@ func (p Parameters) initSim(sim *Sim) {
 	sim.param.pOrphanEnabled = p.pOrphanEnabled
 	sim.param.pOrphanLinFitEnabled = p.pOrphanLinFitEnabled
 	sim.param.CountTipsEnabled = p.CountTipsEnabled
+	sim.param.DistSlicesEnabled = p.DistSlicesEnabled
+	sim.param.DistSlicesLength = p.DistSlicesLength
+	sim.param.DistSlicesResolution = p.DistSlicesResolution
 
 	if p.DataPath != "" {
 		sim.param.DataPath = p.DataPath

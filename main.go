@@ -16,10 +16,11 @@ var nParallelSims = runtime.NumCPU()/2 - 1
 func main() {
 
 	b := make(Benchmark)
+	_ = b
 	// Options: RW, URTS
-	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 100, 0)
-	//fmt.Println(runForAlphasLambdas())
+	runSimulation(b, "urts", 100, 0)
+	// runSimulation(b, "rw", 10, 0)
+	// fmt.Println(runForAlphasLambdas(b))
 
 	//printPerformance(b)
 }
@@ -31,17 +32,16 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 	p := Parameters{
 		//K:          2,
 		//H:          1,
-		Lambda:      lambda,
-		Alpha:       alpha,
-		TangleSize:  150 * int(lambda),
-		CWMatrixLen: 150 * int(lambda), // reduce CWMatrix to this len
-		// TangleSize:   int(math.Min(3000, (100+math.Max(100, 30.0/alpha/lambda)))) * int(lambda),
-		minCut:       51 * int(lambda), // cut data close to the genesis
-		maxCutrange:  50 * int(lambda), // cut data for the most recent txs, not applied for every analysis
-		stillrecent:  2 * int(lambda),  // when is a tx considered recent, and when is it a candidate for left behind
+		Lambda:       lambda,
+		Alpha:        alpha,
+		TangleSize:   200 * int(lambda),
+		CWMatrixLen:  200 * int(lambda), // reduce CWMatrix to this len
+		minCut:       51 * int(lambda),  // cut data close to the genesis
+		maxCutrange:  52 * int(lambda),  // cut data for the most recent txs, not applied for every analysis
+		stillrecent:  2 * int(lambda),   // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate: false,
-		// nRun:         int(math.Max(10000/lambda, 100)),
-		nRun: 200,
+		// nRun:         int(10000 / lambda),
+		nRun: 100,
 		TSA:  tsa,
 
 		// - - - Analysis section - - -
@@ -51,9 +51,13 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		pOrphanEnabled:       false, // calculate orphanage probability
 		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
 		VelocityEnabled:      false,
-		ExitProbEnabled:      true,
+		ExitProbEnabled:      false,
 		ExitProbNparticle:    10000, // number of sample particles to calculate distribution
-		ExitProb2NHisto:      20,    // N of Histogram columns for exitProb2
+		ExitProb2NHisto:      50,    // N of Histogram columns for exitProb2
+		DistSlicesEnabled:    true,  // calculate the distances of slices
+		// DistSlicesLength:     100 / lambda, //length of Slices
+		DistSlicesLength:     0.1, //length of Slices
+		DistSlicesResolution: 100, // Number of intervals per distance '1', higher number = higher resolution
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 5, 40, 5},
 		//{Enabled, maxiMT, murel, nRW}
@@ -89,22 +93,23 @@ func run(p Parameters, r *Result, c chan bool) {
 	printPerformance(b)
 }
 
-func runForAlphasLambdas() string {
-	b := make(Benchmark)
+func runForAlphasLambdas(b Benchmark) string {
+	// b := make(Benchmark)
 	//var ratio string
 	var total string
-	lambdas := []float64{50}
-	// lambdas := []float64{1, 2, 3, 6, 10, 20, 30, 60, 100, 200, 300, 600}
+	// lambdas := []float64{50}
+	lambdas := []float64{3, 10, 30, 100, 300}
 	// lambdas := []float64{600, 300}
 	//alphas := []float64{0, 0.01, 0.1, 1}
-	alphas := []float64{1000000.}
+	alphas := []float64{0.}
 	var banner string
 	for _, lambda := range lambdas {
 		for _, alpha := range alphas {
 			//for alpha := 0.001; alpha <= 0.1; alpha += 0.001 {
 			//for lambda := 1.; lambda <= 100; lambda++ {
 			// if (alpha * lambda) < 10 {
-			r := runSimulation(b, "rw", lambda, alpha)
+			// r := runSimulation(b, "rw", lambda, alpha)
+			r := runSimulation(b, "urts", lambda, alpha)
 			if banner == "" {
 				banner += fmt.Sprintf("#alpha\t")
 				for _, m := range r.velocity.vTime {

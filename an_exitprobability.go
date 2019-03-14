@@ -155,13 +155,7 @@ func (e *exitProbResult) Save(p Parameters) {
 func (e *exitProbResult) SaveExitProb(p Parameters, str string) (err error) {
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
 	alphaStr := fmt.Sprintf("%.4f", p.Alpha)
-	var rateType string
-	if p.ConstantRate {
-		rateType = "constant"
-	} else {
-		rateType = "poisson"
-	}
-	f, err := os.Create("data/exitProb_stat_" + p.TSA + "_" + rateType +
+	f, err := os.Create("data/exitProb__" + p.TSA +
 		"_lambda_" + lambdaStr +
 		"_alpha_" + alphaStr + "_" + str + ".txt")
 	if err != nil {

@@ -31,6 +31,9 @@ type Parameters struct {
 	pOrphanLinFitEnabled bool
 	AnPastCone           AnPastCone
 	AnFocusRW            AnFocusRW
+	DistSlicesEnabled    bool
+	DistSlicesLength     float64
+	DistSlicesResolution int
 }
 
 // AnPastCone Analysis Past Cone

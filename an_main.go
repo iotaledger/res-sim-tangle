@@ -47,19 +47,13 @@ func (f *Result) SaveResults(p Parameters) {
 	}
 	if p.ExitProbEnabled {
 		f.exitProb.Save(p)
-		// fmt.Println(f.exitProb.Stat(p))
-		// f.exitProb.SaveExitProb(p, "ep")
-		// //  the following way was the easiest way, otherwise it would have been necessary to copy a huge amount of functions
-		// f.exitProb.ep = f.exitProb.ep2
-		// f.exitProb.mean = f.exitProb.mean2
-		// f.exitProb.median = f.exitProb.median2
-		// f.exitProb.std = f.exitProb.std2
-		// fmt.Println(f.exitProb.Stat(p))
-		// f.exitProb.SaveExitProb(p, "ep2")
-		// //f.exitProb.SaveStat(p)
 	}
 	if p.pOrphanEnabled && p.SpineEnabled {
 		fmt.Println(f.op)
+	}
+	if p.DistSlicesEnabled {
+		f.DistSlices.finalprocess()
+		f.DistSlices.Save(p)
 	}
 	return
 }
@@ -98,13 +92,16 @@ func (result *Result) EvaluateTangle(sim *Sim, p *Parameters, run int) {
 		sim.runAnPastCone(&result.PastCone)
 	}
 	if p.AnFocusRW.Enabled {
-		sim.runAnFocusRW(&result.FocusRW)
+		sim.evalTangle_AnFocusRW(&result.FocusRW)
 	}
 	if p.ExitProbEnabled {
 		sim.runExitProbStat(&result.exitProb)
 	}
 	if p.pOrphanEnabled && p.SpineEnabled {
 		sim.runOrphaningP(&result.op)
+	}
+	if p.DistSlicesEnabled {
+		sim.evalTangle_DistSlices(&result.DistSlices)
 	}
 }
 
@@ -130,6 +127,9 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	}
 	if p.CWAnalysisEnabled {
 		f.cw = f.cw.Join(batch.cw)
+	}
+	if p.DistSlicesEnabled {
+		f.DistSlices.Join(batch.DistSlices)
 	}
 	f.avgtips = f.avgtips.Join(batch.avgtips)
 }

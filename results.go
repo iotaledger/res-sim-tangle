@@ -10,14 +10,15 @@ import (
 
 // Result is the data structure containing all the results of a simulation
 type Result struct {
-	tips     tipsResult
-	velocity velocityResult
-	PastCone PastConeResult
-	FocusRW  FocusRWResult
-	exitProb exitProbResult
-	op       pOrphanResult
-	cw       cwResult
-	avgtips  avgTips //??
+	tips       tipsResult
+	velocity   velocityResult
+	PastCone   PastConeResult
+	FocusRW    FocusRWResult
+	exitProb   exitProbResult
+	op         pOrphanResult
+	cw         cwResult
+	avgtips    avgTips
+	DistSlices DistSlicesResult
 }
 
 type avgTips struct {
@@ -137,6 +138,17 @@ func (s MetricFloat64Float64) getkeys() []float64 {
 	return keys
 }
 
+func getkeysMapFloat64Float64(s map[float64]float64) []float64 {
+	// var datapoints int
+	var keys []float64
+	for k, _ := range s {
+		keys = append(keys, k)
+	}
+	sort.Float64s(keys)
+	return keys
+}
+
+// this can be simplified also in the application of it by (a *MetricIntInt) joinMapMetricIntInt (b MetricIntInt) {}
 func joinMapMetricIntInt(a, b MetricIntInt) MetricIntInt {
 	a.desc = b.desc
 	a.v = joinMapIntInt(a.v, b.v)
