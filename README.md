@@ -71,4 +71,14 @@ Potentially one could use all her/his available logical cores, but I've noticed 
 
 This is an example of visualizing the result of the simulation
 
-![Tangle](Tangle.png)
+The Tangle
+![Tangle](images/Tangle.png)
+
+Ghost particle path and its cone
+![Tangle](images/GhostCone.png)
+
+Visiting probability in red gradients
+![Tangle](images/vistingP.png)
+
+Random walker path
+![Tangle](images/RW.png)

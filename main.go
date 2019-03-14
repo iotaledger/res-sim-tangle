@@ -17,7 +17,7 @@ func main() {
 	b := make(Benchmark)
 	// Options: RW, URTS
 	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 2, 0)
+	runSimulation(b, "rw", 3, 0)
 	//fmt.Println(runForAlphasLambdas())
 
 	//printPerformance(b)
@@ -66,7 +66,7 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
 		//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
 		//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
-		drawTangleMode:        1,
+		drawTangleMode:        -1,
 		horizontalOrientation: true,
 	}
 
