@@ -18,7 +18,7 @@ func main() {
 	b := make(Benchmark)
 	_ = b
 	// Options: RW, URTS
-	runSimulation(b, "urts", 100, 0)
+	runSimulation(b, "urts", 10, 0)
 	// runSimulation(b, "rw", 10, 0)
 	// fmt.Println(runForAlphasLambdas(b))
 
@@ -54,9 +54,9 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		ExitProbEnabled:      false,
 		ExitProbNparticle:    10000, // number of sample particles to calculate distribution
 		ExitProb2NHisto:      50,    // N of Histogram columns for exitProb2
-		DistSlicesEnabled:    true,  // calculate the distances of slices
+		DistSlicesEnabled:    false, // calculate the distances of slices
 		// DistSlicesLength:     100 / lambda, //length of Slices
-		DistSlicesLength:     0.1, //length of Slices
+		DistSlicesLength:     1,   //length of Slices
 		DistSlicesResolution: 100, // Number of intervals per distance '1', higher number = higher resolution
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 5, 40, 5},

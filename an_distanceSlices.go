@@ -48,9 +48,6 @@ func (sim *Sim) evalTangle_DistSlices(r *DistSlicesResult) {
 			if sliceID > -1 { //discard the first slice because parts of it may be partly below minCut
 				dist := calcDist(&NumThisSlice, &pRef, TotalNumThisSlice)
 				intervals := float64(sim.param.DistSlicesResolution)
-				fmt.Println(dist)
-				fmt.Println(float64(int(intervals*dist)) / intervals)
-				pauseit()
 				r.Num[float64(int(intervals*dist))/intervals]++
 				r.Prob[float64(int(intervals*dist))/intervals] = 0 // just to create a cell for this entry
 				r.totalNum++
