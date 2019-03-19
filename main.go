@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"runtime"
 	"strings"
 
@@ -18,8 +19,8 @@ func main() {
 	b := make(Benchmark)
 	_ = b
 	// Options: RW, URTS
-	runSimulation(b, "urts", 10, 0)
-	// runSimulation(b, "rw", 10, 0)
+	// runSimulation(b, "urts", 10, 0)
+	runSimulation(b, "rw", 10, 0)
 	// fmt.Println(runForAlphasLambdas(b))
 
 	//printPerformance(b)
@@ -28,6 +29,7 @@ func main() {
 func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 	defer b.track(runningtime("TSA=" + strings.ToUpper(tsa) + ", Lambda=" + fmt.Sprintf("%.2f", lambda) + ", Alpha=" + fmt.Sprintf("%.4f", alpha) + "\tTime"))
 
+	// ??? lets move the parameter setting into parameters.go
 	//lambda := 100.
 	p := Parameters{
 		//K:          2,
@@ -55,9 +57,12 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		ExitProbNparticle:    10000, // number of sample particles to calculate distribution
 		ExitProb2NHisto:      50,    // N of Histogram columns for exitProb2
 		DistSlicesEnabled:    false, // calculate the distances of slices
+		DistSlicesByTime:     false, // true = tx time slices, false= tx ID slices
 		// DistSlicesLength:     100 / lambda, //length of Slices
 		DistSlicesLength:     1,   //length of Slices
 		DistSlicesResolution: 100, // Number of intervals per distance '1', higher number = higher resolution
+		AppStatsRWEnabled:    true,
+		AppStatsRW_NumRWs:    100,
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 5, 40, 5},
 		//{Enabled, maxiMT, murel, nRW}
@@ -97,11 +102,16 @@ func runForAlphasLambdas(b Benchmark) string {
 	// b := make(Benchmark)
 	//var ratio string
 	var total string
-	// lambdas := []float64{50}
-	lambdas := []float64{3, 10, 30, 100, 300}
+	lambdas := []float64{10}
+	// lambdas := []float64{3, 10, 30, 100, 300}
 	// lambdas := []float64{600, 300}
-	//alphas := []float64{0, 0.01, 0.1, 1}
-	alphas := []float64{0.}
+	Nalphas := 20
+	alphas := make([]float64, Nalphas)
+	for i1 := 0; i1 < Nalphas; i1++ {
+		alphas[i1] = 10. * math.Pow(10000, -float64(i1)/float64(Nalphas))
+	}
+
+	// alphas := []float64{0.}
 	var banner string
 	for _, lambda := range lambdas {
 		for _, alpha := range alphas {
@@ -109,7 +119,7 @@ func runForAlphasLambdas(b Benchmark) string {
 			//for lambda := 1.; lambda <= 100; lambda++ {
 			// if (alpha * lambda) < 10 {
 			// r := runSimulation(b, "rw", lambda, alpha)
-			r := runSimulation(b, "urts", lambda, alpha)
+			r := runSimulation(b, "rw", lambda, alpha)
 			if banner == "" {
 				banner += fmt.Sprintf("#alpha\t")
 				for _, m := range r.velocity.vTime {

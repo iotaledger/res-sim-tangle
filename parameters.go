@@ -32,8 +32,11 @@ type Parameters struct {
 	AnPastCone           AnPastCone
 	AnFocusRW            AnFocusRW
 	DistSlicesEnabled    bool
+	DistSlicesByTime     bool
 	DistSlicesLength     float64
 	DistSlicesResolution int
+	AppStatsRWEnabled    bool
+	AppStatsRW_NumRWs int
 }
 
 // AnPastCone Analysis Past Cone

@@ -36,15 +36,26 @@ func (sim *Sim) evalTangle_DistSlices(r *DistSlicesResult) {
 	}
 
 	// get approver stat for every slice
+	maxnumIDs := int(sim.param.DistSlicesLength * sim.param.Lambda)
 	sliceID := -1
 	NumThisSlice := make([]float64, len(pRef))
 	TotalNumThisSlice := 0
 	SliceRestTime := ModFloat(sim.tangle[sim.param.minCut].time, sim.param.DistSlicesLength)
 	SliceRestTimeNew := 0.
 	SliceTime := sim.tangle[sim.param.minCut].time - SliceRestTime
+	SliceFull := false
+
 	for i1 := sim.param.minCut; i1 < sim.param.maxCut; i1++ { //note, last slice is not considered because it may be partly above maxCut
 		SliceRestTimeNew = sim.tangle[i1].time - SliceTime
-		if SliceRestTimeNew > sim.param.DistSlicesLength { //last sliceID finished
+
+		// last Slice finished / full ?
+		if sim.param.DistSlicesByTime {
+			SliceFull = SliceRestTimeNew > sim.param.DistSlicesLength
+		} else {
+			SliceFull = (TotalNumThisSlice >= maxnumIDs)
+		}
+
+		if SliceFull { //last sliceID finished
 			if sliceID > -1 { //discard the first slice because parts of it may be partly below minCut
 				dist := calcDist(&NumThisSlice, &pRef, TotalNumThisSlice)
 				intervals := float64(sim.param.DistSlicesResolution)
@@ -57,6 +68,7 @@ func (sim *Sim) evalTangle_DistSlices(r *DistSlicesResult) {
 				TotalNumThisSlice = 0
 				SliceRestTime = ModFloat(sim.tangle[i1].time, sim.param.DistSlicesLength)
 				SliceTime = sim.tangle[i1].time - SliceRestTime
+				SliceFull = false
 			}
 			sliceID++
 		}
@@ -68,7 +80,7 @@ func (sim *Sim) evalTangle_DistSlices(r *DistSlicesResult) {
 func calcDist(NumThisSlice, pRef *[]float64, num int) float64 {
 	l1 := 0.
 	for i1 := 0; i1 < len(*pRef); i1++ {
-		l1 += math.Abs((*pRef)[i1] - (*NumThisSlice)[i1]/float64(num)) // L1 distance
+		l1 += math.Abs((*pRef)[i1]-(*NumThisSlice)[i1]/float64(num)) / 2. // L1 distance
 	}
 	return l1
 }
@@ -102,18 +114,18 @@ func (r *DistSlicesResult) finalprocess() error {
 // - - - - - - - - - - - -
 
 // organise save
-func (r DistSlicesResult) Save(p Parameters) (err error) {
-	if err = SaveToFile(p, "Num", r.Num, true); err != nil {
+func (r *DistSlicesResult) Save(p Parameters) (err error) {
+	if err = r.SaveToFile(p, "Num", r.Num, true); err != nil {
 		return err
 	}
-	if err = SaveToFile(p, "Prob", r.Prob, true); err != nil {
+	if err = r.SaveToFile(p, "Prob", r.Prob, true); err != nil {
 		return err
 	}
 	return err
 }
 
 // save a MapFloat64Float64 as a file
-func SaveToFile(p Parameters, target string, datavec map[float64]float64, normalized bool) error {
+func (r *DistSlicesResult) SaveToFile(p Parameters, target string, datavec map[float64]float64, normalized bool) error {
 	var keys []float64
 	// var datapoints int
 	for k := range datavec {

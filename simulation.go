@@ -29,6 +29,9 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	sim := Sim{}
 
 	var result Result
+	// sim.param = *p  //??? in main: create p parameter with newparameter() and disable that p can be exported.
+	// initSim remains a point of failure because sometimes we forget to copy the value in there.
+	//This will lead to that the parameters have to be set in parameters... which makes sense.
 	p.initSim(&sim)
 
 	// ??? move this initialisation to an_main.go
@@ -77,6 +80,10 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	if p.DistSlicesEnabled {
 		r := newDistSlicesResult()
 		result.DistSlices = *r
+	}
+	if p.AppStatsRWEnabled {
+		r := newAppStatsRWResult()
+		result.AppStatsRW = *r
 	}
 
 	//fmt.Println(p.nRun)
@@ -231,8 +238,11 @@ func (p Parameters) initSim(sim *Sim) {
 	sim.param.pOrphanLinFitEnabled = p.pOrphanLinFitEnabled
 	sim.param.CountTipsEnabled = p.CountTipsEnabled
 	sim.param.DistSlicesEnabled = p.DistSlicesEnabled
+	sim.param.DistSlicesByTime = p.DistSlicesByTime
 	sim.param.DistSlicesLength = p.DistSlicesLength
 	sim.param.DistSlicesResolution = p.DistSlicesResolution
+	sim.param.AppStatsRWEnabled = p.AppStatsRWEnabled
+	sim.param.AppStatsRW_NumRWs = p.AppStatsRW_NumRWs
 
 	if p.DataPath != "" {
 		sim.param.DataPath = p.DataPath

@@ -19,6 +19,7 @@ type Result struct {
 	cw         cwResult
 	avgtips    avgTips
 	DistSlices DistSlicesResult
+	AppStatsRW AppStatsRWResult
 }
 
 type avgTips struct {

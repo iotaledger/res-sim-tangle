@@ -55,6 +55,10 @@ func (f *Result) SaveResults(p Parameters) {
 		f.DistSlices.finalprocess()
 		f.DistSlices.Save(p)
 	}
+	if p.AppStatsRWEnabled {
+		f.AppStatsRW.finalprocess()
+		f.AppStatsRW.Save(p)
+	}
 	return
 }
 
@@ -103,6 +107,9 @@ func (result *Result) EvaluateTangle(sim *Sim, p *Parameters, run int) {
 	if p.DistSlicesEnabled {
 		sim.evalTangle_DistSlices(&result.DistSlices)
 	}
+	if p.AppStatsRWEnabled {
+		sim.evalTangle_AppStatsRW(&result.AppStatsRW)
+	}
 }
 
 //JoinResults joins result
@@ -130,6 +137,9 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	}
 	if p.DistSlicesEnabled {
 		f.DistSlices.Join(batch.DistSlices)
+	}
+	if p.AppStatsRWEnabled {
+		f.AppStatsRW.Join(batch.AppStatsRW)
 	}
 	f.avgtips = f.avgtips.Join(batch.avgtips)
 }
