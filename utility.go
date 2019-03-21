@@ -46,13 +46,13 @@ func min(a []int) (int, int) {
 	return idx, min
 }
 
-func max2(a, b int) int {
+func max2Int(a, b int) int {
 	if a > b {
 		return a
 	}
 	return b
 }
-func min2(a, b int) int {
+func min2Int(a, b int) int {
 	if a < b {
 		return a
 	}

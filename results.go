@@ -10,16 +10,17 @@ import (
 
 // Result is the data structure containing all the results of a simulation
 type Result struct {
-	tips       tipsResult
-	velocity   velocityResult
-	PastCone   PastConeResult
-	FocusRW    FocusRWResult
-	exitProb   exitProbResult
-	op         pOrphanResult
-	cw         cwResult
-	avgtips    avgTips
-	DistSlices DistSlicesResult
-	AppStatsRW AppStatsRWResult
+	tips        tipsResult
+	velocity    velocityResult
+	PastCone    PastConeResult
+	FocusRW     FocusRWResult
+	exitProb    exitProbResult
+	op          pOrphanResult
+	cw          cwResult
+	avgtips     avgTips
+	DistSlices  DistSlicesResult
+	AppStatsRW  AppStatsRWResult
+	AppStatsAll AppStatsAllResult
 }
 
 type avgTips struct {

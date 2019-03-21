@@ -2,22 +2,23 @@ package main
 
 //Parameters of the simulation
 type Parameters struct {
-	K            int
-	H            int
-	Lambda       float64
-	Alpha        float64
-	TangleSize   int
-	Seed         int64
-	TSA          string
-	tsa          TipSelector
-	ConstantRate bool
-	DataPath     string
-	minCut       int
-	maxCutrange  int
-	maxCut       int
-	nRun         int
-	stillrecent  int
-	CWMatrixLen  int
+	K                 int
+	H                 int
+	Lambda            float64
+	Alpha             float64
+	TangleSize        int
+	Seed              int64
+	TSA               string
+	tsa               TipSelector
+	SingleEdgeEnabled bool
+	ConstantRate      bool
+	DataPath          string
+	minCut            int
+	maxCutrange       int
+	maxCut            int
+	nRun              int
+	stillrecent       int
+	CWMatrixLen       int
 	// - - - Analysis - - -
 	CountTipsEnabled  bool
 	CWAnalysisEnabled bool
@@ -36,7 +37,8 @@ type Parameters struct {
 	DistSlicesLength     float64
 	DistSlicesResolution int
 	AppStatsRWEnabled    bool
-	AppStatsRW_NumRWs int
+	AppStatsRW_NumRWs    int
+	AppStatsAllEnabled   bool
 }
 
 // AnPastCone Analysis Past Cone

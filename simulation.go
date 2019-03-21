@@ -85,6 +85,10 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		r := newAppStatsRWResult()
 		result.AppStatsRW = *r
 	}
+	if p.AppStatsAllEnabled {
+		r := newAppStatsAllResult()
+		result.AppStatsAll = *r
+	}
 
 	//fmt.Println(p.nRun)
 	bar := progressbar.New(sim.param.nRun)
@@ -226,6 +230,7 @@ func (p Parameters) initSim(sim *Sim) {
 	}
 
 	sim.param.ConstantRate = p.ConstantRate
+	sim.param.SingleEdgeEnabled = p.SingleEdgeEnabled
 	sim.param.VelocityEnabled = p.VelocityEnabled
 	sim.param.ExitProbEnabled = p.ExitProbEnabled
 	sim.param.ExitProbNparticle = p.ExitProbNparticle
@@ -243,6 +248,7 @@ func (p Parameters) initSim(sim *Sim) {
 	sim.param.DistSlicesResolution = p.DistSlicesResolution
 	sim.param.AppStatsRWEnabled = p.AppStatsRWEnabled
 	sim.param.AppStatsRW_NumRWs = p.AppStatsRW_NumRWs
+	sim.param.AppStatsAllEnabled = p.AppStatsAllEnabled
 
 	if p.DataPath != "" {
 		sim.param.DataPath = p.DataPath

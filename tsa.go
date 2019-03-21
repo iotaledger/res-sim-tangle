@@ -40,17 +40,32 @@ func (URTS) TipSelect(t Tx, sim *Sim) []int {
 	tipsApproved := make([]int, sim.param.K)
 	//var j int
 
+	AppID := 0
 	for i := 0; i < sim.param.K; i++ {
 		//URTS with repetition
-
 		if len(sim.tips) == 0 {
 			fmt.Println("ERROR: No tips left")
 			os.Exit(0)
 		}
 		j := rand.Intn(len(sim.tips))
 
+		uniqueTip := true
+		if sim.param.SingleEdgeEnabled { // consider only SingleEdge Model
+			for i1 := 0; i1 < min2Int(i, len(tipsApproved)); i1++ {
+				if tipsApproved[i1] == sim.tips[j] {
+					uniqueTip = false
+				}
+			}
+		}
+		if uniqueTip {
+			tipsApproved[AppID] = sim.tips[j] //sim.tangle[sim.vTips[j]].id
+			AppID++
+		} else { // tip already existed and we are in the SingleEdge Model
+			tipsApproved = tipsApproved[:len(tipsApproved)-1]
+		}
+
 		//tipsApproved = append(tipsApproved, sim.tangle[sim.vTips[j]].id)
-		tipsApproved[i] = sim.tips[j]
+		// tipsApproved[i] = sim.tips[j]
 		if sim.tangle[sim.tips[j]].firstApproval < 0 {
 			sim.tangle[sim.tips[j]].firstApproval = t.time
 		}
@@ -163,14 +178,29 @@ func randomWalk(tsa RandomWalker, t Tx, sim *Sim) []int {
 	tipsApproved := make([]int, sim.param.K)
 	//cache := make(map[int][]float64)
 
+	AppID := 0
 	for i := 0; i < sim.param.K; i++ {
 		//URTS with repetition  //??? this seems the wrong comment here
 		var current Tx
 		for current, _ = tsa.RandomWalk(sim.tangle[0], sim); len(sim.approvers[current.id]) > 0; current, _ = tsa.RandomWalk(current, sim) {
 		}
 
+		uniqueTip := true
+		if sim.param.SingleEdgeEnabled { // consider only SingleEdge Model
+			for i1 := 0; i1 < min2Int(i, len(tipsApproved)); i1++ {
+				if tipsApproved[i1] == current.id {
+					uniqueTip = false
+				}
+			}
+		}
+		if uniqueTip {
+			tipsApproved[AppID] = current.id //sim.tangle[sim.vTips[j]].id
+			AppID++
+		} else { // tip already existed and we are in the SingleEdge Model
+			tipsApproved = tipsApproved[:len(tipsApproved)-1]
+		}
+
 		//tipsApproved = append(tipsApproved, sim.tangle[sim.vTips[j]].id)
-		tipsApproved[i] = current.id //sim.tangle[sim.vTips[j]].id
 		if sim.tangle[current.id].firstApproval < 0 {
 			sim.tangle[current.id].firstApproval = t.time
 		}

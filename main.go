@@ -19,11 +19,11 @@ func main() {
 	b := make(Benchmark)
 	_ = b
 	// Options: RW, URTS
-	// runSimulation(b, "urts", 10, 0)
-	runSimulation(b, "rw", 10, 0)
-	// fmt.Println(runForAlphasLambdas(b))
+	// runSimulation(b, "urts", 300, 100000000)
+	// runSimulation(b, "rw", 3, 0)
+	fmt.Println(runForAlphasLambdas(b))
 
-	//printPerformance(b)
+	// printPerformance(b)
 }
 
 func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
@@ -31,20 +31,22 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 
 	// ??? lets move the parameter setting into parameters.go
 	//lambda := 100.
+	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	p := Parameters{
 		//K:          2,
 		//H:          1,
 		Lambda:       lambda,
 		Alpha:        alpha,
-		TangleSize:   200 * int(lambda),
-		CWMatrixLen:  200 * int(lambda), // reduce CWMatrix to this len
-		minCut:       51 * int(lambda),  // cut data close to the genesis
-		maxCutrange:  52 * int(lambda),  // cut data for the most recent txs, not applied for every analysis
-		stillrecent:  2 * int(lambda),   // when is a tx considered recent, and when is it a candidate for left behind
+		TangleSize:   200 * lambdaForSize,
+		CWMatrixLen:  40 * lambdaForSize, // reduce CWMatrix to this len
+		minCut:       51 * lambdaForSize, // cut data close to the genesis
+		maxCutrange:  52 * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
+		stillrecent:  2 * lambdaForSize,  // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate: false,
-		// nRun:         int(10000 / lambda),
-		nRun: 100,
-		TSA:  tsa,
+		nRun:         int(math.Min(100., 1000/lambda)),
+		// nRun:              1,
+		TSA:               tsa,
+		SingleEdgeEnabled: true, // true = SingleEdge model, false = MultiEdge model
 
 		// - - - Analysis section - - -
 		CountTipsEnabled:     false,
@@ -59,10 +61,11 @@ func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
 		DistSlicesEnabled:    false, // calculate the distances of slices
 		DistSlicesByTime:     false, // true = tx time slices, false= tx ID slices
 		// DistSlicesLength:     100 / lambda, //length of Slices
-		DistSlicesLength:     1,   //length of Slices
-		DistSlicesResolution: 100, // Number of intervals per distance '1', higher number = higher resolution
-		AppStatsRWEnabled:    true,
+		DistSlicesLength:     1,     //length of Slices
+		DistSlicesResolution: 100,   // Number of intervals per distance '1', higher number = higher resolution
+		AppStatsRWEnabled:    false, // Approver Stats along the RW
 		AppStatsRW_NumRWs:    100,
+		AppStatsAllEnabled:   true, // Approver stats for all txs
 		//{Enabled, Resolution, MaxT, MaxApp}
 		AnPastCone: AnPastCone{false, 5, 40, 5},
 		//{Enabled, maxiMT, murel, nRW}
@@ -102,14 +105,18 @@ func runForAlphasLambdas(b Benchmark) string {
 	// b := make(Benchmark)
 	//var ratio string
 	var total string
-	lambdas := []float64{10}
 	// lambdas := []float64{3, 10, 30, 100, 300}
-	// lambdas := []float64{600, 300}
-	Nalphas := 20
-	alphas := make([]float64, Nalphas)
-	for i1 := 0; i1 < Nalphas; i1++ {
-		alphas[i1] = 10. * math.Pow(10000, -float64(i1)/float64(Nalphas))
+	Nlambdas := 20
+	lambdas := make([]float64, Nlambdas)
+	for i1 := 0; i1 < Nlambdas; i1++ {
+		lambdas[i1] = .1 * math.Pow(1000, float64(i1)/float64(Nlambdas-1))
 	}
+	alphas := []float64{0}
+	// Nalphas := 20
+	// alphas := make([]float64, Nalphas)
+	// for i1 := 0; i1 < Nalphas; i1++ {
+	// 	alphas[i1] = 10. * math.Pow(30000, -float64(i1)/float64(Nalphas))
+	// }
 
 	// alphas := []float64{0.}
 	var banner string
@@ -119,28 +126,30 @@ func runForAlphasLambdas(b Benchmark) string {
 			//for lambda := 1.; lambda <= 100; lambda++ {
 			// if (alpha * lambda) < 10 {
 			// r := runSimulation(b, "rw", lambda, alpha)
-			r := runSimulation(b, "rw", lambda, alpha)
-			if banner == "" {
-				banner += fmt.Sprintf("#alpha\t")
-				for _, m := range r.velocity.vTime {
-					banner += fmt.Sprintf("%v\t", m.desc)
+			if lambda > 0 {
+				r := runSimulation(b, "urts", lambda, alpha)
+				if banner == "" {
+					banner += fmt.Sprintf("#alpha\t")
+					for _, m := range r.velocity.vTime {
+						banner += fmt.Sprintf("%v\t", m.desc)
+					}
+					banner += fmt.Sprintf("OP\tTOP\n")
 				}
-				banner += fmt.Sprintf("OP\tTOP\n")
-			}
 
-			output := fmt.Sprintf("%.3f", alpha)
-			for _, m := range r.velocity.vTime {
-				x, y := r.velocity.getTimeMetric(m.desc)
-				output += fmt.Sprintf("\t%.5f", stat.Mean(x, y))
-			}
-			// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op, nil))
-			// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top, nil))
-			output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op2, nil))
-			output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top2, nil))
-			output += fmt.Sprintf("\n")
+				output := fmt.Sprintf("%.3f", alpha)
+				for _, m := range r.velocity.vTime {
+					x, y := r.velocity.getTimeMetric(m.desc)
+					output += fmt.Sprintf("\t%.5f", stat.Mean(x, y))
+				}
+				// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op, nil))
+				// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top, nil))
+				output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op2, nil))
+				output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top2, nil))
+				output += fmt.Sprintf("\n")
 
-			total += output
-			fmt.Println(output)
+				total += output
+				fmt.Println(output)
+			}
 		}
 	}
 	return banner + total

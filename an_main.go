@@ -59,6 +59,10 @@ func (f *Result) SaveResults(p Parameters) {
 		f.AppStatsRW.finalprocess()
 		f.AppStatsRW.Save(p)
 	}
+	if p.AppStatsAllEnabled {
+		f.AppStatsAll.finalprocess()
+		f.AppStatsAll.Save(p)
+	}
 	return
 }
 
@@ -110,6 +114,9 @@ func (result *Result) EvaluateTangle(sim *Sim, p *Parameters, run int) {
 	if p.AppStatsRWEnabled {
 		sim.evalTangle_AppStatsRW(&result.AppStatsRW)
 	}
+	if p.AppStatsAllEnabled {
+		sim.evalTangle_AppStatsAll(&result.AppStatsAll)
+	}
 }
 
 //JoinResults joins result
@@ -140,6 +147,9 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	}
 	if p.AppStatsRWEnabled {
 		f.AppStatsRW.Join(batch.AppStatsRW)
+	}
+	if p.AppStatsAllEnabled {
+		f.AppStatsAll.Join(batch.AppStatsAll)
 	}
 	f.avgtips = f.avgtips.Join(batch.avgtips)
 }

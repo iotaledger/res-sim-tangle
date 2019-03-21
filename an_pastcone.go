@@ -60,7 +60,7 @@ func (sim *Sim) runAnPastCone(result *PastConeResult) {
 					for i3 := 0; i3 < base; i3++ {
 						deltat = math.Round((sim.tangle[i1].time-sim.tangle[i2*base+i3].time)*sim.param.AnPastCone.Resolution) / sim.param.AnPastCone.Resolution // need to check that this is picking the correct tx
 						if i3+i2*base < i1 {                                                                                                                     //can't use i1, because the bit array is only as large as the approvees ID                                                                                                                     // only count if we are in the past of i1
-							maxchildID = max2(i3+i2*base, maxchildID)
+							maxchildID = max2Int(i3+i2*base, maxchildID)
 							result.counterInttime[0].v[float64(int(deltat))]++
 						} else { // if we counted the above correctly we should not get here.
 							if block&(1<<uint(i3)) != 0 { // c
