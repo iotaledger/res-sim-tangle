@@ -2,7 +2,6 @@ package main
 
 import (
 	"math/rand"
-	"strings"
 
 	"github.com/schollz/progressbar"
 )
@@ -29,67 +28,9 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	sim := Sim{}
 
 	var result Result
-	// sim.param = *p  //??? in main: create p parameter with newparameter() and disable that p can be exported.
-	// initSim remains a point of failure because sometimes we forget to copy the value in there.
-	//This will lead to that the parameters have to be set in parameters... which makes sense.
-	p.initSim(&sim)
-
-	// ??? move this initialisation to an_main.go
-	// - - - - - - - - - - - - - - - - - - - - -
-	// initiate analysis variables
-	// - - - - - - - - - - - - - - - - - - - - -
-	if p.CountTipsEnabled {
-		r := newTipsResult(*p)
-		result.tips = *r
-	}
-	if p.CWAnalysisEnabled {
-		r := newCWResult(*p)
-		result.cw = *r
-	}
-	if p.VelocityEnabled {
-		//???is there a way this can be defined in the velocity.go file
-		var vr *velocityResult
-		//mt.Println(sim.param.TSA)
-		if sim.param.TSA != "RW" {
-			vr = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "CW-Max", "CW-Min", "CWMaxRW", "CWMinRW", "backU"}, sim.param)
-		} else {
-			vr = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "backU", "backB", "URW", "backG"}, sim.param)
-			//vr = newVelocityResult([]string{"rw", "all", "first"}, sim.param)
-			//fmt.Println(*vr)
-			//vr = newVelocityResult([]string{"rw", "all", "back"})
-		}
-		result.velocity = *vr
-	}
-	if p.AnPastCone.Enabled {
-		//??? can this be combined into one line?
-		r := newPastConeResult([]string{"avg", "1", "2", "3", "4", "5", "rest"})
-		result.PastCone = *r
-	}
-	if p.AnFocusRW.Enabled {
-		r := newFocusRWResult([]string{"0.1"})
-		result.FocusRW = *r
-	}
-	if p.ExitProbEnabled {
-		r := newExitProbResult()
-		result.exitProb = *r
-	}
-	if p.pOrphanEnabled {
-		r := newPOrphanResult(p)
-		result.op = *r
-	}
-	if p.DistSlicesEnabled {
-		r := newDistSlicesResult()
-		result.DistSlices = *r
-	}
-	if p.AppStatsRWEnabled {
-		r := newAppStatsRWResult()
-		result.AppStatsRW = *r
-	}
-	if p.AppStatsAllEnabled {
-		r := newAppStatsAllResult()
-		result.AppStatsAll = *r
-	}
-
+	sim.param = *p
+	result.initResults(p)
+	sim.clearSim()
 	//fmt.Println(p.nRun)
 	bar := progressbar.New(sim.param.nRun)
 
@@ -98,7 +39,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	// - - - - - - - - - - - - - - - - - - - - -
 	for run := 0; run < sim.param.nRun; run++ {
 
-		clearSim(&sim)
+		sim.clearSim()
 		//fmt.Println(sim)
 		sim.generator = rand.New(rand.NewSource(p.Seed + int64(run)))
 		//rand.Seed(p.Seed + int64(run))
@@ -146,126 +87,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	return result, performance
 }
 
-func (p Parameters) initSim(sim *Sim) {
-
-	clearSim(sim)
-
-	if p.K != 0 {
-		sim.param.K = p.K
-	} else {
-		sim.param.K = 2
-	}
-
-	if p.H != 0 {
-		sim.param.H = p.H
-	} else {
-		sim.param.H = 1
-	}
-
-	if p.Lambda != 0 {
-		sim.param.Lambda = p.Lambda
-	} else {
-		sim.param.Lambda = 1
-	}
-
-	if p.Alpha != 0 {
-		sim.param.Alpha = p.Alpha
-	} else {
-		sim.param.Alpha = 0
-	}
-
-	if p.TangleSize != 0 {
-		sim.param.TangleSize = p.TangleSize
-	} else {
-		sim.param.TangleSize = 0
-	}
-
-	if p.Seed != 0 {
-		sim.param.Seed = p.Seed
-	} else {
-		sim.param.Seed = 1
-	}
-
-	if p.nRun != 0 {
-		sim.param.nRun = p.nRun
-	} else {
-		sim.param.nRun = 1
-	}
-	sim.param.stillrecent = p.stillrecent
-
-	if p.AnPastCone.MaxApp != 0 {
-		sim.param.AnPastCone.MaxApp = p.AnPastCone.MaxApp
-	} else {
-		sim.param.AnPastCone.MaxApp = 2
-	}
-	if p.AnPastCone.MaxT != 0 {
-		sim.param.AnPastCone.MaxT = p.AnPastCone.MaxT
-	} else {
-		sim.param.AnPastCone.MaxT = 2
-	}
-	if p.AnPastCone.Resolution != 0 {
-		sim.param.AnPastCone.Resolution = p.AnPastCone.Resolution
-	} else {
-		sim.param.AnPastCone.Resolution = 2
-	}
-
-	sim.param.AnFocusRW.murel = p.AnFocusRW.murel
-	sim.param.AnFocusRW.nRWs = p.AnFocusRW.nRWs
-
-	switch strings.ToUpper(p.TSA) {
-	case "URTS":
-		sim.param.TSA = p.TSA
-		sim.param.tsa = URTS{}
-	case "RW":
-		if p.Alpha == 0 {
-			sim.param.TSA = "RW"
-			sim.param.tsa = URW{}
-		} else {
-			sim.param.TSA = "RW"
-			sim.param.tsa = BRW{}
-		}
-	default:
-		sim.param.TSA = "URTS"
-		sim.param.tsa = URTS{}
-	}
-
-	sim.param.ConstantRate = p.ConstantRate
-	sim.param.SingleEdgeEnabled = p.SingleEdgeEnabled
-	sim.param.VelocityEnabled = p.VelocityEnabled
-	sim.param.ExitProbEnabled = p.ExitProbEnabled
-	sim.param.ExitProbNparticle = p.ExitProbNparticle
-	sim.param.ExitProb2NHisto = p.ExitProb2NHisto
-	sim.param.SpineEnabled = p.SpineEnabled
-	if sim.param.TSA == "URTS" || sim.param.Alpha == 0 {
-		sim.param.SpineEnabled = false
-	}
-	sim.param.pOrphanEnabled = p.pOrphanEnabled
-	sim.param.pOrphanLinFitEnabled = p.pOrphanLinFitEnabled
-	sim.param.CountTipsEnabled = p.CountTipsEnabled
-	sim.param.DistSlicesEnabled = p.DistSlicesEnabled
-	sim.param.DistSlicesByTime = p.DistSlicesByTime
-	sim.param.DistSlicesLength = p.DistSlicesLength
-	sim.param.DistSlicesResolution = p.DistSlicesResolution
-	sim.param.AppStatsRWEnabled = p.AppStatsRWEnabled
-	sim.param.AppStatsRW_NumRWs = p.AppStatsRW_NumRWs
-	sim.param.AppStatsAllEnabled = p.AppStatsAllEnabled
-
-	if p.DataPath != "" {
-		sim.param.DataPath = p.DataPath
-	}
-
-	sim.param.minCut = p.minCut
-	sim.param.maxCutrange = p.maxCutrange
-	sim.param.maxCut = p.TangleSize - p.maxCutrange
-
-	//set circular matrix to 50*lambda rows to store cw bit masks
-	sim.param.CWMatrixLen = p.CWMatrixLen
-
-	createDirIfNotExist("data")
-
-}
-
-func clearSim(sim *Sim) {
+func (sim *Sim) clearSim() {
 	sim.approvers = make(map[int][]int)
 	sim.b = make(Benchmark)
 

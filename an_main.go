@@ -6,6 +6,62 @@ import (
 	"fmt"
 )
 
+// initiate analysis variables
+func (result *Result) initResults(p *Parameters) {
+	if p.CountTipsEnabled {
+		r := newTipsResult(*p)
+		result.tips = *r
+	}
+	if p.CWAnalysisEnabled {
+		r := newCWResult(*p)
+		result.cw = *r
+	}
+	if p.VelocityEnabled {
+		//???is there a way this can be defined in the velocity.go file
+		var vr *velocityResult
+		//mt.Println(sim.param.TSA)
+		if p.TSA != "RW" {
+			vr = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "CW-Max", "CW-Min", "CWMaxRW", "CWMinRW", "backU"}, *p)
+		} else {
+			vr = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "backU", "backB", "URW", "backG"}, *p)
+			//vr = newVelocityResult([]string{"rw", "all", "first"}, sim.param)
+			//fmt.Println(*vr)
+			//vr = newVelocityResult([]string{"rw", "all", "back"})
+		}
+		result.velocity = *vr
+	}
+	if p.AnPastCone.Enabled {
+		//??? can this be combined into one line?
+		r := newPastConeResult([]string{"avg", "1", "2", "3", "4", "5", "rest"})
+		result.PastCone = *r
+	}
+	if p.AnFocusRW.Enabled {
+		r := newFocusRWResult([]string{"0.1"})
+		result.FocusRW = *r
+	}
+	if p.ExitProbEnabled {
+		r := newExitProbResult()
+		result.exitProb = *r
+	}
+	if p.pOrphanEnabled {
+		r := newPOrphanResult(p)
+		result.op = *r
+	}
+	if p.DistSlicesEnabled {
+		r := newDistSlicesResult()
+		result.DistSlices = *r
+	}
+	if p.AppStatsRWEnabled {
+		r := newAppStatsRWResult()
+		result.AppStatsRW = *r
+	}
+	if p.AppStatsAllEnabled {
+		r := newAppStatsAllResult()
+		result.AppStatsAll = *r
+	}
+
+}
+
 //save results at end of simulation
 func (f *Result) SaveResults(p Parameters) {
 	if p.CountTipsEnabled {
