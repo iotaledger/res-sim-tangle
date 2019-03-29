@@ -51,6 +51,10 @@ func (result *Result) initResults(p *Parameters) {
 		r := newDistSlicesResult()
 		result.DistSlices = *r
 	}
+	if p.DistRWsEnabled {
+		r := newDistRWsResult()
+		result.DistRWs = *r
+	}
 	if p.AppStatsRWEnabled {
 		r := newAppStatsRWResult()
 		result.AppStatsRW = *r
@@ -111,6 +115,10 @@ func (f *Result) SaveResults(p Parameters) {
 		f.DistSlices.finalprocess()
 		f.DistSlices.Save(p)
 	}
+	if p.DistRWsEnabled {
+		f.DistRWs.finalprocess()
+		f.DistRWs.Save(p)
+	}
 	if p.AppStatsRWEnabled {
 		f.AppStatsRW.finalprocess()
 		f.AppStatsRW.Save(p)
@@ -167,6 +175,9 @@ func (result *Result) EvaluateTangle(sim *Sim, p *Parameters, run int) {
 	if p.DistSlicesEnabled {
 		sim.evalTangle_DistSlices(&result.DistSlices)
 	}
+	if p.DistRWsEnabled {
+		sim.evalTangle_DistRWs(&result.DistRWs)
+	}
 	if p.AppStatsRWEnabled {
 		sim.evalTangle_AppStatsRW(&result.AppStatsRW)
 	}
@@ -200,6 +211,9 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	}
 	if p.DistSlicesEnabled {
 		f.DistSlices.Join(batch.DistSlices)
+	}
+	if p.DistRWsEnabled {
+		f.DistRWs.Join(batch.DistRWs)
 	}
 	if p.AppStatsRWEnabled {
 		f.AppStatsRW.Join(batch.AppStatsRW)

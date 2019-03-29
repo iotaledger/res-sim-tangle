@@ -8,7 +8,7 @@ import (
 	"gonum.org/v1/gonum/stat"
 )
 
-var nParallelSims = 1
+// var nParallelSims = 1
 
 // factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
 // var nParallelSims = runtime.NumCPU()/2 - 1
@@ -18,26 +18,26 @@ func main() {
 	b := make(Benchmark)
 	_ = b
 	// Options: RW, URTS
-	// runSimulation(b, "urts", 300, 100000000)
-	// runSimulation(b, "urts", 3, 0)
-	fmt.Println(runForAlphasLambdas(b))
+	// runSimulation(b, 300, 100000000)
+	runSimulation(b, 100, 0)
+	// fmt.Println(runForAlphasLambdas(b))
 
 	// printPerformance(b)
 }
 
-func runSimulation(b Benchmark, tsa string, lambda, alpha float64) Result {
-	defer b.track(runningtime("TSA=" + strings.ToUpper(tsa) + ", Lambda=" + fmt.Sprintf("%.2f", lambda) + ", Alpha=" + fmt.Sprintf("%.4f", alpha) + "\tTime"))
+func runSimulation(b Benchmark, lambda, alpha float64) Result {
 
-	p := newParameters(tsa, lambda, alpha)
-	c := make(chan bool, nParallelSims)
-	r := make([]Result, nParallelSims)
+	p := newParameters(lambda, alpha)
+	defer b.track(runningtime("TSA=" + strings.ToUpper(p.TSA) + ", Lambda=" + fmt.Sprintf("%.2f", lambda) + ", Alpha=" + fmt.Sprintf("%.4f", alpha) + "\tTime"))
+	c := make(chan bool, p.nParallelSims)
+	r := make([]Result, p.nParallelSims)
 	var f Result
 
-	for i := 0; i < nParallelSims; i++ {
+	for i := 0; i < p.nParallelSims; i++ {
 		p.Seed = int64(i*p.nRun + 1)
 		go run(p, &r[i], c)
 	}
-	for i := 0; i < nParallelSims; i++ {
+	for i := 0; i < p.nParallelSims; i++ {
 		<-c
 	}
 
@@ -63,10 +63,10 @@ func runForAlphasLambdas(b Benchmark) string {
 	//var ratio string
 	var total string
 	// lambdas := []float64{3, 10, 30, 100, 300}
-	Nlambdas := 20
+	Nlambdas := 30
 	lambdas := make([]float64, Nlambdas)
 	for i1 := 0; i1 < Nlambdas; i1++ {
-		lambdas[i1] = .1 * math.Pow(1000, float64(i1)/float64(Nlambdas-1))
+		lambdas[i1] = .1 * math.Pow(3000, float64(i1)/float64(Nlambdas-1))
 	}
 	alphas := []float64{0}
 	// Nalphas := 20
@@ -84,7 +84,7 @@ func runForAlphasLambdas(b Benchmark) string {
 			// if (alpha * lambda) < 10 {
 			// r := runSimulation(b, "rw", lambda, alpha)
 			if lambda > 0 {
-				r := runSimulation(b, "urts", lambda, alpha)
+				r := runSimulation(b, lambda, alpha)
 				if banner == "" {
 					banner += fmt.Sprintf("#alpha\t")
 					for _, m := range r.velocity.vTime {
