@@ -15,14 +15,10 @@ func (result *Result) initResults(p *Parameters) {
 		result.cw = newCWResult(*p)
 	}
 	if p.VelocityEnabled {
-		//???is there a way this can be defined in the velocity.go file
 		if p.TSA != "RW" {
 			result.velocity = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "CW-Max", "CW-Min", "CWMaxRW", "CWMinRW", "backU"}, *p)
 		} else {
 			result.velocity = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "backU", "backB", "URW", "backG"}, *p)
-			//vr = newVelocityResult([]string{"rw", "all", "first"}, sim.param)
-			//fmt.Println(*vr)
-			//vr = newVelocityResult([]string{"rw", "all", "back"})
 		}
 	}
 	if p.AnPastCone.Enabled {
@@ -118,10 +114,6 @@ func (f *Result) SaveResults(p Parameters) {
 
 //Evaluate after each tx
 func (result *Result) EvaluateAfterTx(sim *Sim, p *Parameters, run, i int) {
-	// ??? the following lines seems to make no sense. can we remove it?
-	// if i > sim.param.minCut && i < sim.param.maxCut {
-	// 	nTips += len(sim.tips)
-	// }
 	if p.CountTipsEnabled {
 		sim.countTips(i, run, &result.tips)
 	}

@@ -32,8 +32,7 @@ func (sim *Sim) evalTangle_AppStatsRW(r *AppStatsRWResult) {
 	for i1 := 0; i1 < sim.param.AppStatsRW_NumRWs; i1++ {
 		currentID = 0
 		for currentID < sim.param.maxCut {
-			currentTx, _ := tsa.RandomWalk(sim.tangle[currentID], sim) // orphaned tips are included here
-			currentID = currentTx.id
+			currentID, _ = tsa.RandomWalkStep(currentID, sim) // orphaned tips are included here
 			if currentID > sim.param.minCut {
 				r.totalNum++
 				r.Num[len(sim.approvers[currentID])]++

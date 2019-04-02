@@ -17,7 +17,6 @@ type FutureConeResult struct { //these slices hold the statistics for each appro
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//??? use string to create empty value maps to
 func newFutureConeResult(coneMetrics []string) FutureConeResult {
 	// variables initialization for FutureCone
 	var result FutureConeResult

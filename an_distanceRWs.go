@@ -61,8 +61,7 @@ func (sim *Sim) evalTangle_DistRWs(r *DistRWsResult) {
 		// }
 
 		for currentID < sim.param.maxCut {
-			currentTx, _ := tsa.RandomWalk(sim.tangle[currentID], sim) // orphaned tips are included here
-			currentID = currentTx.id
+			currentID, _ = tsa.RandomWalkStep(currentID, sim) // orphaned tips are included here
 			if currentID > sim.param.minCut {
 
 				if currentSampleID > sim.param.DistRWsSampleLength {

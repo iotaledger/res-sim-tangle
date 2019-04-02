@@ -298,7 +298,6 @@ func cwBitMask(t Tx, cw [][]uint64) []uint64 {
 
 }
 
-// ??? what does this do?
 func cwBitMaskOpt(t Tx, sim *Sim) []uint64 {
 	refCW := make([][]uint64, len(t.ref))
 	var i uint64

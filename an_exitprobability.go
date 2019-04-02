@@ -114,17 +114,16 @@ func (sim *Sim) exitProbURTS(v map[int]int, nParticles int) {
 // calculate exit probabilities and save in v
 func (sim *Sim) exitProbParticleRW(v map[int]int, nParticles int) {
 	for i := 0; i < nParticles; i++ {
-		prev := sim.tangle[0]
 		var tsa RandomWalker
 		if sim.param.Alpha > 0 {
 			tsa = BRW{}
 		} else {
 			tsa = URW{}
 		}
-		var current Tx
-		for current, _ = tsa.RandomWalk(prev, sim); len(sim.approvers[current.id]) > 0; current, _ = tsa.RandomWalk(current, sim) {
+		var current int
+		for current, _ = tsa.RandomWalkStep(0, sim); len(sim.approvers[current]) > 0; current, _ = tsa.RandomWalkStep(current, sim) {
 		}
-		v[current.id]++
+		v[current]++
 	}
 }
 

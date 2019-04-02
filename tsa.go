@@ -13,9 +13,9 @@ type TipSelector interface {
 
 // RandomWalker defines the interface for a random walk
 type RandomWalker interface {
-	RandomWalk(Tx, *Sim) (Tx, int)
-	RandomWalkBack(Tx, *Sim) Tx
-	RandomWalkSpine(Tx, *Sim) (Tx, int)
+	RandomWalkStep(int, *Sim) (int, int)
+	RandomWalkStepBack(int, *Sim) int
+	RandomWalkStepInfinity(int, *Sim) (int, int)
 }
 
 // URTS defines a concrete type of a TSA
@@ -84,93 +84,93 @@ func (tsa BRW) TipSelect(t Tx, sim *Sim) []int {
 }
 
 //RandomWalk returns the choosen tip and its index position
-func (URW) RandomWalk(t Tx, sim *Sim) (Tx, int) {
-	directApprovers := sim.approvers[t.id]
+func (URW) RandomWalkStep(t int, sim *Sim) (int, int) {
+	directApprovers := sim.approvers[t]
 	if (len(directApprovers)) == 0 {
 		return t, -1
 	}
 	if (len(directApprovers)) == 1 {
-		return sim.tangle[directApprovers[0]], 0
+		return directApprovers[0], 0
 	}
 	j := rand.Intn(len(directApprovers))
-	return sim.tangle[directApprovers[j]], j
+	return directApprovers[j], j
 }
 
-//RandomWalkSpine returns the choosen tip and its index position when walking over the spine Tangle
-func (URW) RandomWalkSpine(t Tx, sim *Sim) (Tx, int) {
-	directApprovers := sim.spineApprovers[t.id]
+//RandomWalkStepInfinity returns the choosen tip and its index position when walking over the spine Tangle
+func (URW) RandomWalkStepInfinity(t int, sim *Sim) (int, int) {
+	directApprovers := sim.spineApprovers[t]
 	if (len(directApprovers)) == 0 {
 		return t, -1
 	}
 	if (len(directApprovers)) == 1 {
-		return sim.spineTangle[directApprovers[0]], 0
+		return directApprovers[0], 0
 	}
 	j := rand.Intn(len(directApprovers))
-	return sim.spineTangle[directApprovers[j]], j
+	return directApprovers[j], j
 }
 
-//RandomWalkBack returns the choosen tx
-func (URW) RandomWalkBack(t Tx, sim *Sim) Tx {
-	refs := t.ref
+//RandomWalkStepBack returns the choosen tx
+func (URW) RandomWalkStepBack(t int, sim *Sim) int {
+	refs := sim.tangle[t].ref
 	if len(refs) == 0 {
 		return t
 	}
 	if (len(refs)) == 1 {
-		return sim.tangle[refs[0]]
+		return refs[0]
 	}
 	j := rand.Intn(len(refs))
-	return sim.tangle[refs[j]]
+	return refs[j]
 }
 
 // ??? this should be called RandoWalkStep, otherwise it is confusing
 // ??? we already forward the pointer to the sim, should we not just forward the ID rather than the whole struct?
 // ??? Currently each time the RW is called this creates a copy of a tx, while the copy of the int ID is enough
 //RandomWalk returns the chosen tip and its index position
-func (BRW) RandomWalk(t Tx, sim *Sim) (choosenTip Tx, approverIndx int) {
+func (BRW) RandomWalkStep(t int, sim *Sim) (choosenTip int, approverIndx int) {
 	//defer sim.b.track(runningtime("BRW"))
-	directApprovers := sim.approvers[t.id]
+	directApprovers := sim.approvers[t]
 	if (len(directApprovers)) == 0 {
 		return t, -1
 	}
 	if (len(directApprovers)) == 1 {
-		return sim.tangle[directApprovers[0]], 0
+		return directApprovers[0], 0
 	}
 
 	nw := normalizeWeights(directApprovers, sim)
 	tip, j := weightedChoose(directApprovers, nw, sim.generator, sim.b)
-	return sim.tangle[tip], j
+	return tip, j
 }
 
-//RandomWalkSpine returns the chosen tip and its index position when walking over the spine Tangle
-func (BRW) RandomWalkSpine(t Tx, sim *Sim) (choosenTip Tx, approverIndx int) {
+//RandomWalkStepInfinity returns the chosen tip and its index position when walking over the spine Tangle
+func (BRW) RandomWalkStepInfinity(t int, sim *Sim) (choosenTip int, approverIndx int) {
 	//defer sim.b.track(runningtime("BRW"))
-	directApprovers := sim.spineApprovers[t.id]
+	directApprovers := sim.spineApprovers[t]
 	if (len(directApprovers)) == 0 {
 		return t, -1
 	}
 	if (len(directApprovers)) == 1 {
-		return sim.spineTangle[directApprovers[0]], 0
+		return directApprovers[0], 0
 	}
 
 	nw := normalizeWeights(directApprovers, sim)
 	tip, j := weightedChoose(directApprovers, nw, sim.generator, sim.b)
-	return sim.spineTangle[tip], j
+	return tip, j
 }
 
-//RandomWalkBack returns the chosen tx
-func (BRW) RandomWalkBack(t Tx, sim *Sim) (choosenTip Tx) {
+//RandomWalkStepBack returns the chosen tx
+func (BRW) RandomWalkStepBack(t int, sim *Sim) (choosenTip int) {
 	//defer sim.b.track(runningtime("BRW"))
-	refs := t.ref
+	refs := sim.tangle[t].ref
 	if (len(refs)) == 0 {
 		return t
 	}
 	if (len(refs)) == 1 {
-		return sim.tangle[t.ref[0]]
+		return refs[0]
 	}
 
 	nw := normalizeWeights(refs, sim)
 	tip, _ := weightedChoose(refs, nw, sim.generator, sim.b)
-	return sim.tangle[tip]
+	return tip
 }
 
 func randomWalk(tsa RandomWalker, t Tx, sim *Sim) []int {
@@ -181,28 +181,28 @@ func randomWalk(tsa RandomWalker, t Tx, sim *Sim) []int {
 	AppID := 0
 	for i := 0; i < sim.param.K; i++ {
 		//URTS with repetition  //??? this seems the wrong comment here
-		var current Tx
-		for current, _ = tsa.RandomWalk(sim.tangle[0], sim); len(sim.approvers[current.id]) > 0; current, _ = tsa.RandomWalk(current, sim) {
+		var current int
+		for current, _ = tsa.RandomWalkStep(0, sim); len(sim.approvers[current]) > 0; current, _ = tsa.RandomWalkStep(current, sim) {
 		}
 
 		uniqueTip := true
 		if sim.param.SingleEdgeEnabled { // consider only SingleEdge Model
 			for i1 := 0; i1 < min2Int(i, len(tipsApproved)); i1++ {
-				if tipsApproved[i1] == current.id {
+				if tipsApproved[i1] == current {
 					uniqueTip = false
 				}
 			}
 		}
 		if uniqueTip {
-			tipsApproved[AppID] = current.id //sim.tangle[sim.vTips[j]].id
+			tipsApproved[AppID] = current //sim.tangle[sim.vTips[j]].id
 			AppID++
 		} else { // tip already existed and we are in the SingleEdge Model
 			tipsApproved = tipsApproved[:len(tipsApproved)-1]
 		}
 
 		//tipsApproved = append(tipsApproved, sim.tangle[sim.vTips[j]].id)
-		if sim.tangle[current.id].firstApproval < 0 {
-			sim.tangle[current.id].firstApproval = t.time
+		if sim.tangle[current].firstApproval < 0 {
+			sim.tangle[current].firstApproval = t.time
 		}
 	}
 	return tipsApproved

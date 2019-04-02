@@ -11,14 +11,13 @@ import (
 
 //Velocity result of simulation
 type velocityResult struct {
-	vID        []MetricIntInt //???creates a map[int]int with a keyword
+	vID        []MetricIntInt
 	vTime      []MetricFloat64Int
 	dApprovers []MetricIntInt
 	vCW        []MetricIntInt
 	vCWfirst   []MetricIntInt
 }
 
-//??? use string to create empty value maps to vID, vTime, dApprovers
 func newVelocityResult(veloMetrics []string, param Parameters) velocityResult {
 	// variables initialization for velocity
 	var result velocityResult
@@ -134,10 +133,7 @@ func (sim Sim) velocityBackURTS(v map[int]int, t map[float64]int) {
 
 func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]int, w, wFirst map[int]int, nParticles int, mode string) {
 	for i := 0; i < nParticles; i++ {
-		prev := sim.tangle[0]
-		//start := sim.generator.Intn(sim.param.minCut)
-		//prev := sim.tangle[start]
-		//tsa := mode
+		prev := 0
 		var tsa RandomWalker
 		if mode == "default" && sim.param.Alpha != 0 {
 			tsa = BRW{}
@@ -145,16 +141,16 @@ func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]i
 			tsa = URW{}
 		}
 
-		for current, currentIdx := tsa.RandomWalk(prev, sim); len(sim.approvers[current.id]) > 0; current, currentIdx = tsa.RandomWalk(current, sim) {
-			if current.id > sim.param.minCut && current.id < sim.param.maxCut {
-				delta := current.id - prev.id
+		for current, currentIdx := tsa.RandomWalkStep(prev, sim); len(sim.approvers[current]) > 0; current, currentIdx = tsa.RandomWalkStep(current, sim) {
+			if current > sim.param.minCut && current < sim.param.maxCut {
+				delta := current - prev
 				v[delta]++
 				d[currentIdx+1]++
-				deltaTime := math.Round((current.time-prev.time)*100) / 100
+				deltaTime := math.Round((sim.tangle[current].time-sim.tangle[prev].time)*100) / 100
 				t[deltaTime]++
-				deltaCW := prev.cw - current.cw
+				deltaCW := sim.tangle[prev].cw - sim.tangle[current].cw
 				w[deltaCW]++
-				if len(sim.approvers[prev.id]) > 1 {
+				if len(sim.approvers[prev]) > 1 {
 					wFirst[deltaCW]++
 				}
 			}
@@ -165,7 +161,7 @@ func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]i
 
 func (sim *Sim) velocityParticleRWSpine(v map[int]int, t map[float64]int, d map[int]int, w, wFirst map[int]int, nParticles int, mode string) {
 	for i := 0; i < nParticles; i++ {
-		prev := sim.spineTangle[0]
+		prev := 0
 		//start := sim.generator.Intn(sim.param.minCut)
 		//prev := sim.tangle[start]
 		var tsa RandomWalker
@@ -176,16 +172,16 @@ func (sim *Sim) velocityParticleRWSpine(v map[int]int, t map[float64]int, d map[
 			tsa = URW{}
 		}
 
-		for current, currentIdx := tsa.RandomWalkSpine(prev, sim); len(sim.spineApprovers[current.id]) > 0; current, currentIdx = tsa.RandomWalkSpine(current, sim) {
-			if current.id > sim.param.minCut && current.id < sim.param.maxCut {
-				delta := current.id - prev.id
+		for current, currentIdx := tsa.RandomWalkStepInfinity(prev, sim); len(sim.spineApprovers[current]) > 0; current, currentIdx = tsa.RandomWalkStepInfinity(current, sim) {
+			if current > sim.param.minCut && current < sim.param.maxCut {
+				delta := current - prev
 				v[delta]++
 				d[currentIdx+1]++
-				deltaTime := math.Round((current.time-prev.time)*100) / 100
+				deltaTime := math.Round((sim.spineTangle[current].time-sim.spineTangle[prev].time)*100) / 100
 				t[deltaTime]++
-				deltaCW := prev.cw - current.cw
+				deltaCW := sim.spineTangle[prev].cw - sim.spineTangle[current].cw
 				w[deltaCW]++
-				if len(sim.spineApprovers[prev.id]) > 1 {
+				if len(sim.spineApprovers[prev]) > 1 {
 					wFirst[deltaCW]++
 				}
 			}
@@ -198,7 +194,7 @@ func (sim *Sim) velocityParticleBackRW(v map[int]int, t map[float64]int, mode Ra
 	for i := 0; i < nParticles; i++ {
 		//start := sim.generator.Intn(sim.param.maxCutrange) + sim.param.minCut - 1 // -1 just to be sure start is larger than TangleSize
 		_, start := ghostWalk(sim.tangle[0], sim)
-		prev := start
+		prev := start.id
 
 		tsa := mode
 
@@ -209,11 +205,11 @@ func (sim *Sim) velocityParticleBackRW(v map[int]int, t map[float64]int, mode Ra
 		// 	tsa = URW{}
 		// }
 
-		for current := tsa.RandomWalkBack(prev, sim); current.id > sim.param.minCut; current = tsa.RandomWalkBack(current, sim) {
-			if current.id > sim.param.minCut && current.id < sim.param.maxCut {
-				delta := prev.id - current.id
+		for current := tsa.RandomWalkStepBack(prev, sim); current > sim.param.minCut; current = tsa.RandomWalkStepBack(current, sim) {
+			if current > sim.param.minCut && current < sim.param.maxCut {
+				delta := prev - current
 				v[delta]++
-				deltaTime := math.Round((prev.time-current.time)*100) / 100
+				deltaTime := math.Round((sim.tangle[prev].time-sim.tangle[current].time)*100) / 100
 				t[deltaTime]++
 			}
 			prev = current

@@ -18,7 +18,6 @@ type PastConeResult struct { //these slices hold the statistics for each approve
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//??? use string to create empty value maps to
 func newPastConeResult(coneMetrics []string) PastConeResult {
 	// variables initialization for PastCone
 	var result PastConeResult
