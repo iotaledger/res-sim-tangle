@@ -17,8 +17,8 @@ type Sim struct {
 	generator      *rand.Rand    // An unsafe random generator
 	param          Parameters    // Set of simulation parameters
 	b              Benchmark     // Data structure to save performance of the simulation
-	spineTangle    map[int]Tx
-	spineApprovers map[int][]int
+	spineTangle    map[int]Tx    // TODO: change to alphaInfinityWalkCone
+	spineApprovers map[int][]int //TODO: include this into Tx
 }
 
 // RunTangle executes the simulation
