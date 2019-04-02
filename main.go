@@ -46,7 +46,7 @@ func runSimulation(b Benchmark, lambda, alpha float64) Result {
 	}
 
 	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
-	fmt.Println(f.avgtips)
+	//fmt.Println(f.avgtips)
 	f.SaveResults(p)
 	return f
 }

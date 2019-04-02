@@ -19,7 +19,7 @@ type velocityResult struct {
 }
 
 //??? use string to create empty value maps to vID, vTime, dApprovers
-func newVelocityResult(veloMetrics []string, param Parameters) *velocityResult {
+func newVelocityResult(veloMetrics []string, param Parameters) velocityResult {
 	// variables initialization for velocity
 	var result velocityResult
 	for _, metric := range veloMetrics {
@@ -54,7 +54,7 @@ func newVelocityResult(veloMetrics []string, param Parameters) *velocityResult {
 			}
 		}
 	}
-	return &result
+	return result
 }
 
 func (sim *Sim) runVelocityStat(result *velocityResult) {

@@ -17,7 +17,7 @@ type FocusRWResult struct { //this slices hold the statistics for each approver 
 }
 
 //??? use string to create empty value maps to
-func newFocusRWResult(Metrics []string) *FocusRWResult {
+func newFocusRWResult(Metrics []string) FocusRWResult {
 	// variables initialization for FocusRW
 	var result FocusRWResult
 	for _, metric := range Metrics {
@@ -25,7 +25,7 @@ func newFocusRWResult(Metrics []string) *FocusRWResult {
 		result.countertotal = append(result.countertotal, MetricIntFloat64{metric, make(map[int]float64)})
 		result.prob = append(result.prob, MetricIntFloat64{metric, make(map[int]float64)})
 	}
-	return &result
+	return result
 }
 
 // add PCs and get probabilities

@@ -93,14 +93,14 @@ func (a pOrphanResult) String() string {
 	return result
 }
 
-func newPOrphanResult(p *Parameters) *pOrphanResult {
+func newPOrphanResult(p *Parameters) pOrphanResult {
 	// variables initialization for pOprhan
 	var result pOrphanResult
 	if p.pOrphanLinFitEnabled {
 		result.nTipsAtID = append(result.nTipsAtID, make([]int, p.TangleSize)...)
 		result.nOrphanAtID = append(result.nOrphanAtID, make([]int, p.TangleSize)...)
 	}
-	return &result
+	return result
 }
 
 func sliceMap(m map[int]Tx, lBound, uBound int) map[int]Tx {

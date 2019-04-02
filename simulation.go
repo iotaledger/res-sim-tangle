@@ -45,7 +45,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//rand.Seed(p.Seed + int64(run))
 
 		sim.tangle[0] = sim.newGenesis()
-		nTips := 0
+		//nTips := 0
 
 		if p.Seed == int64(1) {
 			bar.Add(1)
@@ -79,7 +79,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//Compare CWs
 		//fmt.Println("CW comparison:", sim.compareCW())
 		// data evaluation after each tangle
-		result.avgtips.val = append(result.avgtips.val, float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut-sim.param.maxCutrange)/sim.param.Lambda)
+		//result.avgtips.val = append(result.avgtips.val, float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut-sim.param.maxCutrange)/sim.param.Lambda)
 		result.EvaluateTangle(&sim, p, run)
 	}
 

@@ -17,11 +17,11 @@ type AppStatsRWResult struct {
 }
 
 // variable initialization
-func newAppStatsRWResult() *AppStatsRWResult {
+func newAppStatsRWResult() AppStatsRWResult {
 	var result AppStatsRWResult
 	result.Num = make(map[int]float64)
 	result.Prob = make(map[int]float64)
-	return &result
+	return result
 }
 
 func (sim *Sim) evalTangle_AppStatsRW(r *AppStatsRWResult) {

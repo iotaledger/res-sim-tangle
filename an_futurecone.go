@@ -18,7 +18,7 @@ type FutureConeResult struct { //these slices hold the statistics for each appro
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //??? use string to create empty value maps to
-func newFutureConeResult(coneMetrics []string) *FutureConeResult {
+func newFutureConeResult(coneMetrics []string) FutureConeResult {
 	// variables initialization for FutureCone
 	var result FutureConeResult
 	for _, metric := range coneMetrics {
@@ -27,7 +27,7 @@ func newFutureConeResult(coneMetrics []string) *FutureConeResult {
 		result.counterInttime = append(result.counterInttime, MetricFloat64Float64{metric, make(map[float64]float64)})
 		result.kappa = append(result.kappa, MetricFloat64Float64{metric, make(map[float64]float64)})
 	}
-	return &result
+	return result
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -18,12 +18,12 @@ type DistRWsResult struct {
 }
 
 // variable initialization
-func newDistRWsResult() *DistRWsResult {
+func newDistRWsResult() DistRWsResult {
 	var result DistRWsResult
 	result.Num = make(map[float64]float64)
 	result.Prob = make(map[float64]float64)
 	// result.countersuccess = append(result.countersuccess, MetricIntFloat64{metric, make(map[int]float64)})
-	return &result
+	return result
 }
 
 func (sim *Sim) evalTangle_DistRWs(r *DistRWsResult) {

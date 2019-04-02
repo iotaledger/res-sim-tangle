@@ -15,7 +15,7 @@ type cwResult struct {
 	variance []float64
 }
 
-func newCWResult(p Parameters) *cwResult {
+func newCWResult(p Parameters) cwResult {
 	// variables initialization for entropy
 	var result cwResult
 	result.cw = make([][]int, p.nRun)
@@ -24,7 +24,7 @@ func newCWResult(p Parameters) *cwResult {
 	}
 	result.mean = make([]float64, p.TangleSize)
 	result.variance = make([]float64, p.TangleSize)
-	return &result
+	return result
 }
 
 func (sim *Sim) fillCW(run int, r *cwResult) {

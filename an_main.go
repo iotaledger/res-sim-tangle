@@ -9,59 +9,45 @@ import (
 // initiate analysis variables
 func (result *Result) initResults(p *Parameters) {
 	if p.CountTipsEnabled {
-		r := newTipsResult(*p)
-		result.tips = *r
+		result.tips = newTipsResult(*p)
 	}
 	if p.CWAnalysisEnabled {
-		r := newCWResult(*p)
-		result.cw = *r
+		result.cw = newCWResult(*p)
 	}
 	if p.VelocityEnabled {
 		//???is there a way this can be defined in the velocity.go file
-		var vr *velocityResult
-		//mt.Println(sim.param.TSA)
 		if p.TSA != "RW" {
-			vr = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "CW-Max", "CW-Min", "CWMaxRW", "CWMinRW", "backU"}, *p)
+			result.velocity = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "CW-Max", "CW-Min", "CWMaxRW", "CWMinRW", "backU"}, *p)
 		} else {
-			vr = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "backU", "backB", "URW", "backG"}, *p)
+			result.velocity = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "backU", "backB", "URW", "backG"}, *p)
 			//vr = newVelocityResult([]string{"rw", "all", "first"}, sim.param)
 			//fmt.Println(*vr)
 			//vr = newVelocityResult([]string{"rw", "all", "back"})
 		}
-		result.velocity = *vr
 	}
 	if p.AnPastCone.Enabled {
-		//??? can this be combined into one line?
-		r := newPastConeResult([]string{"avg", "1", "2", "3", "4", "5", "rest"})
-		result.PastCone = *r
+		result.PastCone = newPastConeResult([]string{"avg", "1", "2", "3", "4", "5", "rest"})
 	}
 	if p.AnFocusRW.Enabled {
-		r := newFocusRWResult([]string{"0.1"})
-		result.FocusRW = *r
+		result.FocusRW = newFocusRWResult([]string{"0.1"})
 	}
 	if p.ExitProbEnabled {
-		r := newExitProbResult()
-		result.exitProb = *r
+		result.exitProb = newExitProbResult()
 	}
 	if p.pOrphanEnabled {
-		r := newPOrphanResult(p)
-		result.op = *r
+		result.op = newPOrphanResult(p)
 	}
 	if p.DistSlicesEnabled {
-		r := newDistSlicesResult()
-		result.DistSlices = *r
+		result.DistSlices = newDistSlicesResult()
 	}
 	if p.DistRWsEnabled {
-		r := newDistRWsResult()
-		result.DistRWs = *r
+		result.DistRWs = newDistRWsResult()
 	}
 	if p.AppStatsRWEnabled {
-		r := newAppStatsRWResult()
-		result.AppStatsRW = *r
+		result.AppStatsRW = newAppStatsRWResult()
 	}
 	if p.AppStatsAllEnabled {
-		r := newAppStatsAllResult()
-		result.AppStatsAll = *r
+		result.AppStatsAll = newAppStatsAllResult()
 	}
 
 }
@@ -221,5 +207,5 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	if p.AppStatsAllEnabled {
 		f.AppStatsAll.Join(batch.AppStatsAll)
 	}
-	f.avgtips = f.avgtips.Join(batch.avgtips)
+	//f.avgtips = f.avgtips.Join(batch.avgtips)
 }

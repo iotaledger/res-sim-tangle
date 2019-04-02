@@ -22,10 +22,10 @@ type entropyResult struct {
 	std2    []float64    // exit probability std dev over Tangles
 }
 
-func newEntropyResult() *entropyResult {
+func newEntropyResult() entropyResult {
 	// variables initialization for entropy
 	var result entropyResult
-	return &result
+	return result
 }
 
 func (sim *Sim) runEntropyStat(result *entropyResult) {

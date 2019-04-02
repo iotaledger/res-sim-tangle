@@ -22,8 +22,8 @@ func newParameters(lambda, alpha float64) Parameters {
 		TSA:    "RW",
 		// TSA:               "URTS",
 		K:                 2, // Num of tips to select
-		H:                 1, // ???
-		Seed:              1, // ???
+		H:                 1,
+		Seed:              1, //
 		TangleSize:        300 * lambdaForSize,
 		CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            51 * lambdaForSize,  // cut data close to the genesis

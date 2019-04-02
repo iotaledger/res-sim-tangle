@@ -17,11 +17,11 @@ type AppStatsAllResult struct {
 }
 
 // variable initialization
-func newAppStatsAllResult() *AppStatsAllResult {
+func newAppStatsAllResult() AppStatsAllResult {
 	var result AppStatsAllResult
 	result.Num = make(map[int]float64)
 	result.Prob = make(map[int]float64)
-	return &result
+	return result
 }
 
 func (sim *Sim) evalTangle_AppStatsAll(r *AppStatsAllResult) {

@@ -18,7 +18,7 @@ type tipsResult struct {
 	tPDF     MetricIntInt   // total probability density function
 }
 
-func newTipsResult(p Parameters) *tipsResult {
+func newTipsResult(p Parameters) tipsResult {
 	// variables initialization for entropy
 	var result tipsResult
 	result.nTips = make([][]int, p.nRun)
@@ -30,7 +30,7 @@ func newTipsResult(p Parameters) *tipsResult {
 	result.mean = make([]float64, p.TangleSize)
 	result.variance = make([]float64, p.TangleSize)
 	//result.tPDF = MetricIntInt{"total_tips_pdf", make(map[int]int)}
-	return &result
+	return result
 }
 
 func (sim *Sim) countTips(tx int, run int, r *tipsResult) {

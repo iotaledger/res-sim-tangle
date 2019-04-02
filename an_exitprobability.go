@@ -21,10 +21,10 @@ type exitProbResult struct {
 	std2    []float64    // exit probability std dev over Tangles
 }
 
-func newExitProbResult() *exitProbResult {
+func newExitProbResult() exitProbResult {
 	// variables initialization for exitProb
 	var result exitProbResult
-	return &result
+	return result
 }
 
 func (sim *Sim) runExitProbStat(result *exitProbResult) {

@@ -19,7 +19,7 @@ type PastConeResult struct { //these slices hold the statistics for each approve
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //??? use string to create empty value maps to
-func newPastConeResult(coneMetrics []string) *PastConeResult {
+func newPastConeResult(coneMetrics []string) PastConeResult {
 	// variables initialization for PastCone
 	var result PastConeResult
 	for _, metric := range coneMetrics {
@@ -28,7 +28,7 @@ func newPastConeResult(coneMetrics []string) *PastConeResult {
 		result.counterInttime = append(result.counterInttime, MetricFloat64Float64{metric, make(map[float64]float64)})
 		result.kappa = append(result.kappa, MetricFloat64Float64{metric, make(map[float64]float64)})
 	}
-	return &result
+	return result
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
