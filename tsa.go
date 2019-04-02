@@ -122,10 +122,7 @@ func (URW) RandomWalkStepBack(t int, sim *Sim) int {
 	return refs[j]
 }
 
-// ??? this should be called RandoWalkStep, otherwise it is confusing
-// ??? we already forward the pointer to the sim, should we not just forward the ID rather than the whole struct?
-// ??? Currently each time the RW is called this creates a copy of a tx, while the copy of the int ID is enough
-//RandomWalk returns the chosen tip and its index position
+//RandomWalkStep returns the chosen tip and its index position
 func (BRW) RandomWalkStep(t int, sim *Sim) (choosenTip int, approverIndx int) {
 	//defer sim.b.track(runningtime("BRW"))
 	directApprovers := sim.approvers[t]
@@ -176,11 +173,9 @@ func (BRW) RandomWalkStepBack(t int, sim *Sim) (choosenTip int) {
 func randomWalk(tsa RandomWalker, t Tx, sim *Sim) []int {
 	defer sim.b.track(runningtime("RW"))
 	tipsApproved := make([]int, sim.param.K)
-	//cache := make(map[int][]float64)
 
 	AppID := 0
 	for i := 0; i < sim.param.K; i++ {
-		//URTS with repetition  //??? this seems the wrong comment here
 		var current int
 		for current, _ = tsa.RandomWalkStep(0, sim); len(sim.approvers[current]) > 0; current, _ = tsa.RandomWalkStep(current, sim) {
 		}
