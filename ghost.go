@@ -11,7 +11,7 @@ func (sim *Sim) computeSpine() {
 	// add directly and indirectly referenced txs
 	for key := range set {
 		sim.spineTangle[key] = sim.tangle[key]
-		for _, v := range sim.approvers[key] {
+		for _, v := range sim.tangle[key].app {
 			if _, exist := set[v]; exist {
 				// update approvers
 				sim.spineApprovers[key] = append(sim.spineApprovers[key], v)
@@ -24,7 +24,7 @@ func ghostWalk(t Tx, sim *Sim) (path []int, tip Tx) {
 	defer sim.b.track(runningtime("Ghost RW"))
 
 	var current Tx
-	for current = ghostStep(sim.tangle[0], sim); len(sim.approvers[current.id]) > 0; current = ghostStep(current, sim) {
+	for current = ghostStep(sim.tangle[0], sim); len(sim.tangle[current.id].app) > 0; current = ghostStep(current, sim) {
 		path = append(path, current.id)
 		//fmt.Println(current.id, "\t", len(sim.approvers[current.id]), sim.tangle[current.id].cw)
 	}
@@ -32,7 +32,7 @@ func ghostWalk(t Tx, sim *Sim) (path []int, tip Tx) {
 }
 
 func ghostStep(t Tx, sim *Sim) Tx {
-	directApprovers := sim.approvers[t.id]
+	directApprovers := sim.tangle[t.id].app
 	if (len(directApprovers)) == 0 {
 		return t
 	}

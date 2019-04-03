@@ -99,16 +99,16 @@ func (sim *Sim) runVelocityStat(result *velocityResult) {
 
 func (sim Sim) velocityURTS(v map[int]int, t map[float64]int, d map[int]int, w, wFirst map[int]int) {
 	for i := sim.param.minCut; i < sim.param.maxCut; i++ {
-		if len(sim.approvers[i]) > 0 {
-			l := sim.generator.Intn(len(sim.approvers[i]))
-			delta := sim.approvers[i][l] - i
-			deltaTime := math.Round((sim.tangle[sim.approvers[i][l]].time-sim.tangle[i].time)*100) / 100
+		if len(sim.tangle[i].app) > 0 {
+			l := sim.generator.Intn(len(sim.tangle[i].app))
+			delta := sim.tangle[i].app[l] - i
+			deltaTime := math.Round((sim.tangle[sim.tangle[i].app[l]].time-sim.tangle[i].time)*100) / 100
 			v[delta]++
 			d[l+1]++
 			t[deltaTime]++
-			deltaCW := sim.tangle[i].cw - sim.tangle[sim.approvers[i][l]].cw
+			deltaCW := sim.tangle[i].cw - sim.tangle[sim.tangle[i].app[l]].cw
 			w[deltaCW]++
-			if len(sim.approvers[i]) > 1 {
+			if len(sim.tangle[i].app) > 1 {
 				wFirst[deltaCW]++
 			}
 			// if float64(delta)/sim.param.Lambda != deltaTime {
@@ -141,7 +141,7 @@ func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]i
 			tsa = URW{}
 		}
 
-		for current, currentIdx := tsa.RandomWalkStep(prev, sim); len(sim.approvers[current]) > 0; current, currentIdx = tsa.RandomWalkStep(current, sim) {
+		for current, currentIdx := tsa.RandomWalkStep(prev, sim); len(sim.tangle[current].app) > 0; current, currentIdx = tsa.RandomWalkStep(current, sim) {
 			if current > sim.param.minCut && current < sim.param.maxCut {
 				delta := current - prev
 				v[delta]++
@@ -150,7 +150,7 @@ func (sim *Sim) velocityParticleRW(v map[int]int, t map[float64]int, d map[int]i
 				t[deltaTime]++
 				deltaCW := sim.tangle[prev].cw - sim.tangle[current].cw
 				w[deltaCW]++
-				if len(sim.approvers[prev]) > 1 {
+				if len(sim.tangle[prev].app) > 1 {
 					wFirst[deltaCW]++
 				}
 			}
@@ -237,24 +237,24 @@ func (sim *Sim) velocityParticleGhostBack(v map[int]int, t map[float64]int) {
 
 func (sim Sim) velocityOfIndex(v map[int]int, t map[float64]int, w, wFirst map[int]int, index int) {
 	for i := sim.param.minCut; i < sim.param.maxCut; i++ {
-		if index > 0 && len(sim.approvers[i]) > index-1 {
-			delta := sim.approvers[i][index-1] - i
+		if index > 0 && len(sim.tangle[i].app) > index-1 {
+			delta := sim.tangle[i].app[index-1] - i
 			v[delta]++
-			deltaTime := math.Round((sim.tangle[sim.approvers[i][index-1]].time-sim.tangle[i].time)*100) / 100
+			deltaTime := math.Round((sim.tangle[sim.tangle[i].app[index-1]].time-sim.tangle[i].time)*100) / 100
 			t[deltaTime]++
-			deltaCW := sim.tangle[i].cw - sim.tangle[sim.approvers[i][index-1]].cw
+			deltaCW := sim.tangle[i].cw - sim.tangle[sim.tangle[i].app[index-1]].cw
 			w[deltaCW]++
-			if len(sim.approvers[i]) > 1 {
+			if len(sim.tangle[i].app) > 1 {
 				wFirst[deltaCW]++
 			}
-		} else if index < 0 && len(sim.approvers[i]) > 1 {
-			delta := sim.approvers[i][len(sim.approvers[i])-1] - i
+		} else if index < 0 && len(sim.tangle[i].app) > 1 {
+			delta := sim.tangle[i].app[len(sim.tangle[i].app)-1] - i
 			v[delta]++
-			deltaTime := math.Round((sim.tangle[sim.approvers[i][len(sim.approvers[i])-1]].time-sim.tangle[i].time)*100) / 100
+			deltaTime := math.Round((sim.tangle[sim.tangle[i].app[len(sim.tangle[i].app)-1]].time-sim.tangle[i].time)*100) / 100
 			t[deltaTime]++
-			deltaCW := sim.tangle[i].cw - sim.tangle[sim.approvers[i][len(sim.approvers[i])-1]].cw
+			deltaCW := sim.tangle[i].cw - sim.tangle[sim.tangle[i].app[len(sim.tangle[i].app)-1]].cw
 			w[deltaCW]++
-			if len(sim.approvers[i]) > 1 {
+			if len(sim.tangle[i].app) > 1 {
 				wFirst[deltaCW]++
 			}
 		}
@@ -292,34 +292,34 @@ func (sim *Sim) velocityOfIndexRW(v map[int]int, t map[float64]int, w, wFirst ma
 	//for i := 0; i < nParticles; i++ {
 	start := 0 //sim.generator.Intn(sim.param.minCut)
 
-	for current := sim.tangle[start]; len(sim.approvers[current.id]) > 0 && current.id < sim.param.maxCut; {
-		if index > 0 && len(sim.approvers[current.id]) > index-1 {
-			delta := sim.approvers[current.id][index-1] - current.id
-			deltaTime := math.Round((sim.tangle[sim.approvers[current.id][index-1]].time-sim.tangle[current.id].time)*100) / 100
-			deltaCW := sim.tangle[current.id].cw - sim.tangle[sim.approvers[current.id][index-1]].cw
+	for current := sim.tangle[start]; len(sim.tangle[current.id].app) > 0 && current.id < sim.param.maxCut; {
+		if index > 0 && len(sim.tangle[current.id].app) > index-1 {
+			delta := sim.tangle[current.id].app[index-1] - current.id
+			deltaTime := math.Round((sim.tangle[sim.tangle[current.id].app[index-1]].time-sim.tangle[current.id].time)*100) / 100
+			deltaCW := sim.tangle[current.id].cw - sim.tangle[sim.tangle[current.id].app[index-1]].cw
 			if current.id > sim.param.minCut {
 				v[delta]++
 				t[deltaTime]++
 				w[deltaCW]++
-				if len(sim.approvers[current.id]) > 1 {
+				if len(sim.tangle[current.id].app) > 1 {
 					wFirst[deltaCW]++
 				}
 			}
-			current = sim.tangle[sim.approvers[current.id][index-1]]
-		} else if index < 0 && len(sim.approvers[current.id]) > 0 {
+			current = sim.tangle[sim.tangle[current.id].app[index-1]]
+		} else if index < 0 && len(sim.tangle[current.id].app) > 0 {
 
-			delta := sim.approvers[current.id][len(sim.approvers[current.id])-1] - current.id
-			deltaTime := math.Round((sim.tangle[sim.approvers[current.id][len(sim.approvers[current.id])-1]].time-sim.tangle[current.id].time)*100) / 100
-			deltaCW := sim.tangle[current.id].cw - sim.tangle[sim.approvers[current.id][len(sim.approvers[current.id])-1]].cw
+			delta := sim.tangle[current.id].app[len(sim.tangle[current.id].app)-1] - current.id
+			deltaTime := math.Round((sim.tangle[sim.tangle[current.id].app[len(sim.tangle[current.id].app)-1]].time-sim.tangle[current.id].time)*100) / 100
+			deltaCW := sim.tangle[current.id].cw - sim.tangle[sim.tangle[current.id].app[len(sim.tangle[current.id].app)-1]].cw
 			if current.id > sim.param.minCut {
 				v[delta]++
 				t[deltaTime]++
 				w[deltaCW]++
-				if len(sim.approvers[current.id]) > 1 {
+				if len(sim.tangle[current.id].app) > 1 {
 					wFirst[deltaCW]++
 				}
 			}
-			current = sim.tangle[sim.approvers[current.id][len(sim.approvers[current.id])-1]]
+			current = sim.tangle[sim.tangle[current.id].app[len(sim.tangle[current.id].app)-1]]
 		} else {
 			break
 		}
@@ -370,19 +370,19 @@ func (sim Sim) velocityCWLowUpBound(v map[int]int, t map[float64]int, w, wFirst 
 	var current, prev Tx
 	for i := sim.param.minCut; i < sim.param.maxCut; i++ {
 		prev = sim.tangle[i]
-		if len(sim.approvers[i]) > 0 {
+		if len(sim.tangle[i].app) > 0 {
 			var cws []int
-			for _, approver := range sim.approvers[i] {
+			for _, approver := range sim.tangle[i].app {
 				cws = append(cws, sim.tangle[approver].cw)
 			}
 			if index > 0 {
 				//select approvers with max cw
 				maxCW, _ := max(cws)
-				current = sim.tangle[sim.approvers[i][maxCW]]
+				current = sim.tangle[sim.tangle[i].app[maxCW]]
 			} else if index < 0 {
 				//select approvers with min cw
 				minCW, _ := min(cws)
-				current = sim.tangle[sim.approvers[i][minCW]]
+				current = sim.tangle[sim.tangle[i].app[minCW]]
 			}
 		}
 		delta := current.id - prev.id
@@ -392,7 +392,7 @@ func (sim Sim) velocityCWLowUpBound(v map[int]int, t map[float64]int, w, wFirst 
 			v[delta]++
 			t[deltaTime]++
 			w[deltaCW]++
-			if len(sim.approvers[current.id]) > 1 {
+			if len(sim.tangle[current.id].app) > 1 {
 				wFirst[deltaCW]++
 			}
 		}
@@ -403,24 +403,24 @@ func (sim *Sim) velocityCWLowUpBoundRW(v map[int]int, t map[float64]int, w, wFir
 
 	start := 0 //sim.generator.Intn(sim.param.minCut)
 
-	for current := sim.tangle[start]; len(sim.approvers[current.id]) > 0 && current.id < sim.param.maxCut; {
+	for current := sim.tangle[start]; len(sim.tangle[current.id].app) > 0 && current.id < sim.param.maxCut; {
 		prev := current
-		if index > 0 && len(sim.approvers[current.id]) > index-1 { //lower bound for index = 1
+		if index > 0 && len(sim.tangle[current.id].app) > index-1 { //lower bound for index = 1
 			//select approvers with max cw
 			var cws []int
-			for _, approver := range sim.approvers[current.id] {
+			for _, approver := range sim.tangle[current.id].app {
 				cws = append(cws, sim.tangle[approver].cw)
 			}
 			maxCW, _ := max(cws)
-			current = sim.tangle[sim.approvers[current.id][maxCW]]
-		} else if index < 0 && len(sim.approvers[current.id]) > 0 { //upper bound
+			current = sim.tangle[sim.tangle[current.id].app[maxCW]]
+		} else if index < 0 && len(sim.tangle[current.id].app) > 0 { //upper bound
 			//select approvers with min cw
 			var cws []int
-			for _, approver := range sim.approvers[current.id] {
+			for _, approver := range sim.tangle[current.id].app {
 				cws = append(cws, sim.tangle[approver].cw)
 			}
 			minCW, _ := min(cws)
-			current = sim.tangle[sim.approvers[current.id][minCW]]
+			current = sim.tangle[sim.tangle[current.id].app[minCW]]
 		}
 		delta := current.id - prev.id
 		deltaTime := math.Round((current.time-prev.time)*100) / 100
@@ -429,7 +429,7 @@ func (sim *Sim) velocityCWLowUpBoundRW(v map[int]int, t map[float64]int, w, wFir
 			v[delta]++
 			t[deltaTime]++
 			w[deltaCW]++
-			if len(sim.approvers[current.id]) > 1 {
+			if len(sim.tangle[current.id].app) > 1 {
 				wFirst[deltaCW]++
 			}
 		}
@@ -475,12 +475,12 @@ func (sim *Sim) velocityCWLowUpBoundSpine(v map[int]int, t map[float64]int, w, w
 
 func (sim Sim) velocityOfOnlyIndex(v map[int]int, t map[float64]int, w map[int]int, index int) {
 	for i := sim.param.minCut; i < sim.param.maxCut; i++ {
-		if index > 0 && len(sim.approvers[i]) == index {
-			delta := sim.approvers[i][index-1] - i
+		if index > 0 && len(sim.tangle[i].app) == index {
+			delta := sim.tangle[i].app[index-1] - i
 			v[delta]++
-			deltaTime := math.Round((sim.tangle[sim.approvers[i][index-1]].time-sim.tangle[i].time)*100) / 100
+			deltaTime := math.Round((sim.tangle[sim.tangle[i].app[index-1]].time-sim.tangle[i].time)*100) / 100
 			t[deltaTime]++
-			deltaCW := sim.tangle[i].cw - sim.tangle[sim.approvers[i][index-1]].cw
+			deltaCW := sim.tangle[i].cw - sim.tangle[sim.tangle[i].app[index-1]].cw
 			w[deltaCW]++
 		}
 	}
@@ -489,15 +489,15 @@ func (sim Sim) velocityOfOnlyIndex(v map[int]int, t map[float64]int, w map[int]i
 func (sim Sim) velocityAll(v map[int]int, t map[float64]int, d map[int]int, w, wFirst map[int]int) {
 	for i := sim.param.minCut; i < sim.param.maxCut; i++ {
 
-		d[len(sim.approvers[i])]++
-		for _, a := range sim.approvers[i] {
+		d[len(sim.tangle[i].app)]++
+		for _, a := range sim.tangle[i].app {
 			delta := a - i
 			v[delta]++
 			deltaTime := math.Round((sim.tangle[a].time-sim.tangle[i].time)*100) / 100
 			t[deltaTime]++
 			deltaCW := sim.tangle[i].cw - sim.tangle[a].cw
 			w[deltaCW]++
-			if len(sim.approvers[i]) > 1 {
+			if len(sim.tangle[i].app) > 1 {
 				wFirst[deltaCW]++
 			}
 		}

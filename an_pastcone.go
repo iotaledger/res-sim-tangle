@@ -70,8 +70,8 @@ func (sim *Sim) runAnPastCone(result *PastConeResult) {
 						if block&(1<<uint(i3)) != 0 { // if this is an ancestor of i1 then
 							result.counter[0].v[deltat]++
 							result.kappa[0].v[float64(int(deltat))]++
-							if len(sim.approvers[i2*base+i3]) < sim.param.AnPastCone.MaxApp { //if smaller than maximum considered add +1 to maxApp
-								result.counter[len(sim.approvers[i2*base+i3])].v[deltat]++
+							if len(sim.tangle[i2*base+i3].app) < sim.param.AnPastCone.MaxApp { //if smaller than maximum considered add +1 to maxApp
+								result.counter[len(sim.tangle[i2*base+i3].app)].v[deltat]++
 							} else { //if larger than maximum considered add +1 to maxApp
 								result.counter[sim.param.AnPastCone.MaxApp].v[deltat]++
 							}

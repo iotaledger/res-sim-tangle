@@ -85,7 +85,7 @@ func (tsa BRW) TipSelect(t Tx, sim *Sim) []int {
 
 //RandomWalk returns the choosen tip and its index position
 func (URW) RandomWalkStep(t int, sim *Sim) (int, int) {
-	directApprovers := sim.approvers[t]
+	directApprovers := sim.tangle[t].app
 	if (len(directApprovers)) == 0 {
 		return t, -1
 	}
@@ -125,7 +125,7 @@ func (URW) RandomWalkStepBack(t int, sim *Sim) int {
 //RandomWalkStep returns the chosen tip and its index position
 func (BRW) RandomWalkStep(t int, sim *Sim) (choosenTip int, approverIndx int) {
 	//defer sim.b.track(runningtime("BRW"))
-	directApprovers := sim.approvers[t]
+	directApprovers := sim.tangle[t].app
 	if (len(directApprovers)) == 0 {
 		return t, -1
 	}
@@ -177,7 +177,7 @@ func randomWalk(tsa RandomWalker, t Tx, sim *Sim) []int {
 	AppID := 0
 	for i := 0; i < sim.param.K; i++ {
 		var current int
-		for current, _ = tsa.RandomWalkStep(0, sim); len(sim.approvers[current]) > 0; current, _ = tsa.RandomWalkStep(current, sim) {
+		for current, _ = tsa.RandomWalkStep(0, sim); len(sim.tangle[current].app) > 0; current, _ = tsa.RandomWalkStep(current, sim) {
 		}
 
 		uniqueTip := true

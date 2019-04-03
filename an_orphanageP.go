@@ -191,7 +191,7 @@ func (sim *Sim) runOrphanageGHOST(result *pOrphanResult, newTangle []Tx, newSpin
 	// calculate top by finding all tips left behind and dividing that number over all txs
 	top := 0.
 	for _, tx := range newTangle {
-		if len(sim.approvers[tx.id]) == 0 {
+		if len(sim.tangle[tx.id].app) == 0 {
 			top++
 		}
 	}
@@ -209,7 +209,7 @@ func (sim *Sim) runOrphanageGHOSTRecent(result *pOrphanResult, newTangle []Tx, n
 	// calculate top by finding all tips left behind and dividing that number over all txs
 	top := 0.
 	for _, tx := range newTangle {
-		if len(sim.approvers[tx.id]) == 0 {
+		if len(sim.tangle[tx.id].app) == 0 {
 			top++
 		}
 	}
@@ -264,7 +264,7 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
 	//zeros = sliceMap(zeros, sim.param.minCut, sim.param.maxCut)
 	top := 0
 	for id := range zeros {
-		if len(sim.approvers[id]) == 0 {
+		if len(sim.tangle[id].app) == 0 {
 			top++
 		}
 	}

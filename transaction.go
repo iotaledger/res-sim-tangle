@@ -12,6 +12,7 @@ type Tx struct {
 	cw            int
 	cw2           int // TODO: to remove, used only to compare different CW update mechanisms
 	ref           []int
+	app           []int
 	firstApproval float64
 }
 
@@ -95,7 +96,7 @@ func (sim *Sim) revealTips(t Tx) []int {
 	i := 0
 	tip := sim.hiddenTips[i]
 	for sim.tangle[tip].isVisible(t.time, sim.param.H) {
-		sim.approvers = updateApprovers(sim.approvers, sim.tangle[tip])
+		sim.updateApprovers(sim.tangle[tip])
 		sim.updateCWOpt(sim.tangle[tip])
 		//if sim.param.TSA == "RW" && sim.param.Alpha != 0 {
 		//	sim.updateCWOpt(sim.tangle[tip])
@@ -116,12 +117,12 @@ func (sim *Sim) revealTips(t Tx) []int {
 	return newTips
 }
 
-func updateApprovers(a map[int][]int, t Tx) map[int][]int {
+func (sim *Sim) updateApprovers(t Tx) {
 	//defer track(runningtime("updateApprovers"))
-	for _, ref := range t.ref {
-		a[ref] = append(a[ref], t.id)
+	for _, refID := range t.ref {
+		sim.tangle[refID].app = append(sim.tangle[refID].app, t.id)
 	}
-	return a
+
 }
 
 func (sim *Sim) updateCW(tip Tx) {

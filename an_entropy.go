@@ -117,7 +117,7 @@ func (sim *Sim) entropyParticleRW(v map[int]int, nParticles int) {
 			tsa = URW{}
 		}
 		var current int
-		for current, _ = tsa.RandomWalkStep(0, sim); len(sim.approvers[current]) > 0; current, _ = tsa.RandomWalkStep(current, sim) {
+		for current, _ = tsa.RandomWalkStep(0, sim); len(sim.tangle[current].app) > 0; current, _ = tsa.RandomWalkStep(current, sim) {
 		}
 		v[current]++
 	}

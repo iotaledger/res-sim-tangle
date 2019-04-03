@@ -72,7 +72,7 @@ func (sim *Sim) evalTangle_DistSlices(r *DistSlicesResult) {
 			}
 			sliceID++
 		}
-		NumThisSlice[len(sim.approvers[i1])]++
+		NumThisSlice[len(sim.tangle[i1].app)]++
 		TotalNumThisSlice++
 	}
 }
