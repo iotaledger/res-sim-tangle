@@ -78,12 +78,12 @@ func (sim *Sim) evalTangle_DistRWs(r *DistRWsResult) {
 				if currentSampleID > sim.param.DistRWsSampleLength { //have at least filled sampleSet once
 					NumThisSet[sampleSet[currentSampleIDnow]]-- // -1 from old value
 				}
-				sampleSet[currentSampleIDnow] = len(sim.approvers[currentID])
+				sampleSet[currentSampleIDnow] = len(sim.tangle[currentID].app)
 				NumThisSet[sampleSet[currentSampleIDnow]]++ // +1 to this value
 				currentSampleID++
 
 			}
-			if len(sim.approvers[currentID]) == 0 { // if we ended at a tip, stop the loop
+			if len(sim.tangle[currentID].app) == 0 { // if we ended at a tip, stop the loop
 				currentID = sim.param.TangleSize + 1
 			}
 		}

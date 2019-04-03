@@ -48,7 +48,7 @@ func newParameters(lambda, alpha float64) Parameters {
 		DistSlicesLength:     1,     //length of Slices
 		DistSlicesResolution: 100,   // Number of intervals per distance '1', higher number = higher resolution
 		// measure distance of RWs compared to the expected distribution
-		DistRWsEnabled:      false,
+		DistRWsEnabled:      true,
 		DistRWsSampleLength: 20,                 // Length of considered RWs
 		DistRWsSampleRWNum:  lambdaForSize * 10, // Number of sample RWs per Tangle
 		DistRWsResolution:   100,                // Number of intervals per distance '1', higher number = higher resolution

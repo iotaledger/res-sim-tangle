@@ -65,7 +65,7 @@ func (sim *Sim) evalTangle_AnFocusRW(r *FocusRWResult) {
 			sim.tangle[i1].cw += PCweight                                                 // add also to root
 			r.countertotal[0].v[int(float64(sim.param.TangleSize-i1)/sim.param.Lambda)]++ // add +1 to this particular PC time
 			for i3 := 0; i3 < pAn.nRWs; i3++ {
-				for current, _ = tsa.RandomWalkStep(0, sim); (len(sim.approvers[current]) > 0) && (current < i1); current, _ = tsa.RandomWalkStep(current, sim) {
+				for current, _ = tsa.RandomWalkStep(0, sim); (len(sim.tangle[current].app) > 0) && (current < i1); current, _ = tsa.RandomWalkStep(current, sim) {
 				}
 				if current == i1 {
 					r.countersuccess[0].v[int(float64(sim.param.TangleSize-i1)/sim.param.Lambda)] += 1. / float64(pAn.nRWs)

@@ -35,9 +35,9 @@ func (sim *Sim) evalTangle_AppStatsRW(r *AppStatsRWResult) {
 			currentID, _ = tsa.RandomWalkStep(currentID, sim) // orphaned tips are included here
 			if currentID > sim.param.minCut {
 				r.totalNum++
-				r.Num[len(sim.approvers[currentID])]++
+				r.Num[len(sim.tangle[currentID].app)]++
 			}
-			if len(sim.approvers[currentID]) == 0 { // if we ended at a tip, stop the loop
+			if len(sim.tangle[currentID].app) == 0 { // if we ended at a tip, stop the loop
 				currentID = sim.param.TangleSize + 1
 			}
 		}

@@ -9,16 +9,16 @@ import (
 // ??? is there a reason why approvers is not part of the tx variable, i.e. Tx has the field app []int? This would seem much more intuitive...
 // Sim contains the data structure of a Tangle simulation
 type Sim struct {
-	tangle         []Tx          // A Tangle, i.e., a list of transactions
-	tips           []int         // A list of current available/visible tips
-	hiddenTips     []int         // A list of yet unavailable/hidden tips
-	approvers      map[int][]int // A map of direct approvers, e.g., 5 <- 10,13
-	cw             [][]uint64    // Matrix of propagated weigth branches (cw[i][] is the column of bit values forthe ith tx, stored as uint64 blocks)
-	generator      *rand.Rand    // An unsafe random generator
-	param          Parameters    // Set of simulation parameters
-	b              Benchmark     // Data structure to save performance of the simulation
-	spineTangle    map[int]Tx    // TODO: change to alphaInfinityWalkCone
-	spineApprovers map[int][]int //TODO: include this into Tx
+	tangle     []Tx  // A Tangle, i.e., a list of transactions
+	tips       []int // A list of current available/visible tips
+	hiddenTips []int // A list of yet unavailable/hidden tips
+	// approvers      map[int][]int // A map of direct approvers, e.g., 5 <- 10,13
+	cw             [][]uint64 // Matrix of propagated weigth branches (cw[i][] is the column of bit values forthe ith tx, stored as uint64 blocks)
+	generator      *rand.Rand // An unsafe random generator
+	param          Parameters // Set of simulation parameters
+	b              Benchmark  // Data structure to save performance of the simulation
+	spineTangle    map[int]Tx
+	spineApprovers map[int][]int
 }
 
 // RunTangle executes the simulation
@@ -70,6 +70,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 
 			result.EvaluateAfterTx(&sim, p, run, i)
 		}
+		//saveTangle(sim.tangle)
 		//fmt.Println("\n\n")
 		//fmt.Println("Tangle size: ", sim.param.TangleSize)
 
@@ -88,7 +89,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 }
 
 func (sim *Sim) clearSim() {
-	sim.approvers = make(map[int][]int)
+	// sim.approvers = make(map[int][]int)
 	sim.b = make(Benchmark)
 
 	//sim.cw = [][]uint64{}

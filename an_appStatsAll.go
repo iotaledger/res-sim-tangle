@@ -27,7 +27,7 @@ func newAppStatsAllResult() AppStatsAllResult {
 func (sim *Sim) evalTangle_AppStatsAll(r *AppStatsAllResult) {
 	for i1 := sim.param.minCut; i1 < sim.param.maxCut; i1++ {
 		r.totalNum++
-		r.Num[len(sim.approvers[i1])]++
+		r.Num[len(sim.tangle[i1].app)]++
 	}
 }
 
