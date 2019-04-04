@@ -98,7 +98,7 @@ func (URW) RandomWalkStep(t int, sim *Sim) (int, int) {
 
 //RandomWalkStepInfinity returns the choosen tip and its index position when walking over the spine Tangle
 func (URW) RandomWalkStepInfinity(t int, sim *Sim) (int, int) {
-	directApprovers := sim.spineApprovers[t]
+	directApprovers := sim.spinePastCone[t].app
 	if (len(directApprovers)) == 0 {
 		return t, -1
 	}
@@ -141,7 +141,7 @@ func (BRW) RandomWalkStep(t int, sim *Sim) (choosenTip int, approverIndx int) {
 //RandomWalkStepInfinity returns the chosen tip and its index position when walking over the spine Tangle
 func (BRW) RandomWalkStepInfinity(t int, sim *Sim) (choosenTip int, approverIndx int) {
 	//defer sim.b.track(runningtime("BRW"))
-	directApprovers := sim.spineApprovers[t]
+	directApprovers := sim.spinePastCone[t].app
 	if (len(directApprovers)) == 0 {
 		return t, -1
 	}

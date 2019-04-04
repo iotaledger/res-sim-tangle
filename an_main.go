@@ -49,7 +49,7 @@ func (result *Result) initResults(p *Parameters) {
 }
 
 //save results at end of simulation
-func (f *Result) SaveResults(p Parameters) {
+func (f *Result) FinalEvaluationSaveResults(p Parameters) {
 	if p.CountTipsEnabled {
 		f.tips.Statistics(p)
 		fmt.Println(f.tips.ToString(p))

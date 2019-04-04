@@ -13,12 +13,12 @@ type Sim struct {
 	tips       []int // A list of current available/visible tips
 	hiddenTips []int // A list of yet unavailable/hidden tips
 	// approvers      map[int][]int // A map of direct approvers, e.g., 5 <- 10,13
-	cw             [][]uint64 // Matrix of propagated weigth branches (cw[i][] is the column of bit values forthe ith tx, stored as uint64 blocks)
-	generator      *rand.Rand // An unsafe random generator
-	param          Parameters // Set of simulation parameters
-	b              Benchmark  // Data structure to save performance of the simulation
-	spineTangle    map[int]Tx
-	spineApprovers map[int][]int
+	cw            [][]uint64 // Matrix of propagated weigth branches (cw[i][] is the column of bit values forthe ith tx, stored as uint64 blocks)
+	generator     *rand.Rand // An unsafe random generator
+	param         Parameters // Set of simulation parameters
+	b             Benchmark  // Data structure to save performance of the simulation
+	spinePastCone map[int]Tx
+	// spineApprovers map[int][]int
 }
 
 // RunTangle executes the simulation
@@ -99,6 +99,6 @@ func (sim *Sim) clearSim() {
 	sim.tips = []int{}
 	sim.hiddenTips = []int{}
 
-	sim.spineTangle = make(map[int]Tx)
-	sim.spineApprovers = make(map[int][]int)
+	sim.spinePastCone = make(map[int]Tx)
+	// sim.spineApprovers = make(map[int][]int)
 }

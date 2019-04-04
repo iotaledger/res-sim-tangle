@@ -17,11 +17,8 @@ func main() {
 
 	b := make(Benchmark)
 	_ = b
-	// Options: RW, URTS
-	// runSimulation(b, 300, 100000000)
-	runSimulation(b, 100, 0)
-	// fmt.Println(runForAlphasLambdas(b))
-
+	// runRealDataEvaluation(10, 0)
+	runSimulation(b, 10, 0)
 	// printPerformance(b)
 }
 
@@ -47,7 +44,7 @@ func runSimulation(b Benchmark, lambda, alpha float64) Result {
 
 	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
 	//fmt.Println(f.avgtips)
-	f.SaveResults(p)
+	f.FinalEvaluationSaveResults(p)
 	return f
 }
 
@@ -56,6 +53,19 @@ func run(p Parameters, r *Result, c chan bool) {
 	b := make(Benchmark)
 	*r, b = p.RunTangle()
 	printPerformance(b)
+}
+
+func runRealDataEvaluation(lambda, alpha float64) {
+	p := newParameters(lambda, alpha)
+	var r Result
+	sim := Sim{}
+	sim.param = p
+	r.initResults(&p)
+	sim.clearSim()
+	//convert trytes to Tangle with []Tx
+	//sim.tangle=function(datafile)
+	r.EvaluateTangle(&sim, &p, 0)
+	r.FinalEvaluationSaveResults(p)
 }
 
 func runForAlphasLambdas(b Benchmark) string {

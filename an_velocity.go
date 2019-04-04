@@ -172,16 +172,16 @@ func (sim *Sim) velocityParticleRWSpine(v map[int]int, t map[float64]int, d map[
 			tsa = URW{}
 		}
 
-		for current, currentIdx := tsa.RandomWalkStepInfinity(prev, sim); len(sim.spineApprovers[current]) > 0; current, currentIdx = tsa.RandomWalkStepInfinity(current, sim) {
+		for current, currentIdx := tsa.RandomWalkStepInfinity(prev, sim); len(sim.spinePastCone[current].app) > 0; current, currentIdx = tsa.RandomWalkStepInfinity(current, sim) {
 			if current > sim.param.minCut && current < sim.param.maxCut {
 				delta := current - prev
 				v[delta]++
 				d[currentIdx+1]++
-				deltaTime := math.Round((sim.spineTangle[current].time-sim.spineTangle[prev].time)*100) / 100
+				deltaTime := math.Round((sim.spinePastCone[current].time-sim.spinePastCone[prev].time)*100) / 100
 				t[deltaTime]++
-				deltaCW := sim.spineTangle[prev].cw - sim.spineTangle[current].cw
+				deltaCW := sim.spinePastCone[prev].cw - sim.spinePastCone[current].cw
 				w[deltaCW]++
-				if len(sim.spineApprovers[prev]) > 1 {
+				if len(sim.spinePastCone[prev].app) > 1 {
 					wFirst[deltaCW]++
 				}
 			}
@@ -263,24 +263,24 @@ func (sim Sim) velocityOfIndex(v map[int]int, t map[float64]int, w, wFirst map[i
 
 func (sim Sim) velocityOfIndexSpine(v map[int]int, t map[float64]int, w, wFirst map[int]int, index int) {
 	for i := sim.param.minCut; i < sim.param.maxCut; i++ {
-		if index > 0 && len(sim.spineApprovers[i]) > index-1 {
-			delta := sim.spineApprovers[i][index-1] - i
+		if index > 0 && len(sim.spinePastCone[i].app) > index-1 {
+			delta := sim.spinePastCone[i].app[index-1] - i
 			v[delta]++
-			deltaTime := math.Round((sim.spineTangle[sim.spineApprovers[i][index-1]].time-sim.spineTangle[i].time)*100) / 100
+			deltaTime := math.Round((sim.spinePastCone[sim.spinePastCone[i].app[index-1]].time-sim.spinePastCone[i].time)*100) / 100
 			t[deltaTime]++
-			deltaCW := sim.spineTangle[i].cw - sim.spineTangle[sim.spineApprovers[i][index-1]].cw
+			deltaCW := sim.spinePastCone[i].cw - sim.spinePastCone[sim.spinePastCone[i].app[index-1]].cw
 			w[deltaCW]++
-			if len(sim.spineApprovers[i]) > 1 {
+			if len(sim.spinePastCone[i].app) > 1 {
 				wFirst[deltaCW]++
 			}
-		} else if index < 0 && len(sim.spineApprovers[i]) > 1 {
-			delta := sim.spineApprovers[i][len(sim.spineApprovers[i])-1] - i
+		} else if index < 0 && len(sim.spinePastCone[i].app) > 1 {
+			delta := sim.spinePastCone[i].app[len(sim.spinePastCone[i].app)-1] - i
 			v[delta]++
-			deltaTime := math.Round((sim.spineTangle[sim.spineApprovers[i][len(sim.spineApprovers[i])-1]].time-sim.spineTangle[i].time)*100) / 100
+			deltaTime := math.Round((sim.spinePastCone[sim.spinePastCone[i].app[len(sim.spinePastCone[i].app)-1]].time-sim.spinePastCone[i].time)*100) / 100
 			t[deltaTime]++
-			deltaCW := sim.spineTangle[i].cw - sim.spineTangle[sim.spineApprovers[i][len(sim.spineApprovers[i])-1]].cw
+			deltaCW := sim.spinePastCone[i].cw - sim.spinePastCone[sim.spinePastCone[i].app[len(sim.spinePastCone[i].app)-1]].cw
 			w[deltaCW]++
-			if len(sim.spineApprovers[i]) > 1 {
+			if len(sim.spinePastCone[i].app) > 1 {
 				wFirst[deltaCW]++
 			}
 		}
@@ -332,33 +332,33 @@ func (sim *Sim) velocityOfIndexRWSpine(v map[int]int, t map[float64]int, w, wFir
 	//for i := 0; i < nParticles; i++ {
 	start := 0 //sim.generator.Intn(sim.param.minCut)
 
-	for current := sim.spineTangle[start]; len(sim.spineApprovers[current.id]) > 0 && current.id < sim.param.maxCut; {
-		if index > 0 && len(sim.spineApprovers[current.id]) > index-1 { //lower bound for index = 1
-			delta := sim.spineApprovers[current.id][index-1] - current.id
-			deltaTime := math.Round((sim.spineTangle[sim.spineApprovers[current.id][index-1]].time-sim.spineTangle[current.id].time)*100) / 100
-			deltaCW := sim.spineTangle[current.id].cw - sim.spineTangle[sim.spineApprovers[current.id][index-1]].cw
+	for current := sim.spinePastCone[start]; len(sim.spinePastCone[current.id].app) > 0 && current.id < sim.param.maxCut; {
+		if index > 0 && len(sim.spinePastCone[current.id].app) > index-1 { //lower bound for index = 1
+			delta := sim.spinePastCone[current.id].app[index-1] - current.id
+			deltaTime := math.Round((sim.spinePastCone[sim.spinePastCone[current.id].app[index-1]].time-sim.spinePastCone[current.id].time)*100) / 100
+			deltaCW := sim.spinePastCone[current.id].cw - sim.spinePastCone[sim.spinePastCone[current.id].app[index-1]].cw
 			if current.id > sim.param.minCut && current.id < sim.param.maxCut {
 				v[delta]++
 				t[deltaTime]++
 				w[deltaCW]++
-				if len(sim.spineApprovers[current.id]) > 1 {
+				if len(sim.spinePastCone[current.id].app) > 1 {
 					wFirst[deltaCW]++
 				}
 			}
-			current = sim.spineTangle[sim.spineApprovers[current.id][index-1]]
-		} else if index < 0 && len(sim.spineApprovers[current.id]) > 0 { //upper bound
-			delta := sim.spineApprovers[current.id][len(sim.spineApprovers[current.id])-1] - current.id
-			deltaTime := math.Round((sim.spineTangle[sim.spineApprovers[current.id][len(sim.spineApprovers[current.id])-1]].time-sim.spineTangle[current.id].time)*100) / 100
-			deltaCW := sim.spineTangle[current.id].cw - sim.spineTangle[sim.spineApprovers[current.id][len(sim.spineApprovers[current.id])-1]].cw
+			current = sim.spinePastCone[sim.spinePastCone[current.id].app[index-1]]
+		} else if index < 0 && len(sim.spinePastCone[current.id].app) > 0 { //upper bound
+			delta := sim.spinePastCone[current.id].app[len(sim.spinePastCone[current.id].app)-1] - current.id
+			deltaTime := math.Round((sim.spinePastCone[sim.spinePastCone[current.id].app[len(sim.spinePastCone[current.id].app)-1]].time-sim.spinePastCone[current.id].time)*100) / 100
+			deltaCW := sim.spinePastCone[current.id].cw - sim.spinePastCone[sim.spinePastCone[current.id].app[len(sim.spinePastCone[current.id].app)-1]].cw
 			if current.id > sim.param.minCut && current.id < sim.param.maxCut {
 				v[delta]++
 				t[deltaTime]++
 				w[deltaCW]++
-				if len(sim.spineApprovers[current.id]) > 1 {
+				if len(sim.spinePastCone[current.id].app) > 1 {
 					wFirst[deltaCW]++
 				}
 			}
-			current = sim.spineTangle[sim.spineApprovers[current.id][len(sim.spineApprovers[current.id])-1]]
+			current = sim.spinePastCone[sim.spinePastCone[current.id].app[len(sim.spinePastCone[current.id].app)-1]]
 		} else {
 			break
 		}
@@ -440,24 +440,24 @@ func (sim *Sim) velocityCWLowUpBoundSpine(v map[int]int, t map[float64]int, w, w
 
 	start := 0 //sim.generator.Intn(sim.param.minCut)
 
-	for current := sim.spineTangle[start]; len(sim.spineApprovers[current.id]) > 0 && current.id < sim.param.maxCut; {
+	for current := sim.spinePastCone[start]; len(sim.spinePastCone[current.id].app) > 0 && current.id < sim.param.maxCut; {
 		prev := current
-		if index > 0 && len(sim.spineApprovers[current.id]) > index-1 { //lower bound for index = 1
+		if index > 0 && len(sim.spinePastCone[current.id].app) > index-1 { //lower bound for index = 1
 			//select approvers with max cw
 			var cws []int
-			for _, approver := range sim.spineApprovers[current.id] {
-				cws = append(cws, sim.spineTangle[approver].cw)
+			for _, approver := range sim.spinePastCone[current.id].app {
+				cws = append(cws, sim.spinePastCone[approver].cw)
 			}
 			maxCW, _ := max(cws)
-			current = sim.spineTangle[sim.spineApprovers[current.id][maxCW]]
-		} else if index < 0 && len(sim.spineApprovers[current.id]) > 0 { //upper bound
+			current = sim.spinePastCone[sim.spinePastCone[current.id].app[maxCW]]
+		} else if index < 0 && len(sim.spinePastCone[current.id].app) > 0 { //upper bound
 			//select approvers with min cw
 			var cws []int
-			for _, approver := range sim.spineApprovers[current.id] {
-				cws = append(cws, sim.spineTangle[approver].cw)
+			for _, approver := range sim.spinePastCone[current.id].app {
+				cws = append(cws, sim.spinePastCone[approver].cw)
 			}
 			minCW, _ := min(cws)
-			current = sim.spineTangle[sim.spineApprovers[current.id][minCW]]
+			current = sim.spinePastCone[sim.spinePastCone[current.id].app[minCW]]
 		}
 		delta := current.id - prev.id
 		deltaTime := math.Round((current.time-prev.time)*100) / 100
@@ -466,7 +466,7 @@ func (sim *Sim) velocityCWLowUpBoundSpine(v map[int]int, t map[float64]int, w, w
 			v[delta]++
 			t[deltaTime]++
 			w[deltaCW]++
-			if len(sim.spineApprovers[current.id]) > 1 {
+			if len(sim.spinePastCone[current.id].app) > 1 {
 				wFirst[deltaCW]++
 			}
 		}
@@ -506,16 +506,16 @@ func (sim Sim) velocityAll(v map[int]int, t map[float64]int, d map[int]int, w, w
 
 func (sim Sim) velocityAllSpine(v map[int]int, t map[float64]int, d map[int]int, w, wFirst map[int]int) {
 	//for i := sim.param.minCut; i < sim.param.maxCut; i++ {
-	for i := range sliceMap(sim.spineTangle, sim.param.minCut, sim.param.maxCut) {
-		d[len(sim.spineApprovers[i])]++
-		for _, a := range sim.spineApprovers[i] {
+	for i := range sliceMap(sim.spinePastCone, sim.param.minCut, sim.param.maxCut) {
+		d[len(sim.spinePastCone[i].app)]++
+		for _, a := range sim.spinePastCone[i].app {
 			delta := a - i
 			v[delta]++
-			deltaTime := math.Round((sim.spineTangle[a].time-sim.spineTangle[i].time)*100) / 100
+			deltaTime := math.Round((sim.spinePastCone[a].time-sim.spinePastCone[i].time)*100) / 100
 			t[deltaTime]++
-			deltaCW := sim.spineTangle[i].cw - sim.spineTangle[a].cw
+			deltaCW := sim.spinePastCone[i].cw - sim.spinePastCone[a].cw
 			w[deltaCW]++
-			if len(sim.spineApprovers[i]) > 1 {
+			if len(sim.spinePastCone[i].app) > 1 {
 				wFirst[deltaCW]++
 			}
 		}

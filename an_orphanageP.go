@@ -33,14 +33,14 @@ func (sim *Sim) runOrphaningP(result *pOrphanResult) {
 	// remove txs grater than maxCut from both tangle and spine tangle so to have a comparable cone
 	newTangle := sim.tangle[sim.param.minCut:sim.param.maxCut]
 	// calculate spine Tangle up to maxCut (all txs (directly/indirectly) referenced by a GHOST particle (alpha = infinity)
-	newSpineTangle := sliceMap(sim.spineTangle, sim.param.minCut, sim.param.maxCut)
+	newspinePastCone := sliceMap(sim.spinePastCone, sim.param.minCut, sim.param.maxCut)
 
 	result.tTangle = append(result.tTangle, getAverageApprovalTime(sliceToMap(newTangle)))
-	result.tSpine = append(result.tSpine, getAverageApprovalTime(newSpineTangle))
+	result.tSpine = append(result.tSpine, getAverageApprovalTime(newspinePastCone))
 	orphanTangle := getOrphanTxs(sim)
 	result.tOrphan = append(result.tOrphan, getAverageApprovalTime(orphanTangle))
 
-	sim.runOrphanageGHOST(result, newTangle, newSpineTangle) // calculate op
+	sim.runOrphanageGHOST(result, newTangle, newspinePastCone) // calculate op
 
 	recentTipsCones := sim.runOrphanageRecent(result) // calculate op2
 
@@ -48,7 +48,7 @@ func (sim *Sim) runOrphaningP(result *pOrphanResult) {
 		sim.runOrphanageLinFit(result) // calculate op3
 	}
 
-	sim.runOrphanageGHOSTRecent(result, newTangle, newSpineTangle, recentTipsCones)
+	sim.runOrphanageGHOSTRecent(result, newTangle, newspinePastCone, recentTipsCones)
 }
 
 func (a pOrphanResult) Join(b pOrphanResult) pOrphanResult {
@@ -115,11 +115,11 @@ func sliceMap(m map[int]Tx, lBound, uBound int) map[int]Tx {
 
 func getOrphanTxs(sim *Sim) map[int]Tx {
 	newTangle := sim.tangle[sim.param.minCut:sim.param.maxCut]
-	newSpineTangle := sliceMap(sim.spineTangle, sim.param.minCut, sim.param.maxCut)
+	newspinePastCone := sliceMap(sim.spinePastCone, sim.param.minCut, sim.param.maxCut)
 	result := make(map[int]Tx)
 
 	for k, v := range newTangle {
-		if _, ok := newSpineTangle[k]; !ok {
+		if _, ok := newspinePastCone[k]; !ok {
 			result[k] = v
 		}
 	}
@@ -184,9 +184,9 @@ func (tx Tx) referencedByTxDFS(refTx Tx, sim *Sim) bool {
 	return false
 }
 
-func (sim *Sim) runOrphanageGHOST(result *pOrphanResult, newTangle []Tx, newSpineTangle map[int]Tx) {
+func (sim *Sim) runOrphanageGHOST(result *pOrphanResult, newTangle []Tx, newspinePastCone map[int]Tx) {
 	// calculate op
-	result.op = append(result.op, 1.-float64(len(newSpineTangle))/float64(len(newTangle)))
+	result.op = append(result.op, 1.-float64(len(newspinePastCone))/float64(len(newTangle)))
 
 	// calculate top by finding all tips left behind and dividing that number over all txs
 	top := 0.
@@ -198,9 +198,9 @@ func (sim *Sim) runOrphanageGHOST(result *pOrphanResult, newTangle []Tx, newSpin
 	result.top = append(result.top, top/float64(len(newTangle)))
 }
 
-func (sim *Sim) runOrphanageGHOSTRecent(result *pOrphanResult, newTangle []Tx, newSpineTangle, coneRecent map[int]Tx) {
+func (sim *Sim) runOrphanageGHOSTRecent(result *pOrphanResult, newTangle []Tx, newspinePastCone, coneRecent map[int]Tx) {
 	// calculate op
-	sum := newSpineTangle
+	sum := newspinePastCone
 	for k, v := range coneRecent {
 		sum[k] = v
 	}
@@ -278,7 +278,7 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
 func (sim *Sim) runAnOPLinfit(tx int, r *pOrphanResult, run int) {
 	sim.computeSpine()
 	r.nTipsAtID[tx] = len(sim.tips)
-	r.nOrphanAtID[tx] = tx - len(sim.spineTangle)
+	r.nOrphanAtID[tx] = tx - len(sim.spinePastCone)
 }
 
 // apply linear regression

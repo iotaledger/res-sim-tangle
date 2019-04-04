@@ -1,20 +1,22 @@
 package main
 
 func (sim *Sim) computeSpine() {
-	sim.spineTangle = make(map[int]Tx)
+	sim.spinePastCone = make(map[int]Tx)
 	_, spineTip := ghostWalk(sim.tangle[0], sim)
 	set := make(map[int]bool)
 	dfs(spineTip, set, sim)
 	//fmt.Println(len(set))
 	// add genesis
-	sim.spineTangle[0] = sim.tangle[0]
+	sim.spinePastCone[0] = sim.tangle[0]
 	// add directly and indirectly referenced txs
 	for key := range set {
-		sim.spineTangle[key] = sim.tangle[key]
+		sim.spinePastCone[key] = sim.tangle[key]
 		for _, v := range sim.tangle[key].app {
 			if _, exist := set[v]; exist {
 				// update approvers
-				sim.spineApprovers[key] = append(sim.spineApprovers[key], v)
+				myTx := sim.spinePastCone[key]
+				myTx.app = append(myTx.app, v)
+				sim.spinePastCone[key] = myTx
 			}
 		}
 	}
