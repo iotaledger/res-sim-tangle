@@ -9,22 +9,6 @@
 
 First, you need to [install Go](https://golang.org/doc/install) if it is not already installed on your machine. It is recommended that you use the most recent version of Go.
 
-You will need to download some additional package to fulfill depenencies. Run: 
-
-```
-go get -u gonum.org/v1/gonum/stat
-```
-```
-go get -u github.com/schollz/progressbar
-```
-
-To run the simulation run
-
-```
-go run *.go
-```
->Please not that on Windows `*.go` migth not work properly. In this case you'll need to list all the files.
-
 ## Build
 
 If you prefer, you can build your executable (as well as cross compiling for other architectures) by using the `go build` tool:
