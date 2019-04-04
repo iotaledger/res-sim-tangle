@@ -66,3 +66,19 @@ var nParallelSims = runtime.NumCPU()/2 - 1
 This variable defines the number of simulations to run in parallel. 
 The GO function `runtime.NumCPU()` returns the number of logical cores of your machine. 
 Potentially one could use all her/his available logical cores, but I've noticed that you start loosing performance when concurrency kicks in. For example, having a 6-core architecture implies only 6 physical cores, which might become 12 logical cores depending on your machine. Logical cores only help the processor to multitasking, thus, when it comes to parallelization it is recommended to stick with a maximum value for `nParallelSims` set to the maximum number of your _physical_ cores. One additonal core can be subtructed to have it for your web surfing while waiting for your results drinking a :coffee:
+
+## Visualization
+
+This is an example of visualizing the result of the simulation
+
+The Tangle
+![Tangle](images/Tangle.png)
+
+Ghost particle path and its cone
+![Tangle](images/GhostCone.png)
+
+Visiting probability in red gradients
+![Tangle](images/visitingP.png)
+
+Random walker path
+![Tangle](images/RW.png)

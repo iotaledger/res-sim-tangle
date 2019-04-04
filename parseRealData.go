@@ -72,6 +72,9 @@ func pullData(filename, iriURI string, numberOfTxs int) error {
 	set := make(map[trinary.Hash]bool)
 	tips := make(map[trinary.Hash]bool)
 	toVisit, err := api.GetTips()
+	///////////////////////
+	toVisit = toVisit[0:1] //////only BFS starting from 1 tip
+	//////////////////////
 	if err != nil {
 		log.Fatal(err)
 		return err

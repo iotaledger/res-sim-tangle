@@ -64,6 +64,17 @@ func newParameters(lambda, alpha float64) Parameters {
 		// AnFocusRW Analysis Focus RW
 		AnFocusRW: AnFocusRW{false, 0.2, 30}, //{Enabled, maxiMT, murel, nRW}
 
+		// - - - Drawing - - -
+		//
+		//drawTangleMode = 0: drawing disabled
+		//drawTangleMode = 1: simple Tangle with/without highlighed path
+		//drawTangleMode = 2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
+		//drawTangleMode = 3: Tangle with tx visiting probability in red gradients
+		//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
+		//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
+		//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
+		drawTangleMode:        1,
+		horizontalOrientation: true,
 	}
 
 	// - - - - setup some of the parameter values - - -
@@ -89,6 +100,7 @@ func newParameters(lambda, alpha float64) Parameters {
 	p.maxCut = p.TangleSize - p.maxCutrange
 
 	createDirIfNotExist("data")
+	createDirIfNotExist("graph")
 
 	return p
 }
@@ -139,6 +151,16 @@ type Parameters struct {
 	AppStatsRWEnabled    bool
 	AppStatsRW_NumRWs    int
 	AppStatsAllEnabled   bool
+	// - - - Drawing - - -
+	//drawTangleMode = 0: drawing disabled
+	//drawTangleMode = 1: simple Tangle with/without highlighed path
+	//drawTangleMode = 2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
+	//drawTangleMode = 3: Tangle with tx visiting probability in red gradients
+	//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
+	//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
+	//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
+	drawTangleMode        int
+	horizontalOrientation bool
 }
 
 // AnPastCone Analysis Past Cone

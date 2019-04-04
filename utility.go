@@ -77,23 +77,6 @@ func avgMapInt(a, b map[int]int) map[int]int {
 	return j
 }
 
-// func median(x, weights []float64) float64 {
-// 	size := 0.0
-// 	for _, v := range weights {
-// 		size += v
-// 	}
-
-// 	tmp := 0.0
-// 	for k, v := range weights {
-// 		tmp += v
-// 		if (size / 2) < tmp {
-// 			return x[k]
-// 		}
-// 	}
-// 	return 0
-
-// }
-
 func createDirIfNotExist(dir string) {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err = os.MkdirAll(dir, 0755)

@@ -68,7 +68,7 @@ func runRealDataEvaluation(lambda, alpha float64, pull bool) {
 
 		//pull real data from IRI
 		var endpoint = "http://35.246.92.25:14265"
-		err := pullData("data/trytes.txt", endpoint, 10000)
+		err := pullData("data/trytes.txt", endpoint, 1000)
 		if err != nil {
 			log.Fatal(err)
 			fmt.Println(err)
@@ -97,6 +97,13 @@ func runRealDataEvaluation(lambda, alpha float64, pull bool) {
 
 	fmt.Println("Tangle size", len(sim.tangle))
 	fmt.Println("CW size:", len(sim.cw))
+
+	//Visualize the Tangle
+	if p.drawTangleMode > 0 {
+		sim.visualizeTangle(nil, p.drawTangleMode)
+	} else if p.drawTangleMode < 0 {
+		sim.visualizeRW()
+	}
 
 	//sim.tangle=function(datafile)
 	//r.EvaluateTangle(&sim, &p, 0)

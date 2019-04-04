@@ -3,3 +3,5 @@ data/*
 figures/*
 .DS_Store
 mod
+TangleGraph.dot
+graph/*
