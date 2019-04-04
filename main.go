@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"strings"
 
@@ -17,8 +18,8 @@ func main() {
 
 	b := make(Benchmark)
 	_ = b
-	// runRealDataEvaluation(10, 0)
-	runSimulation(b, 10, 0)
+	runRealDataEvaluation(10, 0, true)
+	// runSimulation(b, 10, 0)
 	// printPerformance(b)
 }
 
@@ -55,17 +56,58 @@ func run(p Parameters, r *Result, c chan bool) {
 	printPerformance(b)
 }
 
-func runRealDataEvaluation(lambda, alpha float64) {
+func runRealDataEvaluation(lambda, alpha float64, pull bool) {
 	p := newParameters(lambda, alpha)
 	var r Result
 	sim := Sim{}
 	sim.param = p
 	r.initResults(&p)
 	sim.clearSim()
+
+	if pull {
+
+		//pull real data from IRI
+		var endpoint = "http://35.246.92.25:14265"
+		err := pullData("data/trytes.txt", endpoint, 1000)
+		if err != nil {
+			log.Fatal(err)
+			fmt.Println(err)
+		}
+	}
 	//convert trytes to Tangle with []Tx
+
+	var err error
+	err = sim.buildTangleFromFile("data/trytes.txt")
+	if err != nil {
+		log.Fatal(err)
+		fmt.Println(err)
+	}
+
+	if !isRefConsistent(sim.tangle) {
+		fmt.Println("ERROR: Tangle is not ref consistent")
+		panic(0)
+	}
+
+	fmt.Println("CW comparison:", sim.compareCW())
+	fmt.Println("Tangle consistency:", isRefConsistent(sim.tangle))
+
+	//printCWRef(sim.cw)
+
+	saveTangle(sim.tangle)
+
+	fmt.Println("Tangle size", len(sim.tangle))
+	fmt.Println("CW size:", len(sim.cw))
+
+	//Visualize the Tangle
+	if p.drawTangleMode > 0 {
+		sim.visualizeTangle(nil, p.drawTangleMode)
+	} else if p.drawTangleMode < 0 {
+		sim.visualizeRW()
+	}
+
 	//sim.tangle=function(datafile)
-	r.EvaluateTangle(&sim, &p, 0)
-	r.FinalEvaluationSaveResults(p)
+	//r.EvaluateTangle(&sim, &p, 0)
+	//r.FinalEvaluationSaveResults(p)
 }
 
 func runForAlphasLambdas(b Benchmark) string {
