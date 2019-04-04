@@ -7,25 +7,27 @@ import (
 )
 
 //func printCWRef(a map[int][]uint64) {
-func printCWRef(a [][]uint64) {
-	for i := 0; i < len(a); i++ {
-		fmt.Printf("%d: ", i)
-		for j := len(a[i]) - 1; j >= 0; j-- {
-			fmt.Printf("\t%064b\n", a[i][j])
-		}
-		fmt.Println()
+// func printCWRef(a [][]uint64) {
+// 	for i := 0; i < len(a); i++ {
+// 		fmt.Printf("%d: ", i)
+// 		for j := len(a[i]) - 1; j >= 0; j-- {
+// 			fmt.Printf("\t%064b\n", a[i][j])
+// 		}
+// 		fmt.Println()
+// 	}
+// }
+
+func printCWRef(a []uint64) {
+	for j := len(a) - 1; j >= 0; j-- {
+		fmt.Printf("\t%064b\n", a[j])
 	}
+	fmt.Println()
+
 }
 
-func printApprovers(a map[int][]int) {
-	var keys []int
-	for key := range a {
-		keys = append(keys, key)
-	}
-	sort.Ints(keys)
-
-	for _, t := range keys {
-		fmt.Println(t, "<-", unique(a[t]))
+func printApprovers(a []Tx) {
+	for _, approvee := range a {
+		fmt.Println(approvee.id, "<-", unique(approvee.app))
 	}
 }
 

@@ -75,7 +75,11 @@ func (t Tx) isVisible(now float64, h int) bool {
 }
 
 func (t Tx) isGenesis() bool {
-	return t.time == 0
+	//return t.time == 0
+	if len(t.ref) > 0 {
+		return false
+	}
+	return true
 }
 
 func (sim *Sim) tipsUpdate(t Tx) []int {
@@ -120,7 +124,7 @@ func (sim *Sim) revealTips(t Tx) []int {
 func (sim *Sim) updateApprovers(t Tx) {
 	//defer track(runningtime("updateApprovers"))
 	for _, refID := range t.ref {
-		sim.tangle[refID].app = append(sim.tangle[refID].app, t.id)
+		sim.tangle[refID].app = appendUnique(sim.tangle[refID].app, t.id)
 	}
 
 }
@@ -388,6 +392,19 @@ func ReferencedByTx(a []uint64, ID int) bool {
 		}
 	}
 	return false
+}
+
+// setCW set CW bit of a particular tx ID
+func setCW(a []uint64, ID int) {
+	base := 64
+	block := ID / base
+	bitToSet := uint64(ID % base)
+
+	if len(a) > block {
+		a[block] |= (1 << bitToSet)
+	}
+	//fmt.Printf("%d \t", ID)
+	//printCWRef(a)
 }
 
 // ReferencedByRecentTx checks for particular tx if it is referenced by recent tx
