@@ -18,8 +18,8 @@ func main() {
 
 	b := make(Benchmark)
 	_ = b
-	runRealDataEvaluation(10, 0, true)
-	// runSimulation(b, 10, 0)
+	//runRealDataEvaluation(10, 0, true)
+	runSimulation(b, 10, 0)
 	// printPerformance(b)
 }
 
