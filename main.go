@@ -67,8 +67,8 @@ func runRealDataEvaluation(lambda, alpha float64, pull bool) {
 	if pull {
 
 		//pull real data from IRI
-		var endpoint = "http://35.246.92.25:14265"
-		err := pullData("data/trytes.txt", endpoint, 1000)
+		var endpoint = "http://node1.iota.capossele.org:14265"
+		err := pullData("data/trytes.txt", "data/toas.txt", endpoint, 100)
 		if err != nil {
 			log.Fatal(err)
 			fmt.Println(err)
@@ -77,10 +77,19 @@ func runRealDataEvaluation(lambda, alpha float64, pull bool) {
 	//convert trytes to Tangle with []Tx
 
 	var err error
-	err = sim.buildTangleFromFile("data/trytes.txt")
+	err = sim.buildTangleFromFile("data/trytes.txt", "data/toas.txt")
 	if err != nil {
 		log.Fatal(err)
 		fmt.Println(err)
+	}
+
+	// for _, tx := range sim.tangle {
+	// 	fmt.Println(int64(tx.time)/1000000 - tx.attachmentTimestamp)
+	// }
+
+	if !isTOAConsistent(sim.tangle) {
+		fmt.Println("ERROR: Tangle is not TOA consistent")
+		panic(0)
 	}
 
 	if !isRefConsistent(sim.tangle) {
@@ -89,6 +98,7 @@ func runRealDataEvaluation(lambda, alpha float64, pull bool) {
 	}
 
 	fmt.Println("CW comparison:", sim.compareCW())
+	fmt.Println("Time Of Arrival consistency:", isTOAConsistent(sim.tangle))
 	fmt.Println("Tangle consistency:", isRefConsistent(sim.tangle))
 
 	//printCWRef(sim.cw)

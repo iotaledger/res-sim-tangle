@@ -3,17 +3,23 @@ package main
 import (
 	"math"
 	"math/rand"
+
+	"github.com/iotaledger/iota.go/trinary"
 )
 
 // Tx defines the data structure of a transaction
 type Tx struct {
-	id            int
-	time          float64
-	cw            int
-	cw2           int // TODO: to remove, used only to compare different CW update mechanisms
-	ref           []int
-	app           []int
-	firstApproval float64
+	id                  int
+	time                float64
+	timestamp           int64
+	attachmentTimestamp int64
+	cw                  int
+	cw2                 int // TODO: to remove, used only to compare different CW update mechanisms
+	ref                 []int
+	app                 []int
+	firstApproval       float64
+
+	bundle trinary.Hash
 }
 
 func (sim *Sim) newGenesis() Tx {
