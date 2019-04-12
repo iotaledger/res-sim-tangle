@@ -67,27 +67,40 @@ func mapExitProb2(r []float64, p Parameters) (m []float64) {
 	m = make([]float64, p.ExitProb2NHisto)
 	fillboxes := float64(len(m)) / float64(len(r))
 	leftboxes := 0.
-	remainer := 0.
+	fulllevel := 0.
 	vID := 0
 	for i1 := 0; i1 < len(r); i1++ {
-		if remainer+fillboxes < 1 { // next r[i1] fits still into the same box
+		// fmt.Println(i1, len(r), vID, len(m), fulllevel, fulllevel+fillboxes)
+		if vID > len(m)-1 {
+			fmt.Println("vID>len(m)-1")
+			fmt.Println("Sth gone wrong")
+			fmt.Println("i1", i1+1, "of ", len(r))
+			pauseit()
+		}
+		if fulllevel+fillboxes < 1 { // next r[i1] fits still into the same box
 			m[vID] += r[i1]
-			remainer += fillboxes
+			fulllevel += fillboxes
 		} else {
-			m[vID] += r[i1] * (1 - remainer) / fillboxes
+			m[vID] += r[i1] * (1 - fulllevel) / fillboxes //fill up rest of old box
 			vID++
-			leftboxes = fillboxes - (1 - remainer)
+			leftboxes = fillboxes - (1 - fulllevel)
+			fulllevel = 0 // new full level
 			for ; leftboxes > 1; leftboxes-- {
 				m[vID] += r[i1] / fillboxes
 				vID++
 			}
-			// if vID == 2*int(p.Lambda) && leftboxes < 1e-6 { // this is just some overflow due to some precission error
+
 			if vID == p.ExitProb2NHisto && leftboxes < 1e-6 { // this is just some overflow due to some precission error
-				vID--
+				leftboxes = 0
+			}
+			if leftboxes > 1 {
+				fmt.Println("This should not happen")
+				fmt.Println(leftboxes)
+				pauseit()
 			}
 			if leftboxes > 0 { //could be zero now
 				m[vID] += leftboxes * r[i1] / fillboxes
-				remainer = leftboxes
+				fulllevel = leftboxes
 			}
 		}
 	}
@@ -97,6 +110,18 @@ func mapExitProb2(r []float64, p Parameters) (m []float64) {
 		fmt.Println("Error: vID=", vID, " != ", p.ExitProb2NHisto)
 		pauseit()
 	}
+	// check that everything went correct
+	for vID = 1; vID < len(m); vID++ {
+		if m[vID] > m[vID-1]+1e-8 { //account for precission error
+			fmt.Println(r)
+			fmt.Println(m)
+			fmt.Println("m[vID]>m[VID-1]")
+			fmt.Println(m[vID])
+			fmt.Println(m[vID-1])
+			pauseit()
+		}
+	}
+
 	return m
 }
 
@@ -139,14 +164,14 @@ func (a *exitProbResult) Join(b exitProbResult) (r exitProbResult) {
 }
 
 func (e *exitProbResult) Save(p Parameters) {
-	fmt.Println(e.Stat(p))
+	// fmt.Println(e.Stat(p))
 	e.SaveExitProb(p, "ep")
 	//  the following way was the easiest way, otherwise it would have been necessary to copy a huge amount of functions
 	e.ep = e.ep2
 	e.mean = e.mean2
 	e.median = e.median2
 	e.std = e.std2
-	fmt.Println(e.Stat(p))
+	// fmt.Println(e.Stat(p))
 	e.SaveExitProb(p, "ep2")
 	//f.exitProb.SaveStat(p)
 }
@@ -175,8 +200,9 @@ func (e *exitProbResult) SaveExitProb(p Parameters, str string) (err error) {
 }
 
 func (e *exitProbResult) Stat(p Parameters) (result string) {
-	result += "#ExitProb Stats [exit probabilities]\n"
-	result += "#Index\t\tSingle\t\tMean\t\tStdDev\t\tMedian\n"
+	// result += "#ExitProb Stats [exit probabilities]\n"
+	// result += "#Index\t\tSingle\t\tMean\t\tStdDev\t\tMedian\n"
+	result += "#Index\t\tMean\t\tStdDev\n" // had to remove median, because it created an error
 
 	// find len of each row
 	var lenRows []int
@@ -198,16 +224,15 @@ func (e *exitProbResult) Stat(p Parameters) (result string) {
 		for _, row := range e.ep {
 			c = append(c, row[i])
 		}
-		sort.Float64s(c)
 		mean, std := stat.MeanStdDev(c, nil)
-		median := stat.Quantile(0.5, stat.Empirical, c, nil)
+		// median := stat.Quantile(0.5, stat.Empirical, c, nil)
 		e.mean = append(e.mean, mean)
-		e.median = append(e.median, median)
+		// e.median = append(e.median, median)
 		e.std = append(e.std, std)
 	}
 
 	for i := 0; i < nColumns; i++ {
-		result += fmt.Sprintf("%d\t\t%.4f\t\t%.4f\t\t%.4f\t\t%.4f\n", i, e.ep[0][i], e.mean[i], e.std[i], e.median[i])
+		result += fmt.Sprintf("%d\t\t%.8f\t\t%.8f\n", i, e.mean[i], e.std[i]) //, e.median[i])
 
 	}
 	return result

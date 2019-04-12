@@ -16,7 +16,7 @@ func newParameters(lambda, alpha float64) Parameters {
 		// nParallelSims: runtime.NumCPU(),
 		// nParallelSims: 1,
 		// nRun: int(math.Min(1000., 1000/lambda)),
-		nRun:   1,
+		nRun:   10,
 		Lambda: lambda,
 		Alpha:  alpha,
 		TSA:    "RW",
@@ -40,15 +40,15 @@ func newParameters(lambda, alpha float64) Parameters {
 		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
 		VelocityEnabled:      false,
 		ExitProbEnabled:      false,
-		ExitProbNparticle:    10000, // number of sample particles to calculate distribution
-		ExitProb2NHisto:      50,    // N of Histogram columns for exitProb2
+		ExitProbNparticle:    1000 * lambdaForSize, // number of sample particles to calculate distribution
+		ExitProb2NHisto:      2 * lambdaForSize,    // N of Histogram columns for exitProb2
 		// measure distance of slices compared to the expected distribution
 		DistSlicesEnabled:    false,
 		DistSlicesByTime:     false, // true = tx time slices, false= tx ID slices
 		DistSlicesLength:     1,     //length of Slices
 		DistSlicesResolution: 100,   // Number of intervals per distance '1', higher number = higher resolution
 		// measure distance of RWs compared to the expected distribution
-		DistRWsEnabled:      true,
+		DistRWsEnabled:      false,
 		DistRWsSampleLength: 20,                 // Length of considered RWs
 		DistRWsSampleRWNum:  lambdaForSize * 10, // Number of sample RWs per Tangle
 		DistRWsResolution:   100,                // Number of intervals per distance '1', higher number = higher resolution
