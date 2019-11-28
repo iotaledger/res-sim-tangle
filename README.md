@@ -32,8 +32,8 @@ You can then run your simulation by running:
 |   Alpha           |   float64     | level of randomness in a random walk |
 |   TangleSize      |   int         | number of txs forming the Tangle|
 |   Seed            |   int64       | seed value of the PRNG|
-|   TSA             |   string      | tip Selection Algorithm [`"URTS"`, `"RW"`]|
-|   tsa             |   TipSelector | internal interface [`URTS`, `URW`, `BRW`]|
+|   TSA             |   string      | tip Selection Algorithm [`"URTS"`, `"RW"`, `"HPS"`]|
+|   tsa             |   TipSelector | internal interface [`URTS`, `URW`, `BRW`, `HPS`]|
 |   ConstantRate    |   bool        | if true enables constant tx rate, i.e., _1/Lambda_|
 |   DataPath        |   string      | path to store results (currently unused)|
 |   minCut          |   int         | initial part of the Tangle not considered for results, i.e., 30H * Lambda|

@@ -35,6 +35,98 @@ type BRW struct {
 	RandomWalker
 }
 
+// HPS implements the "Heaviest Pair Selection" algorithm, where the tips are selected in such a way
+// that the number of referenced transactions is maximized.
+type HPS struct{}
+
+type refSet map[int]struct{}
+
+// Compute the union of two sets.
+func union(a, b refSet) refSet {
+	r := make(refSet)
+
+	for x, y := range a {
+		r[x] = y
+	}
+	for x, y := range b {
+		r[x] = y
+	}
+	return r
+}
+
+// getReferences returns the set of all the transactions directly or indirectly referenced by t.
+// The references are computed using recursion and dynamic programming.
+func getReferences(t int, tangle []Tx, cache []refSet) refSet {
+	if cache[t] != nil {
+		return cache[t]
+	}
+
+	result := make(refSet)
+	for _, r := range tangle[t].ref {
+		result = union(result, getReferences(r, tangle, cache))
+		result[r] = struct{}{}
+	}
+	cache[t] = result
+	return result
+}
+
+func (HPS) TipSelect(t Tx, sim *Sim) []int {
+	if len(sim.tips) < sim.param.K {
+		return append([]int{}, sim.tips...)
+	}
+
+	if sim.param.K != 2 {
+		panic("Only 2 references supported.")
+	}
+
+	cache := make([]refSet, len(sim.tangle))
+	cache[0] = make(refSet) // genesis has no referenced txs
+
+	var bestWeight int
+	var bestResults [][]int
+
+	// loop through all pairs of tips and find the pair with the most referenced txs.
+	for _, t1 := range sim.tips {
+		ref1 := getReferences(t1, sim.tangle, cache)
+
+		for _, t2 := range sim.tips {
+			if t1 >= t2 {
+				continue // we don't care about the order in the pair
+			}
+
+			ref2 := getReferences(t2, sim.tangle, cache)
+			refs := union(ref1, ref2)
+			refs[t1] = struct{}{}
+			refs[t2] = struct{}{}
+
+			weight := len(refs)
+			var result []int
+			if t1 == t2 {
+				result = []int{t1}
+			} else {
+				result = []int{t1, t2}
+			}
+
+			if weight > bestWeight {
+				bestWeight = weight
+				bestResults = [][]int{result}
+			} else if weight == bestWeight {
+				bestResults = append(bestResults, result)
+			}
+		}
+	}
+
+	// select a random pair from the set of best pairs
+	result := bestResults[rand.Intn(len(bestResults))]
+	// mark the approval time if needed
+	for _, x := range result {
+		if sim.tangle[x].firstApproval < 0 {
+			sim.tangle[x].firstApproval = t.time
+		}
+	}
+	return result
+}
+
 // TipSelect selects k tips
 func (URTS) TipSelect(t Tx, sim *Sim) []int {
 	tipsApproved := make([]int, sim.param.K)

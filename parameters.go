@@ -80,6 +80,8 @@ func newParameters(lambda, alpha float64) Parameters {
 	// - - - - setup some of the parameter values - - -
 	p.TSA = strings.ToUpper(p.TSA) // make sure string is upper case
 	switch p.TSA {
+	case "HPS":
+		p.tsa = HPS{}
 	case "URTS":
 		p.tsa = URTS{}
 	case "RW":
