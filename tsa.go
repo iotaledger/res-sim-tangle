@@ -43,7 +43,7 @@ type refSet map[int]struct{}
 
 // Compute the union of two sets.
 func union(a, b refSet) refSet {
-	r := make(refSet)
+	r := make(refSet, len(a)+len(b))
 
 	for x, y := range a {
 		r[x] = y
@@ -95,23 +95,20 @@ func (HPS) TipSelect(t Tx, sim *Sim) []int {
 			}
 
 			ref2 := getReferences(t2, sim.tangle, cache)
+			if len(ref1)+len(ref2) < bestWeight {
+				continue
+			}
+
 			refs := union(ref1, ref2)
 			refs[t1] = struct{}{}
 			refs[t2] = struct{}{}
 
 			weight := len(refs)
-			var result []int
-			if t1 == t2 {
-				result = []int{t1}
-			} else {
-				result = []int{t1, t2}
-			}
-
 			if weight > bestWeight {
 				bestWeight = weight
-				bestResults = [][]int{result}
+				bestResults = [][]int{[]int{t1, t2}}
 			} else if weight == bestWeight {
-				bestResults = append(bestResults, result)
+				bestResults = append(bestResults, []int{t1, t2})
 			}
 		}
 	}
