@@ -116,8 +116,7 @@ func pullData(TrytesFilename, TOAFilename, iriURI string, numberOfTxs int) error
 	//From all the tips
 	toVisit, err = api.GetTips()
 	if err != nil {
-		fmt.Printf("IRI node error", err)
-		panic(0)
+		log.Panicf("IRI node error: %s\n", err)
 	}
 	///////////////////////
 	toVisit = toVisit[0:1] //////only BFS starting from 1 tip
@@ -246,7 +245,7 @@ func (sim *Sim) buildTangleFromFile(TrytesFilename, TOAFilename string) error {
 		}
 	}
 
-	fmt.Println("\n")
+	fmt.Println()
 
 	//find Tips
 	fmt.Println("Finding tips")

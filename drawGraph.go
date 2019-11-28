@@ -27,7 +27,7 @@ import (
 //			5: Tangle with highlighted path of random walker transitioning to last approver
 func (sim *Sim) visualizeTangle(path map[int]int, mode int) {
 	G := createTangleGraph(0, sim, path, mode)
-	fmt.Println("\n")
+	fmt.Println()
 	f, err := os.Create("graph/TangleGraph.dot")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
