@@ -57,21 +57,14 @@ func getReferences(t int, tangle []Tx, cache []*bitset.BitSet) *bitset.BitSet {
 	return result
 }
 
-func (HPS) TipSelect(t Tx, sim *Sim) []int {
-	if len(sim.tips) < sim.param.K {
-		return append([]int{}, sim.tips...)
-	}
-
-	if sim.param.K != 2 {
-		panic("Only 2 references supported.")
-	}
-
+// heaviestPairs finds the tip pairs the reference the most transactions.
+func heaviestPairs(sim *Sim) [][2]int {
 	// cache the references of all the nodes
 	cache := make([]*bitset.BitSet, len(sim.tangle))
 	cache[0] = bitset.New(0) // genesis has no referenced txs
 
 	var bestWeight uint
-	var bestResults [][]int
+	var bestResults [][2]int
 
 	// loop through all pairs of tips and find the pair with the most referenced txs.
 	for _, t1 := range sim.tips {
@@ -88,15 +81,29 @@ func (HPS) TipSelect(t Tx, sim *Sim) []int {
 			weight := ref1.UnionCardinality(ref2) + 2
 			if weight > bestWeight {
 				bestWeight = weight
-				bestResults = [][]int{[]int{t1, t2}}
+				bestResults = [][2]int{[2]int{t1, t2}}
 			} else if weight == bestWeight {
-				bestResults = append(bestResults, []int{t1, t2})
+				bestResults = append(bestResults, [2]int{t1, t2})
 			}
 		}
 	}
 
-	// select a random pair from the set of best pairs
-	result := bestResults[rand.Intn(len(bestResults))]
+	return bestResults
+}
+
+func (HPS) TipSelect(t Tx, sim *Sim) (result []int) {
+	if len(sim.tips) <= sim.param.K {
+		result = append([]int{}, sim.tips...)
+	} else {
+		if sim.param.K != 2 {
+			panic("Only 2 references supported.")
+		}
+		heaviest := heaviestPairs(sim)
+
+		// select a random pair from the set of best pairs
+		result = heaviest[rand.Intn(len(heaviest))][:]
+	}
+
 	// mark the approval time if needed
 	for _, x := range result {
 		if sim.tangle[x].firstApproval < 0 {
