@@ -8,5 +8,6 @@ require (
 	github.com/iotaledger/iota.go v1.0.0-beta.10
 	github.com/mzohreva/GoGraphviz v0.0.0-20180226085351-533f4a37d9c6 // indirect
 	github.com/schollz/progressbar v1.0.0
+	github.com/willf/bitset v1.1.10
 	gonum.org/v1/gonum v0.6.1
 )

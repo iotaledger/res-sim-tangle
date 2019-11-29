@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+
+	"github.com/willf/bitset"
 )
 
 // TipSelector defines the interface for a TSA
@@ -39,32 +41,17 @@ type BRW struct {
 // that the number of referenced transactions is maximized.
 type HPS struct{}
 
-type refSet map[int]struct{}
-
-// Compute the union of two sets.
-func union(a, b refSet) refSet {
-	r := make(refSet, len(a)+len(b))
-
-	for x, y := range a {
-		r[x] = y
-	}
-	for x, y := range b {
-		r[x] = y
-	}
-	return r
-}
-
 // getReferences returns the set of all the transactions directly or indirectly referenced by t.
 // The references are computed using recursion and dynamic programming.
-func getReferences(t int, tangle []Tx, cache []refSet) refSet {
+func getReferences(t int, tangle []Tx, cache []*bitset.BitSet) *bitset.BitSet {
 	if cache[t] != nil {
 		return cache[t]
 	}
 
-	result := make(refSet)
+	result := bitset.New(uint(t))
 	for _, r := range tangle[t].ref {
-		result = union(result, getReferences(r, tangle, cache))
-		result[r] = struct{}{}
+		result.InPlaceUnion(getReferences(r, tangle, cache))
+		result.Set(uint(r))
 	}
 	cache[t] = result
 	return result
@@ -79,10 +66,11 @@ func (HPS) TipSelect(t Tx, sim *Sim) []int {
 		panic("Only 2 references supported.")
 	}
 
-	cache := make([]refSet, len(sim.tangle))
-	cache[0] = make(refSet) // genesis has no referenced txs
+	// cache the references of all the nodes
+	cache := make([]*bitset.BitSet, len(sim.tangle))
+	cache[0] = bitset.New(0) // genesis has no referenced txs
 
-	var bestWeight int
+	var bestWeight uint
 	var bestResults [][]int
 
 	// loop through all pairs of tips and find the pair with the most referenced txs.
@@ -95,15 +83,9 @@ func (HPS) TipSelect(t Tx, sim *Sim) []int {
 			}
 
 			ref2 := getReferences(t2, sim.tangle, cache)
-			if len(ref1)+len(ref2) < bestWeight {
-				continue
-			}
 
-			refs := union(ref1, ref2)
-			refs[t1] = struct{}{}
-			refs[t2] = struct{}{}
-
-			weight := len(refs)
+			// the weight are all the txs referenced by t1,t2 plus t1 and t2 themselves
+			weight := ref1.UnionCardinality(ref2) + 2
 			if weight > bestWeight {
 				bestWeight = weight
 				bestResults = [][]int{[]int{t1, t2}}
