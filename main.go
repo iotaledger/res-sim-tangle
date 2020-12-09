@@ -16,10 +16,10 @@ func main() {
 	// printPerformance(b)
 }
 
-func runSimulation(b Benchmark, lambda float64) Result {
+func runSimulation(b Benchmark, x float64) Result {
 
-	p := newParameters(lambda)
-	defer b.track(runningtime("TSA=" + strings.ToUpper(p.TSA) + ", Lambda=" + fmt.Sprintf("%.2f", lambda) + ", " + "\tTime"))
+	p := newParameters(x)
+	defer b.track(runningtime("TSA=" + strings.ToUpper(p.TSA) + ", X=" + fmt.Sprintf("%.2f", x) + ", " + "\tTime"))
 	c := make(chan bool, p.nParallelSims)
 	r := make([]Result, p.nParallelSims)
 	var f Result
@@ -39,8 +39,8 @@ func runSimulation(b Benchmark, lambda float64) Result {
 	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tD=", p.D)
 	f.FinalEvaluationSaveResults(p)
 	fmt.Println("- - - OrphanTips - - -")
-	fmt.Println("Lambda\t\tD\t\tmean\t\tSTD\t\tmean Ratio\t\tSTD Ratio")
-	fmt.Println(p.Lambda, "\t", p.D, "\t", f.tips.meanOrphanTips, "\t", f.tips.STDOrphanTips, "\t", f.tips.meanOrphanTipsRatio, "\t", f.tips.STDOrphanTipsRatio)
+	fmt.Println("X\t\tD\t\tmean\t\tSTD\t\tmean Ratio\t\tSTD Ratio")
+	fmt.Println(x, "\t", p.D, "\t", f.tips.meanOrphanTips, "\t", f.tips.STDOrphanTips, "\t", f.tips.meanOrphanTipsRatio, "\t", f.tips.STDOrphanTipsRatio)
 	return f
 }
 
@@ -53,7 +53,7 @@ func run(p Parameters, r *Result, c chan bool) {
 
 func runForLambdas(b Benchmark) {
 	var total string
-	lambdas := []float64{3, 7, 10, 20, 30, 50, 80, 100}
+	Xs := []float64{2, 3, 4, 5, 6, 7, 8}
 	// Nlambdas := 10
 	// lambdas := make([]float64, Nlambdas)
 	// for i1 := 0; i1 < Nlambdas; i1++ {
@@ -61,14 +61,14 @@ func runForLambdas(b Benchmark) {
 	// }
 
 	var banner string
-	for _, lambda := range lambdas {
-		if lambda > 0 {
-			r := runSimulation(b, lambda)
+	for _, x := range Xs {
+		if x > 0 {
+			r := runSimulation(b, x)
 			if banner == "" {
 				banner += fmt.Sprintf("#lambda\tOrphanratio\tSTD\n")
 			}
 
-			output := fmt.Sprintf("%.0f", lambda)
+			output := fmt.Sprintf("%.0f", x)
 			output += fmt.Sprintf("\t%.8f", r.tips.meanOrphanTipsRatio)
 			output += fmt.Sprintf("\t%.8f", r.tips.STDOrphanTipsRatio)
 			output += fmt.Sprintf("\n")

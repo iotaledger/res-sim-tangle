@@ -7,7 +7,8 @@ import (
 )
 
 // variable initialization
-func newParameters(lambda float64) Parameters {
+func newParameters(variable float64) Parameters {
+	lambda := 10.
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	p := Parameters{
 
@@ -19,10 +20,10 @@ func newParameters(lambda float64) Parameters {
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:                 2, // Num of tips to select
+		K:                 int(variable), // Num of tips to select
 		H:                 1,
-		D:                 10, // max age for RURTS
-		Seed:              1,  //
+		D:                 5, // max age for RURTS
+		Seed:              1, //
 		TangleSize:        500 * lambdaForSize,
 		CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            51 * lambdaForSize,  // cut data close to the genesis
