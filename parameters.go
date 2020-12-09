@@ -14,16 +14,16 @@ func newParameters(lambda float64) Parameters {
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
 		nParallelSims: runtime.NumCPU()/2 - 1,
 		// nParallelSims: 1,
-		// nRun: int(math.Min(1000., 1000/lambda)),
-		nRun:   30000,
+		nRun: int(math.Min(10000., 10000/lambda)),
+		// nRun:   100,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
 		K:                 2, // Num of tips to select
 		H:                 1,
-		D:                 17, // max age for RURTS
+		D:                 10, // max age for RURTS
 		Seed:              1,  //
-		TangleSize:        1000 * lambdaForSize,
+		TangleSize:        500 * lambdaForSize,
 		CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            51 * lambdaForSize,  // cut data close to the genesis
 		maxCutrange:       52 * lambdaForSize,  // cut data for the most recent txs, not applied for every analysis

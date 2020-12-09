@@ -11,7 +11,8 @@ func main() {
 	b := make(Benchmark)
 	_ = b
 	//runRealDataEvaluation(10, 0, true)
-	runSimulation(b, 20)
+	runForLambdas(b)
+	// runSimulation(b, 20)
 	// printPerformance(b)
 }
 
@@ -39,7 +40,7 @@ func runSimulation(b Benchmark, lambda float64) Result {
 	f.FinalEvaluationSaveResults(p)
 	fmt.Println("- - - OrphanTips - - -")
 	fmt.Println("Lambda\t\tD\t\tmean\t\tSTD\t\tmean Ratio\t\tSTD Ratio")
-	fmt.Println(p.Lambda, p.D, f.tips.meanOrphanTips, f.tips.STDOrphanTips, f.tips.meanOrphanTipsRatio, f.tips.STDOrphanTipsRatio)
+	fmt.Println(p.Lambda, "\t", p.D, "\t", f.tips.meanOrphanTips, "\t", f.tips.STDOrphanTips, "\t", f.tips.meanOrphanTipsRatio, "\t", f.tips.STDOrphanTipsRatio)
 	return f
 }
 
@@ -48,4 +49,33 @@ func run(p Parameters, r *Result, c chan bool) {
 	b := make(Benchmark)
 	*r, b = p.RunTangle()
 	printPerformance(b)
+}
+
+func runForLambdas(b Benchmark) {
+	var total string
+	lambdas := []float64{3, 7, 10, 20, 30, 50, 80, 100}
+	// Nlambdas := 10
+	// lambdas := make([]float64, Nlambdas)
+	// for i1 := 0; i1 < Nlambdas; i1++ {
+	// 	lambdas[i1] = .1 * math.Pow(100, float64(i1)/float64(Nlambdas-1))
+	// }
+
+	var banner string
+	for _, lambda := range lambdas {
+		if lambda > 0 {
+			r := runSimulation(b, lambda)
+			if banner == "" {
+				banner += fmt.Sprintf("#lambda\tOrphanratio\tSTD\n")
+			}
+
+			output := fmt.Sprintf("%.0f", lambda)
+			output += fmt.Sprintf("\t%.8f", r.tips.meanOrphanTipsRatio)
+			output += fmt.Sprintf("\t%.8f", r.tips.STDOrphanTipsRatio)
+			output += fmt.Sprintf("\n")
+
+			total += output
+			fmt.Println(banner + output)
+		}
+	}
+	fmt.Println(banner + total)
 }
