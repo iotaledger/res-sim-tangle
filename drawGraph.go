@@ -11,8 +11,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strings"
-	"time"
 
 	"github.com/capossele/GoGraphviz/graphviz"
 )
@@ -27,7 +25,6 @@ import (
 //			5: Tangle with highlighted path of random walker transitioning to last approver
 func (sim *Sim) visualizeTangle(path map[int]int, mode int) {
 	G := createTangleGraph(0, sim, path, mode)
-	fmt.Println()
 	f, err := os.Create("graph/TangleGraph.dot")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
@@ -45,10 +42,6 @@ func createTangleGraph(tx int, sim *Sim, path map[int]int, mode int) *graphviz.G
 	switch mode {
 	case 1:
 		drawTangle(sim, nodeTxs, path, "green", G)
-	case 2:
-		drawGhostConeOrphans(sim, nodeTxs, G)
-	case 3:
-		drawVisitingProbability(sim, nodeTxs, G)
 	case 4:
 		drawNthApprover(sim, nodeTxs, 1, G)
 	case 5:
@@ -110,121 +103,6 @@ func drawTangle(sim *Sim, nodeMap, path map[int]int, color string, G *graphviz.G
 	}
 }
 
-//drawGhostConeOrphans draws the Tangle highlighting Ghost path, Ghost cone, Orphans + tips.
-//TODO: clustering needs to be done manually
-func drawGhostConeOrphans(sim *Sim, nodeMap map[int]int, G *graphviz.Graph) {
-	//ghost path
-	path, tip := ghostWalk(sim.tangle[0], sim)
-	for _, tx := range path {
-		nodeMap[tx] = G.AddNode(fmt.Sprint(tx))
-		G.NodeAttribute(nodeMap[tx], "style", "filled")
-		G.NodeAttribute(nodeMap[tx], "fillcolor", "red")
-	}
-	nodeMap[tip.id] = G.AddNode(fmt.Sprint(tip.id))
-	G.NodeAttribute(nodeMap[tip.id], "style", "filled")
-	G.NodeAttribute(nodeMap[tip.id], "fillcolor", "red")
-
-	//ghost cone
-	sim.computeSpine()
-	var keys []int
-	for i := 0; i < len(sim.spinePastCone); i++ {
-		keys = append(keys, sim.spinePastCone[i].id)
-	}
-	// for key := range sim.spineApprovers {
-	// 	keys = append(keys, key)
-	// }
-	sort.Ints(keys)
-
-	for _, tx := range keys {
-		if _, ok := nodeMap[tx]; !ok {
-			nodeMap[tx] = G.AddNode(fmt.Sprint(tx))
-			G.NodeAttribute(nodeMap[tx], "style", "filled")
-			G.NodeAttribute(nodeMap[tx], "fillcolor", "turquoise")
-		}
-	}
-
-	//orphans and tips
-	keys = []int{}
-	for _, key := range sim.tangle {
-		if len(key.app) > 0 {
-			keys = append(keys, key.id)
-		}
-	}
-	sort.Ints(keys)
-
-	for _, tx := range keys {
-		if _, ok := nodeMap[tx]; !ok {
-			nodeMap[tx] = G.AddNode(fmt.Sprint(tx))
-			//G.NodeAttribute(nodeMap[tx], "xlabel", fmt.Sprintf("%.3f", sim.tangle[tx].time))
-		}
-	}
-
-	//edges
-	for _, tx := range keys {
-		for _, i := range unique(sim.tangle[tx].app) {
-			if _, ok := nodeMap[i]; !ok {
-				nodeMap[i] = G.AddNode(fmt.Sprint(i))
-			}
-			//G.AddEdge(nodeMap[i], nodeMap[tx], fmt.Sprintf("%.3f", sim.tangle[i].time))
-			G.AddEdge(nodeMap[i], nodeMap[tx], "")
-		}
-	}
-}
-
-//drawVisitingProbability draws the Tangle with tx visiting probability in red gradients
-func drawVisitingProbability(sim *Sim, nodeMap map[int]int, G *graphviz.Graph) {
-	visitMap := make(map[int]int)
-	for i := 0; i < 100000; i++ {
-		var current int
-		//current := sim.tangle[0]
-		//visitMap[current.id]++
-		var tsa RandomWalker
-		if sim.param.Alpha != 0 {
-			tsa = BRW{}
-		} else {
-			tsa = URW{}
-		}
-		for current = 0; len(sim.tangle[current].app) > 0; current, _ = tsa.RandomWalkStep(current, sim) {
-			visitMap[current]++
-		}
-		visitMap[current]++
-	}
-
-	//all txs
-	keys := []int{}
-	for _, key := range sim.tangle {
-		if len(key.app) > 0 {
-			keys = append(keys, key.id)
-		}
-	}
-	sort.Ints(keys)
-
-	for _, tx := range keys {
-		nodeMap[tx] = G.AddNode(fmt.Sprint(tx))
-		G.NodeAttribute(nodeMap[tx], "style", "filled")
-		c := int((255. * float64(visitMap[tx])) / float64(100000))
-		c = 255 - c
-		color := fmt.Sprintf("#FF%02x%02x", c, c)
-		G.NodeAttribute(nodeMap[tx], "fillcolor", strings.ToUpper(color))
-	}
-
-	//edges
-	for _, tx := range keys {
-		for _, i := range unique(sim.tangle[tx].app) {
-			if _, ok := nodeMap[i]; !ok {
-				nodeMap[i] = G.AddNode(fmt.Sprint(i))
-				G.NodeAttribute(nodeMap[i], "style", "filled")
-				c := int((255. * float64(visitMap[i])) / float64(100000))
-				c = 255 - c
-				color := fmt.Sprintf("#FF%02x%02x", c, c)
-				G.NodeAttribute(nodeMap[i], "fillcolor", strings.ToUpper(color))
-			}
-			//G.AddEdge(nodeMap[i], nodeMap[tx], fmt.Sprintf("%.3f", sim.tangle[i].time))
-			G.AddEdge(nodeMap[i], nodeMap[tx], "")
-		}
-	}
-}
-
 //drawNthApprover draws the Tangle highlighting path of random walker transitioning to first or last approver
 func drawNthApprover(sim *Sim, nodeMap map[int]int, nApprover int, G *graphviz.Graph) {
 	visitMap := make(map[int]int)
@@ -264,28 +142,5 @@ func sortRankTransactons(sim *Sim, nodeMap map[int]int, G *graphviz.Graph) {
 				G.MakeSameRank(nodeMap[sameRank[0]], nodeMap[sameRank[i]])
 			}
 		}
-	}
-}
-
-// visualizeRW performs 10 random walk and draws the Tangle at each step.
-// Useful for generating GIF or video.
-func (sim *Sim) visualizeRW() {
-	for i := 0; i < 10; i++ {
-		path := make(map[int]int)
-		var current int
-		var tsa RandomWalker
-		if sim.param.Alpha != 0 {
-			tsa = BRW{}
-		} else {
-			tsa = URW{}
-		}
-		for current = 0; len(sim.tangle[current].app) > 0; current, _ = tsa.RandomWalkStep(current, sim) {
-			path[current]++
-			sim.visualizeTangle(path, 1)
-			time.Sleep(100 * time.Millisecond)
-		}
-		path[current]++
-		sim.visualizeTangle(path, 1)
-		time.Sleep(100 * time.Millisecond)
 	}
 }

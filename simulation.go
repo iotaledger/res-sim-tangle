@@ -11,6 +11,7 @@ import (
 type Sim struct {
 	tangle     []Tx  // A Tangle, i.e., a list of transactions
 	tips       []int // A list of current available/visible tips
+	orphanTips []int // A list of old tips for RURTS
 	hiddenTips []int // A list of yet unavailable/hidden tips
 	// approvers      map[int][]int // A map of direct approvers, e.g., 5 <- 10,13
 	cw            [][]uint64 // Matrix of propagated weigth branches (cw[i][] is the column of bit values forthe ith tx, stored as uint64 blocks)
@@ -24,7 +25,7 @@ type Sim struct {
 // RunTangle executes the simulation
 func (p *Parameters) RunTangle() (Result, Benchmark) {
 	performance := make(Benchmark)
-	defer performance.track(runningtime("total"))
+	defer performance.track(runningtime("total time"))
 	sim := Sim{}
 
 	var result Result
@@ -61,7 +62,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			//update set of tips before running TSA, increase the wb matrix here
 			sim.tips = append(sim.tips, sim.tipsUpdate(t)...)
 
-			//run TSA to select k(2) tips to approve
+			//run TSA to select k (default 2) tips to approve
 			t.ref = sim.param.tsa.TipSelect(t, &sim) //sim.tipsSelection(t, sim.vTips)
 
 			//add the new tx to the Tangle and to the hidden tips set
@@ -87,8 +88,6 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//Visualize the Tangle
 		if p.drawTangleMode > 0 {
 			sim.visualizeTangle(nil, p.drawTangleMode)
-		} else if p.drawTangleMode < 0 {
-			sim.visualizeRW()
 		}
 
 	}
@@ -106,8 +105,9 @@ func (sim *Sim) clearSim() {
 
 	sim.tangle = make([]Tx, sim.param.TangleSize)
 	sim.tips = []int{}
+	sim.orphanTips = []int{}
 	sim.hiddenTips = []int{}
 
-	sim.spinePastCone = make(map[int]Tx)
+	// sim.spinePastCone = make(map[int]Tx)
 	// sim.spineApprovers = make(map[int][]int)
 }

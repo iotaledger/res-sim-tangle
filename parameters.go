@@ -7,24 +7,23 @@ import (
 )
 
 // variable initialization
-func newParameters(lambda, alpha float64) Parameters {
+func newParameters(lambda float64) Parameters {
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	p := Parameters{
 
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
 		nParallelSims: runtime.NumCPU()/2 - 1,
-		// nParallelSims: runtime.NumCPU(),
 		// nParallelSims: 1,
 		// nRun: int(math.Min(1000., 1000/lambda)),
-		nRun:   10,
+		nRun:   30000,
 		Lambda: lambda,
-		Alpha:  alpha,
-		TSA:    "RW",
+		TSA:    "RURTS",
 		// TSA:               "URTS",
 		K:                 2, // Num of tips to select
 		H:                 1,
-		Seed:              1, //
-		TangleSize:        300 * lambdaForSize,
+		D:                 17, // max age for RURTS
+		Seed:              1,  //
+		TangleSize:        1000 * lambdaForSize,
 		CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            51 * lambdaForSize,  // cut data close to the genesis
 		maxCutrange:       52 * lambdaForSize,  // cut data for the most recent txs, not applied for every analysis
@@ -33,36 +32,21 @@ func newParameters(lambda, alpha float64) Parameters {
 		SingleEdgeEnabled: true, // true = SingleEdge model, false = MultiEdge model
 
 		// - - - Analysis section - - -
-		CountTipsEnabled:     false,
+		CountTipsEnabled:     true,
 		CWAnalysisEnabled:    false,
-		SpineEnabled:         false,
-		pOrphanEnabled:       false, // calculate orphanage probability
+		pOrphanEnabled:       true,  // calculate orphanage probability
 		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
-		VelocityEnabled:      false,
-		ExitProbEnabled:      false,
-		ExitProbNparticle:    1000 * lambdaForSize, // number of sample particles to calculate distribution
-		ExitProb2NHisto:      2 * lambdaForSize,    // N of Histogram columns for exitProb2
 		// measure distance of slices compared to the expected distribution
 		DistSlicesEnabled:    false,
 		DistSlicesByTime:     false, // true = tx time slices, false= tx ID slices
 		DistSlicesLength:     1,     //length of Slices
 		DistSlicesResolution: 100,   // Number of intervals per distance '1', higher number = higher resolution
-		// measure distance of RWs compared to the expected distribution
-		DistRWsEnabled:      false,
-		DistRWsSampleLength: 20,                 // Length of considered RWs
-		DistRWsSampleRWNum:  lambdaForSize * 10, // Number of sample RWs per Tangle
-		DistRWsResolution:   100,                // Number of intervals per distance '1', higher number = higher resolution
-		// measure Approver stats during RW
-		AppStatsRWEnabled: false, // Approver Stats along the RW
-		AppStatsRW_NumRWs: max2Int(100*lambdaForSize, 100),
 		// measure app stats for all txs
 		AppStatsAllEnabled: false, // Approver stats for all txs
 		// AnPastCone Analysis
 		AnPastCone: AnPastCone{false, 5, 40, 5}, //{Enabled, Resolution, MaxT, MaxApp}
 		// AnFutureCone Analysis
 		AnFutureCone: AnFutureCone{false, 5, 40, 5}, //{Enabled, Resolution, MaxT, MaxApp}
-		// AnFocusRW Analysis Focus RW
-		AnFocusRW: AnFocusRW{false, 0.2, 30}, //{Enabled, maxiMT, murel, nRW}
 
 		// - - - Drawing - - -
 		//
@@ -73,7 +57,7 @@ func newParameters(lambda, alpha float64) Parameters {
 		//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
 		//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
 		//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
-		drawTangleMode:        1,
+		drawTangleMode:        0,
 		horizontalOrientation: true,
 	}
 
@@ -82,21 +66,13 @@ func newParameters(lambda, alpha float64) Parameters {
 	switch p.TSA {
 	case "HPS":
 		p.tsa = HPS{}
+	case "RURTS":
+		p.tsa = RURTS{}
 	case "URTS":
 		p.tsa = URTS{}
-	case "RW":
-		if p.Alpha == 0 {
-			p.tsa = URW{}
-		} else {
-			p.tsa = BRW{}
-		}
 	default:
 		p.TSA = "URTS"
 		p.tsa = URTS{}
-	}
-
-	if p.TSA == "URTS" || p.Alpha == 0 {
-		p.SpineEnabled = false
 	}
 
 	p.maxCut = p.TangleSize - p.maxCutrange
@@ -112,8 +88,8 @@ type Parameters struct {
 	nParallelSims int
 	K             int
 	H             int
+	D             int
 	Lambda        float64
-	Alpha         float64
 	// tsaType           string
 	TangleSize        int
 	Seed              int64
@@ -131,27 +107,15 @@ type Parameters struct {
 	// - - - Analysis - - -
 	CountTipsEnabled  bool
 	CWAnalysisEnabled bool
-	VelocityEnabled   bool
-	ExitProbEnabled   bool
-	ExitProbNparticle int
-	ExitProb2NHisto   int
 
-	SpineEnabled         bool
 	pOrphanEnabled       bool
 	pOrphanLinFitEnabled bool
 	AnPastCone           AnPastCone
 	AnFutureCone         AnFutureCone
-	AnFocusRW            AnFocusRW
 	DistSlicesEnabled    bool
 	DistSlicesByTime     bool
 	DistSlicesLength     float64
 	DistSlicesResolution int
-	DistRWsEnabled       bool
-	DistRWsSampleLength  int
-	DistRWsSampleRWNum   int
-	DistRWsResolution    int
-	AppStatsRWEnabled    bool
-	AppStatsRW_NumRWs    int
 	AppStatsAllEnabled   bool
 	// - - - Drawing - - -
 	//drawTangleMode = 0: drawing disabled

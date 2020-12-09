@@ -274,12 +274,12 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
 	return ones
 }
 
-// how many txs are orphaned at a given index
-func (sim *Sim) runAnOPLinfit(tx int, r *pOrphanResult, run int) {
-	sim.computeSpine()
-	r.nTipsAtID[tx] = len(sim.tips)
-	r.nOrphanAtID[tx] = tx - len(sim.spinePastCone)
-}
+// // how many txs are orphaned at a given index
+// func (sim *Sim) runAnOPLinfit(tx int, r *pOrphanResult, run int) {
+// 	sim.computeSpine()
+// 	r.nTipsAtID[tx] = len(sim.tips)
+// 	r.nOrphanAtID[tx] = tx - len(sim.spinePastCone)
+// }
 
 // apply linear regression
 func (sim *Sim) runOrphanageLinFit(r *pOrphanResult) {

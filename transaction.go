@@ -60,13 +60,24 @@ func (sim Sim) nextTime(t Tx) float64 {
 
 }
 
+//remove txs from tip list that have now a visible approver
 func (sim *Sim) removeOldTips(t Tx) {
 	var currentTips []int
 	for _, tip := range sim.tips {
 		if !sim.tangle[tip].hasApprover(t.time, sim.param.H) {
-			currentTips = append(currentTips, tip)
+			if sim.param.TSA == "RURTS" {
+				if sim.tangle[tip].isTooOld(t.time, sim.param.D) {
+					sim.orphanTips = append(sim.orphanTips, tip)
+				} else {
+					currentTips = append(currentTips, tip)
+				}
+			} else {
+				currentTips = append(currentTips, tip)
+			}
+
 		}
 	}
+
 	sim.tips = currentTips
 }
 
@@ -78,6 +89,11 @@ func (t Tx) hasApprover(now float64, h int) bool {
 //given a time "now" and a transaction t, checks that t is visible
 func (t Tx) isVisible(now float64, h int) bool {
 	return t.time+float64(h) < now || t.time == 0
+}
+
+//given a time "now" and a transaction t, checks that t is visible
+func (t Tx) isTooOld(now float64, D int) bool {
+	return now-t.time > float64(D)
 }
 
 func (t Tx) isGenesis() bool {
@@ -191,25 +207,25 @@ func weightedChoose(approvers []int, weights []float64, g *rand.Rand, b Benchmar
 }
 
 //
-func normalizeWeights(approvers []int, sim *Sim) []float64 {
-	//defer sim.b.track(runningtime("normalizeWeights"))
-	cumWeigths := make([]float64, len(approvers))
-	normalizedWeights := make([]float64, len(approvers))
-	maxWeigth := 0.
-	for i, a := range approvers {
-		cumWeigths[i] = float64(sim.tangle[a].cw)
-		if cumWeigths[i] > maxWeigth {
-			maxWeigth = cumWeigths[i]
-		}
-	}
-	for i, w := range cumWeigths {
-		//w -= maxWeigth + 6.9 // ln(2^10) = 6.9314718056, 10 - number of bits in exponent of double precision
-		//normalizedWeights[i] = math.Exp(maxFloat64(-700., sim.param.Alpha*w))
-		w -= maxWeigth
-		normalizedWeights[i] = math.Exp(sim.param.Alpha * w)
-	}
-	return normalizedWeights
-}
+// func normalizeWeights(approvers []int, sim *Sim) []float64 {
+// 	//defer sim.b.track(runningtime("normalizeWeights"))
+// 	cumWeigths := make([]float64, len(approvers))
+// 	normalizedWeights := make([]float64, len(approvers))
+// 	maxWeigth := 0.
+// 	for i, a := range approvers {
+// 		cumWeigths[i] = float64(sim.tangle[a].cw)
+// 		if cumWeigths[i] > maxWeigth {
+// 			maxWeigth = cumWeigths[i]
+// 		}
+// 	}
+// 	for i, w := range cumWeigths {
+// 		//w -= maxWeigth + 6.9 // ln(2^10) = 6.9314718056, 10 - number of bits in exponent of double precision
+// 		//normalizedWeights[i] = math.Exp(maxFloat64(-700., sim.param.Alpha*w))
+// 		w -= maxWeigth
+// 		normalizedWeights[i] = math.Exp(sim.param.Alpha * w)
+// 	}
+// 	return normalizedWeights
+// }
 
 func maxFloat64(a, b float64) float64 {
 	if a > b {
