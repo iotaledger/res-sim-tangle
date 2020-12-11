@@ -62,8 +62,12 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			//update set of tips before running TSA, increase the wb matrix here
 			sim.tips = append(sim.tips, sim.tipsUpdate(t)...)
 
-			//run TSA to select k (default 2) tips to approve
-			t.ref = sim.param.tsa.TipSelect(t, &sim) //sim.tipsSelection(t, sim.vTips)
+			//run TSA to select tips to approve
+			if sim.generator.Float64() < sim.param.q {
+				t.ref = sim.param.tsaAdversary.TipSelectAdversary(t, &sim) // adversary tip selection
+			} else {
+				t.ref = sim.param.tsa.TipSelect(t, &sim) //sim.tipsSelection(t, sim.vTips)
+			}
 
 			//add the new tx to the Tangle and to the hidden tips set
 			sim.tangle[i] = t

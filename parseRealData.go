@@ -315,45 +315,45 @@ func (sim *Sim) buildTangleFromFile(TrytesFilename, TOAFilename string) error {
 	sim.param.TangleSize = len(sim.tangle)
 	sim.cw = make([][]uint64, sim.param.CWMatrixLen)
 
-	sim.initializeCW(sim.tangle)
-	sim.computeCW()
-	fmt.Println(len(sim.cw))
-	sim.computeCWDFS(sim.tangle)
+	// sim.initializeCW(sim.tangle)
+	// sim.computeCW()
+	// fmt.Println(len(sim.cw))
+	// sim.computeCWDFS(sim.tangle)
 
 	return err
 
 }
 
-func (sim *Sim) initializeCW(tangle []Tx) {
-	base := 64
-	for i, tx := range tangle {
-		if len(tx.ref) == 0 {
-			sim.cw[i] = make([]uint64, (i/base)+1)
-			setCW(sim.cw[i], tx.id)
-		}
-	}
-}
+// func (sim *Sim) initializeCW(tangle []Tx) {
+// 	base := 64
+// 	for i, tx := range tangle {
+// 		if len(tx.ref) == 0 {
+// 			sim.cw[i] = make([]uint64, (i/base)+1)
+// 			setCW(sim.cw[i], tx.id)
+// 		}
+// 	}
+// }
 
-func (sim *Sim) computeCW() {
-	//fmt.Println(len(sim.tangle))
-	//fmt.Println(len(sim.cw))
-	//pauseit()
-	for _, tx := range sim.tangle {
-		//fmt.Println(tx.id)
-		//printCWRef(sim.cw[tx.id])
-		if len(tx.ref) > 0 {
-			sim.updateCWOpt(tx)
-			//	printCWRef(sim.cw[tx.id])
-			//pauseit()
-		}
-	}
-}
+// func (sim *Sim) computeCW() {
+// 	//fmt.Println(len(sim.tangle))
+// 	//fmt.Println(len(sim.cw))
+// 	//pauseit()
+// 	for _, tx := range sim.tangle {
+// 		//fmt.Println(tx.id)
+// 		//printCWRef(sim.cw[tx.id])
+// 		if len(tx.ref) > 0 {
+// 			sim.updateCWOpt(tx)
+// 			//	printCWRef(sim.cw[tx.id])
+// 			//pauseit()
+// 		}
+// 	}
+// }
 
-func (sim *Sim) computeCWDFS(tangle []Tx) {
-	for _, tx := range tangle {
-		sim.updateCWDFS(tx)
-	}
-}
+// func (sim *Sim) computeCWDFS(tangle []Tx) {
+// 	for _, tx := range tangle {
+// 		sim.updateCWDFS(tx)
+// 	}
+// }
 
 // func addGenesis(tangle []iriTx) {
 // 	newTangle := make([]iriTx, len(tangle)+1)

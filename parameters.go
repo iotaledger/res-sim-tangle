@@ -2,28 +2,27 @@ package main
 
 import (
 	"math"
-	"runtime"
 	"strings"
 )
 
 // variable initialization
 func newParameters(variable float64) Parameters {
-	lambda := 10.
+	lambda := 100.
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	p := Parameters{
 
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-		nParallelSims: runtime.NumCPU()/2 - 1,
-		// nParallelSims: 1,
-		nRun: int(math.Min(10000., 10000/lambda)),
+		// nParallelSims: runtime.NumCPU()/2 - 1,
+		nParallelSims: 1,
+		nRun:          int(math.Min(10000., 10000/lambda)),
 		// nRun:   100,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:                 int(variable), // Num of tips to select
+		K:                 2, // Num of tips to select
 		H:                 1,
-		D:                 5, // max age for RURTS
-		Seed:              1, //
+		D:                 15, // max age for RURTS
+		Seed:              1,  //
 		TangleSize:        500 * lambdaForSize,
 		CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            51 * lambdaForSize,  // cut data close to the genesis
@@ -32,10 +31,13 @@ func newParameters(variable float64) Parameters {
 		ConstantRate:      false,
 		SingleEdgeEnabled: true, // true = SingleEdge model, false = MultiEdge model
 
+		// - - - Attacks - - -
+		q:            variable,      // proportion of adversary txs
+		TSAAdversary: "SpamGenesis", // spam tips linked to the genesis,
 		// - - - Analysis section - - -
 		CountTipsEnabled:     true,
 		CWAnalysisEnabled:    false,
-		pOrphanEnabled:       true,  // calculate orphanage probability
+		pOrphanEnabled:       false, // calculate orphanage probability
 		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
 		// measure distance of slices compared to the expected distribution
 		DistSlicesEnabled:    false,
@@ -76,6 +78,14 @@ func newParameters(variable float64) Parameters {
 		p.tsa = URTS{}
 	}
 
+	switch p.TSAAdversary {
+	case "spamGenesis":
+		p.tsaAdversary = SpamGenesis{}
+	default:
+		p.TSAAdversary = "spamGenesis"
+		p.tsaAdversary = SpamGenesis{}
+	}
+
 	p.maxCut = p.TangleSize - p.maxCutrange
 
 	createDirIfNotExist("data")
@@ -96,6 +106,8 @@ type Parameters struct {
 	Seed              int64
 	TSA               string
 	tsa               TipSelector
+	TSAAdversary      string
+	tsaAdversary      TipSelectorAdversary
 	SingleEdgeEnabled bool
 	ConstantRate      bool
 	DataPath          string
@@ -105,6 +117,9 @@ type Parameters struct {
 	nRun              int
 	stillrecent       int
 	CWMatrixLen       int
+
+	q          float64
+	attackType string
 	// - - - Analysis - - -
 	CountTipsEnabled  bool
 	CWAnalysisEnabled bool

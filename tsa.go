@@ -174,3 +174,26 @@ func (RURTS) TipSelect(t Tx, sim *Sim) []int {
 	}
 	return tipsApproved
 }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// - - - - - - - - - - - - Adversary - - - - - - - - - - - -
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+// TipSelectorAdversary defines the interface for a TSAAdversary
+type TipSelectorAdversary interface {
+	TipSelectAdversary(Tx, *Sim) []int
+}
+
+// SpamGenesis implements a tip selection where txs only attach to the genesis
+type SpamGenesis struct {
+	TipSelectorAdversary
+}
+
+// tx selects the genesis
+func (SpamGenesis) TipSelectAdversary(t Tx, sim *Sim) []int {
+	tipsApproved := make([]int, 1)
+	//var j int
+	tipsApproved[0] = 0 // use genesis as only parent
+
+	return tipsApproved
+}
