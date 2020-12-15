@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"os"
 
@@ -139,11 +140,16 @@ func (URTS) TipSelect(t Tx, sim *Sim) []int {
 
 // TipSelect selects k tips
 func (RURTS) TipSelect(t Tx, sim *Sim) []int {
-	tipsApproved := make([]int, sim.param.K)
+	kNow := sim.param.K
+	if sim.param.responseSpamTipsEnabled {
+		kNow = increaseK(sim)
+	}
+
+	tipsApproved := make([]int, kNow)
 	//var j int
 
 	AppID := 0
-	for i := 0; i < sim.param.K; i++ {
+	for i := 0; i < kNow; i++ {
 		//RURTS with repetition
 		if len(sim.tips) == 0 {
 			fmt.Println("ERROR: No tips left")
@@ -173,6 +179,16 @@ func (RURTS) TipSelect(t Tx, sim *Sim) []int {
 		}
 	}
 	return tipsApproved
+}
+
+// dynamically increase K
+func increaseK(sim *Sim) int {
+	if len(sim.tips) > sim.param.acceptableNumberTips {
+		delta := math.Max(0, float64(len(sim.tips)-sim.param.acceptableNumberTips)/(2.*sim.param.Lambda))
+		Know := sim.param.K + int(delta*delta*sim.param.responseKIncrease)
+		return int(math.Min(float64(sim.param.maxK), float64(Know)))
+	}
+	return sim.param.K
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -311,9 +311,9 @@ func (sim *Sim) buildTangleFromFile(TrytesFilename, TOAFilename string) error {
 	}
 
 	//TODO init function
-	sim.param.CWMatrixLen = len(sim.tangle)
+	// sim.param.CWMatrixLen = len(sim.tangle)
 	sim.param.TangleSize = len(sim.tangle)
-	sim.cw = make([][]uint64, sim.param.CWMatrixLen)
+	// sim.cw = make([][]uint64, sim.param.CWMatrixLen)
 
 	// sim.initializeCW(sim.tangle)
 	// sim.computeCW()

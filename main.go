@@ -11,8 +11,8 @@ func main() {
 	b := make(Benchmark)
 	_ = b
 	//runRealDataEvaluation(10, 0, true)
-	runForVariables(b)
-	// runSimulation(b, 2)
+	// runForVariables(b)
+	runSimulation(b, 40)
 	// printPerformance(b)
 }
 
@@ -53,12 +53,14 @@ func run(p Parameters, r *Result, c chan bool) {
 
 func runForVariables(b Benchmark) {
 	var total string
-	// Xs := []float64{2, 3, 4, 5, 6, 7, 8}
+	// Xs := []float64{2, 3, 4, 5, 6, 7, 8, 9, 10}
 	// Xs := []float64{0, .1, .2, .3, .4, .5, .6, .7, .8, .9}
 	NXs := 20
 	Xs := make([]float64, NXs)
 	for i1 := 0; i1 < NXs; i1++ {
-		Xs[i1] = .5 / float64(NXs) * float64(i1)
+		// Xs[i1] = 1. / float64(NXs) * float64(i1)
+		Xs[i1] = 5 * (float64(i1) + 1)
+		// Xs[i1] = 2 + float64(i1)
 	}
 	// for i1 := 0; i1 < NXs; i1++ {
 	// 	Xs[i1] = .1 * math.Pow(100, float64(i1)/float64(NXs-1))

@@ -32,8 +32,8 @@ func (sim *Sim) newGenesis() Tx {
 	}
 	sim.tips = append(sim.tips, 0)
 	//sim.cw = append(sim.cw, make([]uint64, 1))
-	sim.cw[0] = make([]uint64, 1)
-	sim.cw[0][0] = 1
+	// sim.cw[0] = make([]uint64, 1)
+	// sim.cw[0][0] = 1
 	return genesis
 
 }

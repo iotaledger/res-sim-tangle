@@ -2,41 +2,47 @@ package main
 
 import (
 	"math"
+	"runtime"
 	"strings"
 )
 
 // variable initialization
 func newParameters(variable float64) Parameters {
-	lambda := 100.
+	lambda := 20.
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	p := Parameters{
 
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-		// nParallelSims: runtime.NumCPU()/2 - 1,
-		nParallelSims: 1,
-		nRun:          int(math.Min(10000., 10000/lambda)),
-		// nRun:   100,
+		nParallelSims: runtime.NumCPU()/2 - 1,
+		// nParallelSims: 1,
+		// nRun:          int(math.Min(10000., 10000/lambda)),
+		nRun:   1000,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:                 2, // Num of tips to select
-		H:                 1,
-		D:                 15, // max age for RURTS
-		Seed:              1,  //
-		TangleSize:        500 * lambdaForSize,
-		CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
-		minCut:            51 * lambdaForSize,  // cut data close to the genesis
-		maxCutrange:       52 * lambdaForSize,  // cut data for the most recent txs, not applied for every analysis
-		stillrecent:       2 * lambdaForSize,   // when is a tx considered recent, and when is it a candidate for left behind
+		K:          2, // Num of tips to select
+		H:          1,
+		D:          int(variable), // max age for RURTS
+		Seed:       1,             //
+		TangleSize: 300 * lambdaForSize,
+		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
+		minCut:            51 * lambdaForSize, // cut data close to the genesis
+		maxCutrange:       52 * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
+		stillrecent:       2 * lambdaForSize,  // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate:      false,
-		SingleEdgeEnabled: true, // true = SingleEdge model, false = MultiEdge model
+		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
 
 		// - - - Attacks - - -
-		q:            variable,      // proportion of adversary txs
+		q:            .9,            // proportion of adversary txs
 		TSAAdversary: "SpamGenesis", // spam tips linked to the genesis,
+		// - - - Response - - -
+		responseSpamTipsEnabled: true,            // response dynamically to the tip spam attack
+		acceptableNumberTips:    int(2 * lambda), // when we should start to increase K
+		responseKIncrease:       3.,              // at which rate do we increase K
+		maxK:                    20,              // maximum K used for protection, value will get replaced when K is larger
 		// - - - Analysis section - - -
-		CountTipsEnabled:     true,
-		CWAnalysisEnabled:    false,
+		CountTipsEnabled: true,
+		// CWAnalysisEnabled:    false,
 		pOrphanEnabled:       false, // calculate orphanage probability
 		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
 		// measure distance of slices compared to the expected distribution
@@ -88,6 +94,10 @@ func newParameters(variable float64) Parameters {
 
 	p.maxCut = p.TangleSize - p.maxCutrange
 
+	if p.maxK < p.K {
+		p.maxK = p.K
+	}
+
 	createDirIfNotExist("data")
 	createDirIfNotExist("graph")
 
@@ -116,13 +126,17 @@ type Parameters struct {
 	maxCut            int
 	nRun              int
 	stillrecent       int
-	CWMatrixLen       int
+	// CWMatrixLen       int
 
-	q          float64
-	attackType string
+	q                       float64
+	attackType              string
+	responseSpamTipsEnabled bool
+	acceptableNumberTips    int
+	responseKIncrease       float64
+	maxK                    int
 	// - - - Analysis - - -
-	CountTipsEnabled  bool
-	CWAnalysisEnabled bool
+	CountTipsEnabled bool
+	// CWAnalysisEnabled bool
 
 	pOrphanEnabled       bool
 	pOrphanLinFitEnabled bool

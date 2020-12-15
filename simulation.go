@@ -63,7 +63,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			sim.tips = append(sim.tips, sim.tipsUpdate(t)...)
 
 			//run TSA to select tips to approve
-			if sim.generator.Float64() < sim.param.q {
+			if sim.isAdverse(i) {
 				t.ref = sim.param.tsaAdversary.TipSelectAdversary(t, &sim) // adversary tip selection
 			} else {
 				t.ref = sim.param.tsa.TipSelect(t, &sim) //sim.tipsSelection(t, sim.vTips)
@@ -105,7 +105,7 @@ func (sim *Sim) clearSim() {
 	sim.b = make(Benchmark)
 
 	//sim.cw = [][]uint64{}
-	sim.cw = make([][]uint64, sim.param.CWMatrixLen)
+	// sim.cw = make([][]uint64, sim.param.CWMatrixLen)
 
 	sim.tangle = make([]Tx, sim.param.TangleSize)
 	sim.tips = []int{}
@@ -114,4 +114,16 @@ func (sim *Sim) clearSim() {
 
 	// sim.spinePastCone = make(map[int]Tx)
 	// sim.spineApprovers = make(map[int][]int)
+}
+
+func (sim Sim) isAdverse(i int) bool {
+	isAdverse := false
+	if i > sim.param.TangleSize/3 {
+		if i < sim.param.TangleSize*2/3 {
+			if sim.generator.Float64() < sim.param.q {
+				isAdverse = true
+			}
+		}
+	}
+	return isAdverse
 }
