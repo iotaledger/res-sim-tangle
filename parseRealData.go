@@ -362,7 +362,8 @@ func (sim *Sim) buildTangleFromFile(TrytesFilename, TOAFilename string) error {
 // 		id:            0,
 // 		time:          0,
 // 		cw:            1,
-// 		firstApproval: -1,
+// 		firstApprovalTime: -1,
+// 		firstVisibleApprovalTime: -1,
 // 		cw2:           1,
 // 	}
 // 	//fill genesis approvers

@@ -93,8 +93,7 @@ func (HPS) TipSelect(t Tx, sim *Sim) (result []int) {
 
 	// mark the approval time if needed
 	for _, x := range result {
-		if sim.tangle[x].firstApproval < 0 {
-			sim.tangle[x].firstApproval = t.time
+		if sim.tangle[x].firstApprovalTime < 0 {
 		}
 	}
 	return result
@@ -129,11 +128,8 @@ func (URTS) TipSelect(t Tx, sim *Sim) []int {
 			tipsApproved = tipsApproved[:len(tipsApproved)-1]
 		}
 
-		//tipsApproved = append(tipsApproved, sim.tangle[sim.vTips[j]].id)
-		// tipsApproved[i] = sim.tips[j]
-		if sim.tangle[sim.tips[j]].firstApproval < 0 {
-			sim.tangle[sim.tips[j]].firstApproval = t.time
-		}
+		sim.updateFirstApproval(sim.tips[j], t)
+
 	}
 	return tipsApproved
 }
@@ -172,11 +168,7 @@ func (RURTS) TipSelect(t Tx, sim *Sim) []int {
 			tipsApproved = tipsApproved[:len(tipsApproved)-1]
 		}
 
-		//tipsApproved = append(tipsApproved, sim.tangle[sim.vTips[j]].id)
-		// tipsApproved[i] = sim.tips[j]
-		if sim.tangle[sim.tips[j]].firstApproval < 0 {
-			sim.tangle[sim.tips[j]].firstApproval = t.time
-		}
+		sim.updateFirstApproval(sim.tips[j], t)
 	}
 	return tipsApproved
 }
@@ -189,6 +181,18 @@ func increaseK(sim *Sim) int {
 		return int(math.Min(float64(sim.param.maxK), float64(Know)))
 	}
 	return sim.param.K
+}
+
+func (sim *Sim) updateFirstApproval(tip int, t Tx) {
+	// update first approval
+	if sim.tangle[tip].firstApprovalTime < 0 {
+		sim.tangle[tip].firstApprovalTime = t.time
+	}
+	// the current child tx can have a smaller h so we need to check if it gets revealed earlier than other approvers
+	if sim.tangle[tip].firstVisibleApprovalTime > t.time+float64(t.h) || sim.tangle[tip].firstVisibleApprovalTime < 0 {
+		sim.tangle[tip].firstVisibleApprovalTime = t.time + float64(t.h)
+	}
+
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

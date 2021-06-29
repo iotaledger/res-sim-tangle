@@ -60,7 +60,8 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			// fmt.Println("tx", i)
 
 			//update set of tips before running TSA, increase the wb matrix here
-			sim.tips = append(sim.tips, sim.tipsUpdate(t)...)
+			sim.removeOldTips(t)
+			sim.tips = append(sim.tips, sim.revealTips(t)...)
 
 			//run TSA to select tips to approve
 			if sim.isAdverse(i) {

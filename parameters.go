@@ -9,34 +9,38 @@ import (
 // variable initialization
 func newParameters(variable float64) Parameters {
 	lambda := 20.
+	// lambda := variable
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
+	hlarge := 40
 	p := Parameters{
 
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
 		nParallelSims: runtime.NumCPU()/2 - 1,
 		// nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
-		nRun:   1000,
+		nRun:   2,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:          2, // Num of tips to select
-		H:          1,
-		D:          int(variable), // max age for RURTS
-		Seed:       1,             //
-		TangleSize: 300 * lambdaForSize,
+		K:          8,        // Num of tips to select
+		Hsmall:     1,        // Delay for first type of tx,
+		Hlarge:     hlarge,   // Delay for second type of tx
+		p:          variable, //proportion of second type of tx
+		D:          100000,   // max age for RURTS
+		Seed:       1,        //
+		TangleSize: 1000 * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
-		minCut:            51 * lambdaForSize, // cut data close to the genesis
-		maxCutrange:       52 * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
-		stillrecent:       2 * lambdaForSize,  // when is a tx considered recent, and when is it a candidate for left behind
+		minCut:            10 * hlarge * lambdaForSize, // cut data close to the genesis
+		maxCutrange:       10 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
+		stillrecent:       2 * lambdaForSize,           // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate:      false,
 		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
 
 		// - - - Attacks - - -
-		q:            .9,            // proportion of adversary txs
+		q:            .0,            // proportion of adversary txs
 		TSAAdversary: "SpamGenesis", // spam tips linked to the genesis,
 		// - - - Response - - -
-		responseSpamTipsEnabled: true,            // response dynamically to the tip spam attack
+		responseSpamTipsEnabled: false,           // response dynamically to the tip spam attack
 		acceptableNumberTips:    int(2 * lambda), // when we should start to increase K
 		responseKIncrease:       3.,              // at which rate do we increase K
 		maxK:                    20,              // maximum K used for protection, value will get replaced when K is larger
@@ -108,7 +112,9 @@ func newParameters(variable float64) Parameters {
 type Parameters struct {
 	nParallelSims int
 	K             int
-	H             int
+	Hsmall        int
+	Hlarge        int
+	p             float64
 	D             int
 	Lambda        float64
 	// tsaType           string

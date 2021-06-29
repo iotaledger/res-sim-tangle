@@ -130,8 +130,8 @@ func getAverageApprovalTime(tangle map[int]Tx) float64 {
 	avgTime := 0.
 	i := 0
 	for _, v := range tangle {
-		if v.firstApproval > 0 {
-			avgTime += v.firstApproval - v.time
+		if v.firstApprovalTime > 0 {
+			avgTime += v.firstApprovalTime - v.time
 			i++
 		}
 	}

@@ -8,15 +8,17 @@ import (
 
 // Tx defines the data structure of a transaction
 type Tx struct {
-	id                  int
-	time                float64
-	timestamp           int64
-	attachmentTimestamp int64
-	cw                  int
-	cw2                 int // TODO: to remove, used only to compare different CW update mechanisms
-	ref                 []int
-	app                 []int
-	firstApproval       float64
+	id                       int
+	time                     float64
+	h                        int
+	timestamp                int64
+	attachmentTimestamp      int64
+	cw                       int
+	cw2                      int // TODO: to remove, used only to compare different CW update mechanisms
+	ref                      []int
+	app                      []int
+	firstApprovalTime        float64
+	firstVisibleApprovalTime float64
 
 	bundle trinary.Hash
 }
@@ -24,11 +26,12 @@ type Tx struct {
 func (sim *Sim) newGenesis() Tx {
 
 	genesis := Tx{
-		id:            0,
-		time:          0,
-		cw:            1,
-		firstApproval: -1,
-		cw2:           1,
+		id:                       0,
+		time:                     0,
+		cw:                       1,
+		firstApprovalTime:        -1,
+		firstVisibleApprovalTime: -1,
+		cw2:                      1,
 	}
 	sim.tips = append(sim.tips, 0)
 	//sim.cw = append(sim.cw, make([]uint64, 1))
@@ -40,11 +43,13 @@ func (sim *Sim) newGenesis() Tx {
 
 func newTx(sim *Sim, previous Tx) Tx {
 	t := Tx{
-		id:            previous.id + 1,
-		time:          sim.nextTime(previous),
-		cw:            1,
-		firstApproval: -1,
-		cw2:           1,
+		id:                       previous.id + 1,
+		time:                     sim.nextTime(previous),
+		h:                        sim.setDelay(),
+		cw:                       1,
+		firstApprovalTime:        -1,
+		firstVisibleApprovalTime: -1,
+		cw2:                      1,
 	}
 
 	return t
@@ -56,14 +61,20 @@ func (sim Sim) nextTime(t Tx) float64 {
 	}
 	//return t.time + rand.ExpFloat64()/sim.param.Lambda
 	return t.time + (-1./sim.param.Lambda)*(math.Log(sim.generator.Float64()))
+}
 
+func (sim Sim) setDelay() int {
+	if sim.param.p < sim.generator.Float64() {
+		return sim.param.Hsmall
+	}
+	return sim.param.Hlarge
 }
 
 //remove txs from tip list that have now a visible approver
 func (sim *Sim) removeOldTips(t Tx) {
 	var currentTips []int
 	for _, tip := range sim.tips {
-		if !sim.tangle[tip].hasApprover(t.time, sim.param.H) {
+		if !sim.tangle[tip].hasVisibleApprover(t.time) {
 			if sim.param.TSA == "RURTS" {
 				if sim.tangle[tip].isTooOld(t.time, sim.param.D) {
 					sim.orphanTips = append(sim.orphanTips, tip)
@@ -81,13 +92,13 @@ func (sim *Sim) removeOldTips(t Tx) {
 }
 
 //given a time "now" and a transaction t, checks that t has (visible) approvers
-func (t Tx) hasApprover(now float64, h int) bool {
-	return (t.firstApproval > 0 && t.firstApproval+float64(h) < now)
+func (t Tx) hasVisibleApprover(now float64) bool {
+	return (t.firstApprovalTime > 0 && t.firstVisibleApprovalTime < now)
 }
 
-//given a time "now" and a transaction t, checks that t is visible
-func (t Tx) isVisible(now float64, h int) bool {
-	return t.time+float64(h) < now || t.time == 0
+//given a time "now",  a transaction t and a max window h, checks that t is visible
+func (t Tx) isVisible(now float64) bool {
+	return t.time+float64(t.h) < now || t.time == 0
 }
 
 //given a time "now" and a transaction t, checks that t is visible
@@ -103,42 +114,26 @@ func (t Tx) isGenesis() bool {
 	return true
 }
 
-func (sim *Sim) tipsUpdate(t Tx) []int {
-	//defer track(runningtime("udpateTips"))
-	sim.removeOldTips(t)
-	return sim.revealTips(t)
-}
-
 // reveal tips, update CW
 func (sim *Sim) revealTips(t Tx) []int {
 	var newTips []int
+	var newHiddenTips []int
 	//fmt.Println("HiddenTips", sim.hiddenTips)
 
 	if len(sim.hiddenTips) == 0 {
 		return newTips
 	}
 
-	i := 0
-	tip := sim.hiddenTips[i]
-	for sim.tangle[tip].isVisible(t.time, sim.param.H) {
-		sim.updateApprovers(sim.tangle[tip])
-		// sim.updateCWOpt(sim.tangle[tip])
-		//if sim.param.TSA == "RW" && sim.param.Alpha != 0 {
-		//	sim.updateCWOpt(sim.tangle[tip])
-		//}
-		// if sim.param.TSA == "RW" && sim.param.Alpha != 0 {
-		// 	sim.updateCW(sim.tangle[tip])
-		//sim.updateCWDFS(sim.tangle[tip])
-		// }
-		i++
-		if i >= len(sim.hiddenTips) {
-			break
+	for _, tip := range sim.hiddenTips { //go through all hidden tips
+		if sim.tangle[tip].isVisible(t.time) { // if tip is revealed now
+			sim.updateApprovers(sim.tangle[tip])
+			newTips = append(newTips, tip)
+		} else {
+			newHiddenTips = append(newHiddenTips, tip)
 		}
-		tip = sim.hiddenTips[i]
 	}
 
-	newTips = sim.hiddenTips[:i]        //set of "new" visible tips
-	sim.hiddenTips = sim.hiddenTips[i:] //update hidden tips set
+	sim.hiddenTips = newHiddenTips //update hidden tips set
 	return newTips
 }
 

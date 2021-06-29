@@ -11,8 +11,8 @@ func main() {
 	b := make(Benchmark)
 	_ = b
 	//runRealDataEvaluation(10, 0, true)
-	// runForVariables(b)
-	runSimulation(b, 40)
+	runForVariables(b)
+	// runSimulation(b, 10)
 	// printPerformance(b)
 }
 
@@ -56,18 +56,19 @@ func runForVariables(b Benchmark) {
 	// Xs := []float64{2, 3, 4, 5, 6, 7, 8, 9, 10}
 	// Xs := []float64{0, .1, .2, .3, .4, .5, .6, .7, .8, .9}
 	NXs := 20
-	Xs := make([]float64, NXs)
-	for i1 := 0; i1 < NXs; i1++ {
-		// Xs[i1] = 1. / float64(NXs) * float64(i1)
-		Xs[i1] = 5 * (float64(i1) + 1)
+	Xs := make([]float64, NXs+1)
+	for i1 := 0; i1 < NXs+1; i1++ {
+		Xs[i1] = 1. / float64(NXs) * float64(i1)
+		// Xs[i1] = 5 * (float64(i1) + 1)
 		// Xs[i1] = 2 + float64(i1)
 	}
 	// for i1 := 0; i1 < NXs; i1++ {
 	// 	Xs[i1] = .1 * math.Pow(100, float64(i1)/float64(NXs-1))
 	// }
-
+	fmt.Println("Variables=", Xs)
 	var banner string
 	for _, x := range Xs {
+		fmt.Println("X=", x)
 		r := runSimulation(b, x)
 		if banner == "" {
 			banner += fmt.Sprintf("#x\tOrphanratio\tSTD\n")
@@ -76,6 +77,8 @@ func runForVariables(b Benchmark) {
 		output := fmt.Sprintf("%.4f", x)
 		output += fmt.Sprintf("\t%.8f", r.tips.meanOrphanTipsRatio)
 		output += fmt.Sprintf("\t%.8f", r.tips.STDOrphanTipsRatio)
+		output += fmt.Sprintf("\t%.8f", r.tips.tAVG)
+		output += fmt.Sprintf("\t%.8f", r.tips.tSTD)
 		output += fmt.Sprintf("\n")
 
 		total += output
