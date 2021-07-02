@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 )
 
@@ -113,6 +114,17 @@ func meanInt(v []int) float64 {
 		a += i
 	}
 	return float64(a) / float64(len(v))
+}
+
+func varInt(slice []int) float64 {
+
+	var variance float64 = 0
+
+	mean := meanInt(slice)
+	for _, value := range slice {
+		variance += math.Pow(float64(value)-mean, 2)
+	}
+	return variance / (float64(len(slice)) - 1)
 }
 
 func Factorial(n float64) (result float64) {

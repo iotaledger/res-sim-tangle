@@ -379,7 +379,6 @@ func (a *iriTx) ToTx() Tx {
 		ref:                 a.ref,
 		app:                 a.app,
 		cw:                  1,
-		cw2:                 1,
 		bundle:              a.bundle,
 	}
 }

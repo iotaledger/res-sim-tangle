@@ -5,7 +5,7 @@ import (
 	"math"
 	"os"
 
-	"gonum.org/v1/gonum/stat"
+	stat "gonum.org/v1/gonum/stat"
 )
 
 type tipsResult struct {
@@ -62,8 +62,8 @@ func (r *tipsResult) Statistics(p Parameters) {
 	//fmt.Println("Param:", p.minCut, p.TangleSize-p.minCut)
 	r.tAVG = stat.Mean(r.mean[p.minCut:], nil)
 	r.tSTD = math.Sqrt(stat.Mean(r.variance[p.minCut:], nil))
-	r.meanOrphanTips = stat.MeanInt(r.nOrphanTips)
-	r.STDOrphanTips = math.Sqrt(stat.VarInt(r.nOrphanTips))
+	r.meanOrphanTips = meanInt(r.nOrphanTips)
+	r.STDOrphanTips = math.Sqrt(varInt(r.nOrphanTips))
 	r.meanOrphanTipsRatio = r.meanOrphanTips / float64(p.TangleSize)
 	r.STDOrphanTipsRatio = r.STDOrphanTips / float64(p.TangleSize)
 	// total pdf

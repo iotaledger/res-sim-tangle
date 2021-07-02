@@ -8,17 +8,18 @@ import (
 
 // Tx defines the data structure of a transaction
 type Tx struct {
-	id                       int
+	id                       int // id of the tx
+	nodeID                   int // if of the issuing node
 	time                     float64
 	h                        int
 	timestamp                int64
 	attachmentTimestamp      int64
 	cw                       int
-	cw2                      int // TODO: to remove, used only to compare different CW update mechanisms
-	ref                      []int
-	app                      []int
+	aw                       float64 // Approval weight
+	ref                      []int   // parents
+	app                      []int   // approvers
 	firstApprovalTime        float64
-	firstVisibleApprovalTime float64
+	firstVisibleApprovalTime float64 // what is this?
 
 	bundle trinary.Hash
 }
@@ -27,11 +28,11 @@ func (sim *Sim) newGenesis() Tx {
 
 	genesis := Tx{
 		id:                       0,
+		nodeID:                   0,
 		time:                     0,
-		cw:                       1,
+		aw:                       1,
 		firstApprovalTime:        -1,
 		firstVisibleApprovalTime: -1,
-		cw2:                      1,
 	}
 	sim.tips = append(sim.tips, 0)
 	//sim.cw = append(sim.cw, make([]uint64, 1))
@@ -46,10 +47,9 @@ func newTx(sim *Sim, previous Tx) Tx {
 		id:                       previous.id + 1,
 		time:                     sim.nextTime(previous),
 		h:                        sim.setDelay(),
-		cw:                       1,
+		aw:                       0,
 		firstApprovalTime:        -1,
 		firstVisibleApprovalTime: -1,
-		cw2:                      1,
 	}
 
 	return t

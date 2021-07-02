@@ -9,10 +9,11 @@ import (
 // ??? is there a reason why approvers is not part of the tx variable, i.e. Tx has the field app []int? This would seem much more intuitive...
 // Sim contains the data structure of a Tangle simulation
 type Sim struct {
-	tangle     []Tx  // A Tangle, i.e., a list of transactions
-	tips       []int // A list of current available/visible tips
-	orphanTips []int // A list of old tips for RURTS
-	hiddenTips []int // A list of yet unavailable/hidden tips
+	tangle     []Tx    // A Tangle, i.e., a list of transactions
+	mana       []int64 // A list of the mana of the issuing nodes
+	tips       []int   // A list of current available/visible tips
+	orphanTips []int   // A list of old tips for RURTS
+	hiddenTips []int   // A list of yet unavailable/hidden tips
 	// approvers      map[int][]int // A map of direct approvers, e.g., 5 <- 10,13
 	cw            [][]uint64 // Matrix of propagated weigth branches (cw[i][] is the column of bit values forthe ith tx, stored as uint64 blocks)
 	generator     *rand.Rand // An unsafe random generator
@@ -91,6 +92,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		result.EvaluateTangle(&sim, p, run)
 
 		//Visualize the Tangle
+
 		if p.drawTangleMode > 0 {
 			sim.visualizeTangle(nil, p.drawTangleMode)
 		}

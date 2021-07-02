@@ -18,7 +18,7 @@ func newParameters(variable float64) Parameters {
 		nParallelSims: runtime.NumCPU()/2 - 1,
 		// nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
-		nRun:   2,
+		nRun:   1,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
@@ -26,13 +26,13 @@ func newParameters(variable float64) Parameters {
 		Hsmall:     1,        // Delay for first type of tx,
 		Hlarge:     hlarge,   // Delay for second type of tx
 		p:          variable, //proportion of second type of tx
-		D:          100000,   // max age for RURTS
+		D:          100,      // max age for RURTS
 		Seed:       1,        //
-		TangleSize: 1000 * lambdaForSize,
+		TangleSize: 100 * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
-		minCut:            10 * hlarge * lambdaForSize, // cut data close to the genesis
-		maxCutrange:       10 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
-		stillrecent:       2 * lambdaForSize,           // when is a tx considered recent, and when is it a candidate for left behind
+		minCut:            0 * hlarge * lambdaForSize, // cut data close to the genesis
+		maxCutrange:       0 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
+		stillrecent:       2 * lambdaForSize,          // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate:      false,
 		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
 
@@ -70,7 +70,7 @@ func newParameters(variable float64) Parameters {
 		//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
 		//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
 		//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
-		drawTangleMode:        0,
+		drawTangleMode:        2,
 		horizontalOrientation: true,
 	}
 
