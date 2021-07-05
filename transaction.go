@@ -1,9 +1,8 @@
 package main
 
 import (
+	"fmt"
 	"math"
-
-	"github.com/iotaledger/iota.go/trinary"
 )
 
 // Tx defines the data structure of a transaction
@@ -18,10 +17,11 @@ type Tx struct {
 	aw                       float64 // Approval weight
 	ref                      []int   // parents
 	app                      []int   // approvers
-	firstApprovalTime        float64
+	firstApprovalTime        float64 // first time transaction is approved
+	confirmationTime         int     // first time transaction reached confirmation status
 	firstVisibleApprovalTime float64 // what is this?
 
-	bundle trinary.Hash
+	//bundle trinary.Hash
 }
 
 func (sim *Sim) newGenesis() Tx {
@@ -33,6 +33,7 @@ func (sim *Sim) newGenesis() Tx {
 		aw:                       1,
 		firstApprovalTime:        -1,
 		firstVisibleApprovalTime: -1,
+		confirmationTime:         -1,
 	}
 	sim.tips = append(sim.tips, 0)
 	//sim.cw = append(sim.cw, make([]uint64, 1))
@@ -42,14 +43,16 @@ func (sim *Sim) newGenesis() Tx {
 
 }
 
-func newTx(sim *Sim, previous Tx) Tx {
+func newTx(sim *Sim, previous Tx, nodeID int) Tx {
 	t := Tx{
 		id:                       previous.id + 1,
+		nodeID:                   nodeID,
 		time:                     sim.nextTime(previous),
 		h:                        sim.setDelay(),
 		aw:                       0,
 		firstApprovalTime:        -1,
 		firstVisibleApprovalTime: -1,
+		confirmationTime:         -1,
 	}
 
 	return t
@@ -143,6 +146,26 @@ func (sim *Sim) updateApprovers(t Tx) {
 		sim.tangle[refID].app = appendUnique(sim.tangle[refID].app, t.id)
 	}
 
+}
+
+func (sim *Sim) updateAW(t Tx, nodeID int) {
+	if sim.nodeApprover[nodeID][t.id] {
+		return
+	} else {
+		sim.nodeApprover[nodeID][t.id] = true
+		sim.tangle[t.id].aw += sim.mana[nodeID]
+		//fmt.Println("updating past cone of", t.id)
+		//fmt.Println("List of parents", t.ref)
+		if sim.tangle[t.id].aw > 0.5 {
+			fmt.Println("tangel age: ", sim.tangleAge)
+			sim.tangle[t.id].confirmationTime = sim.tangleAge - sim.tangle[t.id].id //
+		}
+		for _, refID := range t.ref {
+			//fmt.Println("Checking parents", refID)
+			sim.updateAW(sim.tangle[refID], nodeID)
+		}
+		return
+	}
 }
 
 // func (sim *Sim) updateCW(tip Tx) {

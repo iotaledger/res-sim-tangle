@@ -2,33 +2,32 @@ package main
 
 import (
 	"math"
-	"runtime"
 	"strings"
 )
 
 // variable initialization
 func newParameters(variable float64) Parameters {
-	lambda := 20.
+	lambda := 2.
 	// lambda := variable
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
-	hlarge := 40
+	hlarge := 0
 	p := Parameters{
-
+		numberNodes: 3,
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-		nParallelSims: runtime.NumCPU()/2 - 1,
-		// nParallelSims: 1,
+		//nParallelSims: runtime.NumCPU()/2 - 1,
+		nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
 		nRun:   1,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:          8,        // Num of tips to select
+		K:          2,        // Num of tips to select
 		Hsmall:     1,        // Delay for first type of tx,
 		Hlarge:     hlarge,   // Delay for second type of tx
 		p:          variable, //proportion of second type of tx
-		D:          100,      // max age for RURTS
+		D:          1000,     // max age for RURTS
 		Seed:       1,        //
-		TangleSize: 100 * lambdaForSize,
+		TangleSize: 10 * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            0 * hlarge * lambdaForSize, // cut data close to the genesis
 		maxCutrange:       0 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
@@ -111,6 +110,7 @@ func newParameters(variable float64) Parameters {
 //define Parameters types
 type Parameters struct {
 	nParallelSims int
+	numberNodes   int
 	K             int
 	Hsmall        int
 	Hlarge        int
