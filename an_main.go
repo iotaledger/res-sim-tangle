@@ -7,9 +7,9 @@ func (result *Result) initResults(p *Parameters) {
 	if p.CountTipsEnabled {
 		result.tips = newTipsResult(*p)
 	}
-	// if p.CWAnalysisEnabled {
-	// 	result.cw = newCWResult(*p)
-	// }
+	if p.CTAnalysisEnabled {
+		result.confirmationTime = newCTResult(*p)
+	}
 	if p.AnPastCone.Enabled {
 		result.PastCone = newPastConeResult([]string{"avg", "1", "2", "3", "4", "5", "rest"})
 	}
@@ -45,12 +45,12 @@ func (f *Result) FinalEvaluationSaveResults(p Parameters) {
 		// //fmt.Println(f.tips.pdf[0])
 		// //fmt.Println(f.tips.tPDF)
 	}
-	// if p.CWAnalysisEnabled {
-	// 	f.cw.Statistics(p)
-	// 	//fmt.Println(f.cw.ToString(p))
-	// 	fmt.Println(f.cw.cwToString(p, 0))
-	// 	f.cw.Save(p, 0)
-	// }
+	if p.CTAnalysisEnabled {
+		f.confirmationTime.Statistics(p)
+		//fmt.Println(f.cw.ToString(p))
+		//fmt.Println(f.confirmationTime.ctToString(p, 0))
+		f.confirmationTime.Save(p, 0)
+	}
 	if p.AnPastCone.Enabled {
 		f.PastCone.finalprocess(p)
 		f.PastCone.Save(p)
@@ -79,9 +79,9 @@ func (result *Result) EvaluateTangle(sim *Sim, p *Parameters, run int) {
 		sim.countOrphanTips(run, &result.tips)
 		//sim.runTipsStat(&result.tips)
 	}
-	// if p.CWAnalysisEnabled {
-	// 	sim.fillCW(run, &result.cw)
-	// }
+	if p.CTAnalysisEnabled {
+		sim.fillCT(run, &result.confirmationTime)
+	}
 	if p.AnPastCone.Enabled {
 		sim.runAnPastCone(&result.PastCone)
 	}
@@ -101,9 +101,9 @@ func (f *Result) JoinResults(batch Result, p Parameters) {
 	if p.CountTipsEnabled {
 		f.tips = f.tips.Join(batch.tips)
 	}
-	// if p.CWAnalysisEnabled {
-	// 	f.cw = f.cw.Join(batch.cw)
-	// }
+	if p.CTAnalysisEnabled {
+		f.confirmationTime = f.confirmationTime.Join(batch.confirmationTime)
+	}
 	if p.DistSlicesEnabled {
 		f.DistSlices.Join(batch.DistSlices)
 	}

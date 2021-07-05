@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 
 	"github.com/schollz/progressbar"
@@ -51,15 +52,16 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 
 		sim.tangle[0] = sim.newGenesis()
 
-		for i := 0; i < p.numberNodes; i++ {
-			sim.mana[i] = float64(1) / float64(p.numberNodes)
-		}
-		//nTips := 0
-
+		// Populating  mana
+		//f	or i := 0; i < p.numberNodes; i++ {
+		//		sim.mana[i] = float64(1) / float64(p.numberNodes)
+		//}
+		sim.setMana(p.zipf)
+		//fmt.Println(sim.mana)
 		if p.Seed == int64(1) {
 			bar.Add(1)
 		}
-		fmt.Println(sim.mana)
+
 		// counter := 0
 		for i := 1; i < sim.param.TangleSize; i++ {
 			// choose node to issue next transaction
@@ -71,14 +73,14 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			//update set of tips before running TSA, increase the wb matrix here
 			sim.removeOldTips(t)
 			sim.tips = append(sim.tips, sim.revealTips(t)...)
-			fmt.Println("Tip sets", sim.tips)
+			//fmt.Println("Tip sets", sim.tips)
 			//run TSA to select tips to approve
 			if sim.isAdverse(i) {
 				t.ref = sim.param.tsaAdversary.TipSelectAdversary(t, &sim) // adversary tip selection
 			} else {
 				t.ref = sim.param.tsa.TipSelect(t, &sim) //sim.tipsSelection(t, sim.vTips)
 			}
-			fmt.Println(t.ref)
+			//fmt.Println(t.ref)
 			//add the new tx to the Tangle and to the hidden tips set
 			sim.tangle[i] = t
 			//fmt.Println("Increase tangle age")
@@ -92,20 +94,24 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			result.EvaluateAfterTx(&sim, p, run, i)
 
 		}
-		for i := 0; i < p.TangleSize; i++ {
-			fmt.Println(sim.tangle[i].confirmationTime)
+		//for i := 0; i < p.TangleSize; i++ {
+		//	fmt.Println(sim.tangle[i].confirmationTime)
+		//}
+		var meanConfirmation float64
+		counter := 0
+		meanConfirmation = 0
+		for _, tx := range sim.tangle {
+			if tx.confirmationTime > -1 {
+				counter += 1
+				meanConfirmation += float64(tx.confirmationTime)
+			}
 		}
+		meanConfirmation = meanConfirmation / float64(counter)
+		fmt.Println("Mean confirmation time is:", meanConfirmation)
 		//saveTangle(sim.tangle)
 		//fmt.Println("\n\n")
 		//fmt.Println("Tangle size: ", sim.param.TangleSize)
 
-		//	fmt.Println(getCWgrowth(sim.tangle[sim.param.TangleSize-10*int(sim.param.Lambda)], &sim))
-		//fmt.Println(sim.tangle[sim.param.TangleSize-10*int(sim.param.Lambda)].cw)
-
-		//Compare CWs
-		//fmt.Println("CW comparison:", sim.compareCW())
-		// data evaluation after each tangle
-		//result.avgtips.val = append(result.avgtips.val, float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut-sim.param.maxCutrange)/sim.param.Lambda)
 		result.EvaluateTangle(&sim, p, run)
 
 		//Visualize the Tangle
@@ -153,4 +159,16 @@ func (sim Sim) isAdverse(i int) bool {
 		}
 	}
 	return isAdverse
+}
+
+func (sim Sim) setMana(s float64) {
+	var sum float64
+	sum = 0
+	for i := 0; i < int(sim.param.numberNodes); i++ {
+		sum += (math.Pow(float64(i+1), -s))
+	}
+	for i := 0; i < int(sim.param.numberNodes); i++ {
+		sim.mana[i] = (math.Pow(float64(i+1), -s)) / sum
+	}
+	return
 }

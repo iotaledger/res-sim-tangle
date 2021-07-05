@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -36,11 +37,11 @@ func runSimulation(b Benchmark, x float64) Result {
 		f.JoinResults(batch, p)
 	}
 
-	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tD=", p.D)
+	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tD=", p.D, "\tNumberOfNodes=", p.numberNodes, "\tZipf=", p.zipf, "\tTangleSize =", p.TangleSize)
 	f.FinalEvaluationSaveResults(p)
-	fmt.Println("- - - OrphanTips - - -")
-	fmt.Println("X\t\tmean\t\tSTD\t\tmean Ratio\t\tSTD Ratio")
-	fmt.Println(x, "\t", f.tips.meanOrphanTips, "\t", f.tips.STDOrphanTips, "\t", f.tips.meanOrphanTipsRatio, "\t", f.tips.STDOrphanTipsRatio)
+	fmt.Println("- - - Confirmation Rate - - -")
+	fmt.Println("X\tmean\tSTD ")
+	fmt.Println(x, "\t", f.confirmationTime.totalMean, "\t", math.Sqrt(f.confirmationTime.totalVariance))
 	return f
 }
 

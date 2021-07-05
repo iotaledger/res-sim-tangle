@@ -2,33 +2,34 @@ package main
 
 import (
 	"math"
+	"runtime"
 	"strings"
 )
 
 // variable initialization
 func newParameters(variable float64) Parameters {
-	lambda := 2.
+	lambda := 20.
 	// lambda := variable
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
-	hlarge := 0
+	hlarge := 10
 	p := Parameters{
-		numberNodes: 3,
+		numberNodes: 1000,
+		zipf:        1,
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-		//nParallelSims: runtime.NumCPU()/2 - 1,
-		nParallelSims: 1,
+		nParallelSims: runtime.NumCPU()/2 - 1,
+		//nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
-		nRun:   1,
+		nRun:   10,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:          2,        // Num of tips to select
-		Hsmall:     1,        // Delay for first type of tx,
-		Hlarge:     hlarge,   // Delay for second type of tx
-		p:          variable, //proportion of second type of tx
-		D:          1000,     // max age for RURTS
-		Seed:       1,        //
-		TangleSize: 10 * lambdaForSize,
-		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
+		K:                 2,        // Num of tips to select
+		Hsmall:            10,       // Delay for first type of tx,
+		Hlarge:            hlarge,   // Delay for second type of tx
+		p:                 variable, //proportion of second type of tx
+		D:                 1000,     // max age for RURTS
+		Seed:              1,        //
+		TangleSize:        1000 * lambdaForSize,
 		minCut:            0 * hlarge * lambdaForSize, // cut data close to the genesis
 		maxCutrange:       0 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
 		stillrecent:       2 * lambdaForSize,          // when is a tx considered recent, and when is it a candidate for left behind
@@ -44,8 +45,8 @@ func newParameters(variable float64) Parameters {
 		responseKIncrease:       3.,              // at which rate do we increase K
 		maxK:                    20,              // maximum K used for protection, value will get replaced when K is larger
 		// - - - Analysis section - - -
-		CountTipsEnabled: true,
-		// CWAnalysisEnabled:    false,
+		CountTipsEnabled:     false,
+		CTAnalysisEnabled:    true,
 		pOrphanEnabled:       false, // calculate orphanage probability
 		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
 		// measure distance of slices compared to the expected distribution
@@ -69,7 +70,7 @@ func newParameters(variable float64) Parameters {
 		//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
 		//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
 		//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
-		drawTangleMode:        2,
+		drawTangleMode:        0,
 		horizontalOrientation: true,
 	}
 
@@ -111,6 +112,7 @@ func newParameters(variable float64) Parameters {
 type Parameters struct {
 	nParallelSims int
 	numberNodes   int
+	zipf          float64
 	K             int
 	Hsmall        int
 	Hlarge        int
@@ -132,7 +134,6 @@ type Parameters struct {
 	maxCut            int
 	nRun              int
 	stillrecent       int
-	// CWMatrixLen       int
 
 	q                       float64
 	attackType              string
@@ -141,8 +142,8 @@ type Parameters struct {
 	responseKIncrease       float64
 	maxK                    int
 	// - - - Analysis - - -
-	CountTipsEnabled bool
-	// CWAnalysisEnabled bool
+	CountTipsEnabled  bool
+	CTAnalysisEnabled bool
 
 	pOrphanEnabled       bool
 	pOrphanLinFitEnabled bool

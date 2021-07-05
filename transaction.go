@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -150,15 +149,15 @@ func (sim *Sim) updateApprovers(t Tx) {
 
 func (sim *Sim) updateAW(t Tx, nodeID int) {
 	if sim.nodeApprover[nodeID][t.id] {
-		return
+		return // we stop exploring the pas cone
 	} else {
 		sim.nodeApprover[nodeID][t.id] = true
 		sim.tangle[t.id].aw += sim.mana[nodeID]
 		//fmt.Println("updating past cone of", t.id)
 		//fmt.Println("List of parents", t.ref)
 		if sim.tangle[t.id].aw > 0.5 {
-			fmt.Println("tangel age: ", sim.tangleAge)
 			sim.tangle[t.id].confirmationTime = sim.tangleAge - sim.tangle[t.id].id //
+			return                                                                  // we stop exploring the pas cone
 		}
 		for _, refID := range t.ref {
 			//fmt.Println("Checking parents", refID)
@@ -167,82 +166,6 @@ func (sim *Sim) updateAW(t Tx, nodeID int) {
 		return
 	}
 }
-
-// func (sim *Sim) updateCW(tip Tx) {
-// 	defer sim.b.track(runningtime("updateCW-BitMask"))
-// 	sim.cw = append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
-// 	sim.addCW(sim.cw[tip.id], 1)
-// }
-
-// func (sim *Sim) updateCWOpt(tip Tx) {
-// 	defer sim.b.track(runningtime("updateCW-BitMask-Opt"))
-// 	//TODO: use circular array
-// 	// sim.cw[tip.id % CWMatrixLen]
-// 	sim.cw[tip.id%sim.param.CWMatrixLen] = cwBitMaskOpt(sim.tangle[tip.id], sim) //append(sim.cw, cwBitMask(sim.tangle[tip.id], sim.cw))
-// 	sim.addCW(sim.cw[tip.id%sim.param.CWMatrixLen], 1)
-// }
-
-// func (sim *Sim) updateCWDFS(tip Tx) {
-// 	defer sim.b.track(runningtime("updateCW-DFS"))
-// 	set := make(map[int]bool)
-// 	dfs(tip, set, sim)
-// 	//fmt.Println(tip.id, set)
-// 	for k := range set {
-// 		sim.tangle[k].cw2++
-// 	}
-
-// }
-
-// func (sim *Sim) compareCW() bool {
-// 	//fmt.Println(sim.tangle)
-// 	//printApprovers(sim.approvers)
-// 	for _, t := range sim.tangle {
-// 		//fmt.Println(t.id, t.cw, t.cw2)
-// 		if t.cw != t.cw2 {
-// 			return false
-// 		}
-// 	}
-// 	return true
-// }
-
-// func weightedChoose(approvers []int, weights []float64, g *rand.Rand, b Benchmark) (int, int) {
-// 	//defer b.track(runningtime("weightedChoose"))
-// 	var sum float64
-// 	for _, w := range weights {
-// 		sum += w
-// 	}
-// 	rand := g.Float64() * sum
-
-// 	cumSum := weights[0]
-// 	for i := 1; i < len(approvers); i++ {
-// 		if rand < cumSum {
-// 			return approvers[i-1], i - 1
-// 		}
-// 		cumSum += weights[i]
-// 	}
-// 	return approvers[len(approvers)-1], len(approvers) - 1
-// }
-
-//
-// func normalizeWeights(approvers []int, sim *Sim) []float64 {
-// 	//defer sim.b.track(runningtime("normalizeWeights"))
-// 	cumWeigths := make([]float64, len(approvers))
-// 	normalizedWeights := make([]float64, len(approvers))
-// 	maxWeigth := 0.
-// 	for i, a := range approvers {
-// 		cumWeigths[i] = float64(sim.tangle[a].cw)
-// 		if cumWeigths[i] > maxWeigth {
-// 			maxWeigth = cumWeigths[i]
-// 		}
-// 	}
-// 	for i, w := range cumWeigths {
-// 		//w -= maxWeigth + 6.9 // ln(2^10) = 6.9314718056, 10 - number of bits in exponent of double precision
-// 		//normalizedWeights[i] = math.Exp(maxFloat64(-700., sim.param.Alpha*w))
-// 		w -= maxWeigth
-// 		normalizedWeights[i] = math.Exp(sim.param.Alpha * w)
-// 	}
-// 	return normalizedWeights
-// }
 
 func maxFloat64(a, b float64) float64 {
 	if a > b {
@@ -262,163 +185,6 @@ func dfs(t Tx, visited map[int]bool, sim *Sim) {
 	}
 }
 
-// func dfsBitMask(t Tx, sim *Sim) []uint64 {
-// 	set := make(map[int]bool)
-// 	dfs(t, set, sim)
-// 	// find max to know size
-// 	var size, base uint64
-// 	max := 0
-// 	for k := range set {
-// 		if k > max {
-// 			max = k
-// 		}
-// 	}
-// 	base = 64
-// 	size = uint64(max) / base
-// 	refCW := make([]uint64, int(size)+1)
-// 	for k := range set {
-// 		l := uint64(k)
-// 		//update bit
-// 		refCW[int(l/base)] |= (1 << uint64(l%(base)))
-// 	}
-
-// 	// for k := range set {
-// 	// 	l := uint64(k)
-// 	// 	if l/base < size {
-// 	// 		//update bit
-// 	// 		refCW[int(size)-1] |= (1 << uint64(l%(base)))
-// 	// 	} else {
-// 	// 		for i = 0; i <= l/base-size; i++ {
-// 	// 			refCW = append(refCW, 0) //fill gap
-// 	// 		}
-// 	// 		size = l / base
-// 	// 		refCW[len(refCW)-1] |= 1 << uint64(l%(base)) //add new bit
-// 	// 	}
-// 	// }
-// 	return refCW
-// }
-
-// func cwBitMask(t Tx, cw [][]uint64) []uint64 {
-// 	refCW := make([][]uint64, len(t.ref))
-// 	var i uint64
-// 	var base uint64
-// 	base = 64
-// 	for k, link := range t.ref {
-// 		//TODO: add check t.id - link < 50*lambda, if not dfs or additional data structure
-// 		l := uint64(link)
-// 		size := uint64(len(cw[link]))
-// 		refCW[k] = make([]uint64, size)
-// 		copy(refCW[k], cw[link])
-// 		if l/base < size {
-// 			refCW[k][int(size)-1] |= (1 << uint64(l%(base))) //add new link
-// 		} else {
-// 			for i = 0; i <= l/base-size; i++ {
-// 				refCW[k] = append(refCW[k], 0) //fill gap
-// 			}
-// 			refCW[k][len(refCW[k])-1] |= 1 << uint64(l%(base)) //add new link
-// 		}
-// 	}
-
-// 	a := []int{}
-// 	for _, r := range refCW {
-// 		a = append(a, len(r))
-// 	}
-// 	_, max := max(a)
-
-// 	for i, r := range refCW {
-// 		if max-len(r) > 0 {
-// 			padding := make([]uint64, max-len(r))
-// 			refCW[i] = append(refCW[i], padding...)
-// 		}
-// 	}
-
-// 	or := refCW[0]
-// 	for i := 1; i < len(t.ref); i++ {
-// 		for j := 0; j < max; j++ {
-// 			or[j] = or[j] | refCW[i][j]
-// 		}
-// 	}
-// 	return or
-
-// }
-
-// func cwBitMaskOpt(t Tx, sim *Sim) []uint64 {
-// 	refCW := make([][]uint64, len(t.ref))
-// 	var i uint64
-// 	var base uint64
-// 	base = 64
-// 	for k, link := range t.ref {
-// 		l := uint64(link)
-// 		var size uint64
-// 		//check t.id - link < 50*lambda, if not dfs or additional data structure
-// 		if t.id-link < sim.param.CWMatrixLen {
-// 			size = uint64(len(sim.cw[link%sim.param.CWMatrixLen]))
-// 			refCW[k] = make([]uint64, size)
-// 			copy(refCW[k], sim.cw[link%sim.param.CWMatrixLen])
-// 		} else {
-// 			refCW[k] = dfsBitMask(sim.tangle[link], sim)
-// 			size = uint64(len(refCW[k]))
-// 			//fmt.Println("DFS")
-// 		}
-// 		if l/base < size {
-// 			refCW[k][int(size)-1] |= (1 << uint64(l%(base))) //add new link
-// 		} else {
-// 			for i = 0; i <= l/base-size; i++ {
-// 				refCW[k] = append(refCW[k], 0) //fill gap
-// 			}
-// 			refCW[k][len(refCW[k])-1] |= 1 << uint64(l%(base)) //add new link
-// 		}
-// 	}
-
-// 	a := []int{}
-// 	for _, r := range refCW {
-// 		a = append(a, len(r))
-// 	}
-// 	_, max := max(a)
-
-// 	for i, r := range refCW {
-// 		if max-len(r) > 0 {
-// 			padding := make([]uint64, max-len(r))
-// 			refCW[i] = append(refCW[i], padding...)
-// 		}
-// 	}
-
-// 	or := refCW[0]
-// 	for i := 1; i < len(t.ref); i++ {
-// 		for j := 0; j < max; j++ {
-// 			or[j] = or[j] | refCW[i][j]
-// 		}
-// 	}
-// 	return or
-
-// }
-
-// // add BitMask to CW
-// func (sim *Sim) addCW(a []uint64, propweight int) {
-// 	//defer sim.b.track(runningtime("addCW"))
-// 	base := 64
-// 	for i, block := range a { // the i iterates through the blocks, block is the unit64 of the block itself
-// 		for j := 0; j < base; j++ {
-// 			if block&(1<<uint(j)) != 0 {
-// 				sim.tangle[j+(i*base)].cw += propweight
-// 			}
-// 		}
-// 	}
-// }
-
-// // remove BitMask from CW
-// func (sim *Sim) removeCW(a []uint64, propweight int) {
-// 	//defer sim.b.track(runningtime("addCW"))
-// 	base := 64
-// 	for i, block := range a { // the i iterates through the blocks, block is the unit64 of the block itself
-// 		for j := 0; j < base; j++ {
-// 			if block&(1<<uint(j)) != 0 {
-// 				sim.tangle[j+(i*base)].cw -= propweight
-// 			}
-// 		}
-// 	}
-// }
-
 // ReferencedByTx checks for particular tx if it is referenced
 func ReferencedByTx(a []uint64, ID int) bool {
 	base := 64
@@ -432,19 +198,6 @@ func ReferencedByTx(a []uint64, ID int) bool {
 	}
 	return false
 }
-
-// // setCW set CW bit of a particular tx ID
-// func setCW(a []uint64, ID int) {
-// 	base := 64
-// 	block := ID / base
-// 	bitToSet := uint64(ID % base)
-
-// 	if len(a) > block {
-// 		a[block] |= (1 << bitToSet)
-// 	}
-// 	//fmt.Printf("%d \t", ID)
-// 	//printCWRef(a)
-// }
 
 // ReferencedByRecentTx checks for particular tx if it is referenced by recent tx
 func (sim *Sim) ReferencedByRecentTx(searchTx, lastTx, numRecent int) bool {
