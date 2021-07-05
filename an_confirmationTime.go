@@ -104,7 +104,7 @@ func (a ctResult) Save(p Parameters, sample int) error {
 }
 
 func (a ctResult) SaveCT(p Parameters) (err error) {
-	fmt.Println("SaveCT start")
+
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
 	var rateType string
 	if p.ConstantRate {
@@ -126,7 +126,6 @@ func (a ctResult) SaveCT(p Parameters) (err error) {
 		fmt.Printf("error writing string: %v", err)
 		return err
 	}
-	fmt.Println("SaveCT stop")
 	return nil
 
 }

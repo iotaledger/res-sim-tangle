@@ -13,23 +13,23 @@ func newParameters(variable float64) Parameters {
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	hlarge := 10
 	p := Parameters{
-		numberNodes: 1000,
-		zipf:        1,
+		numberNodes: 2000,
+		zipf:        variable,
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
 		nParallelSims: runtime.NumCPU()/2 - 1,
 		//nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
-		nRun:   10,
+		nRun:   1,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:                 2,        // Num of tips to select
-		Hsmall:            10,       // Delay for first type of tx,
-		Hlarge:            hlarge,   // Delay for second type of tx
-		p:                 variable, //proportion of second type of tx
-		D:                 1000,     // max age for RURTS
-		Seed:              1,        //
-		TangleSize:        1000 * lambdaForSize,
+		K:                 2,      // Num of tips to select
+		Hsmall:            10,     // Delay for first type of tx,
+		Hlarge:            hlarge, // Delay for second type of tx
+		p:                 0,      //proportion of second type of tx
+		D:                 10000,  // max age for RURTS
+		Seed:              1,      //
+		TangleSize:        10000 * lambdaForSize,
 		minCut:            0 * hlarge * lambdaForSize, // cut data close to the genesis
 		maxCutrange:       0 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
 		stillrecent:       2 * lambdaForSize,          // when is a tx considered recent, and when is it a candidate for left behind
@@ -45,7 +45,7 @@ func newParameters(variable float64) Parameters {
 		responseKIncrease:       3.,              // at which rate do we increase K
 		maxK:                    20,              // maximum K used for protection, value will get replaced when K is larger
 		// - - - Analysis section - - -
-		CountTipsEnabled:     false,
+		CountTipsEnabled:     true,
 		CTAnalysisEnabled:    true,
 		pOrphanEnabled:       false, // calculate orphanage probability
 		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive

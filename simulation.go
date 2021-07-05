@@ -65,7 +65,21 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		// counter := 0
 		for i := 1; i < sim.param.TangleSize; i++ {
 			// choose node to issue next transaction
-			nodeID = sim.generator.Int() % p.numberNodes
+			//nodeID = sim.generator.Int() % p.numberNodes // every node has same probability
+
+			//choose nodes proportional to their mana
+			random := sim.generator.Float64()
+
+			nodeID = 0
+			cumsum := sim.mana[nodeID]
+			for {
+				if cumsum > random {
+					break
+				}
+				nodeID++
+				cumsum += sim.mana[nodeID]
+			}
+
 			//generate new tx
 			t := newTx(&sim, sim.tangle[i-1], nodeID)
 			//fmt.Println("tx", i)
