@@ -11,7 +11,7 @@ func newParameters(variable float64) Parameters {
 	// lambda := variable
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	hlarge := 1
-	numberNodes := 2000
+	numberNodes := 5000
 	p := Parameters{
 		numberNodes: numberNodes,
 		zipf:        variable,
@@ -37,7 +37,7 @@ func newParameters(variable float64) Parameters {
 		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
 
 		// - - - Attacks - - -
-		q:            .5,              // proportion of adversary txs
+		q:            .0,              // proportion of adversary txs
 		TSAAdversary: "SpamGenesis",   // spam tips linked to the genesis,
 		adversaryID:  numberNodes - 1, // nodeID of adversary
 		// - - - Response - - -

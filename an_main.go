@@ -36,7 +36,7 @@ func (f *Result) FinalEvaluationSaveResults(p Parameters) {
 		f.confirmationTime.Statistics(p)
 		//fmt.Println(f.cw.ToString(p))
 		//fmt.Println(f.confirmationTime.ctToString(p, 0))
-		f.confirmationTime.Save(p, 0)
+		//f.confirmationTime.Save(p, 0)
 	}
 	return
 }

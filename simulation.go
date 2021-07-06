@@ -53,9 +53,7 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		sim.tangle[0] = sim.newGenesis()
 
 		// Populating  mana
-		//f	or i := 0; i < p.numberNodes; i++ {
-		//		sim.mana[i] = float64(1) / float64(p.numberNodes)
-		//}
+
 		sim.setMana(p.zipf)
 		//fmt.Println(sim.mana)
 		if p.Seed == int64(1) {
@@ -101,34 +99,34 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//	fmt.Println(sim.tangle[i].confirmationTime)
 		//}
 		fmt.Println("\n ")
-		fmt.Println("Simulations ended. Started to calculate statistics")
+		//fmt.Println("Simulations ended. Started to calculate statistics")
 		// calculating the mean confirmation time
-		var meanConfirmation float64
-		counter := 0
-		meanConfirmation = 0
-		for _, tx := range sim.tangle {
-			if tx.confirmationTime > -1 {
-				counter += 1
-				meanConfirmation += float64(tx.confirmationTime)
-			}
-		}
-		meanConfirmation = meanConfirmation / float64(counter)
-		//  calculating the sd confirmation time
-
-		var sdConfirmation float64
-		counter = 0
-		sdConfirmation = 0
-		for _, tx := range sim.tangle {
-			if tx.confirmationTime > -1 {
-				counter += 1
-				sdConfirmation += math.Pow(float64(tx.confirmationTime)-meanConfirmation, 2)
-			}
-		}
-		sdConfirmation = math.Sqrt(sdConfirmation / float64(counter))
-
-		fmt.Println("Mean confirmation time is:", meanConfirmation)
-		fmt.Println("SD confirmation time is:", sdConfirmation)
-		//saveTangle(sim.tangle)
+		//var meanConfirmation float64
+		//counter := 0
+		//meanConfirmation = 0
+		//for _, tx := range sim.tangle {
+		//	if tx.confirmationTime > -1 {
+		//		counter += 1
+		//		meanConfirmation += float64(tx.confirmationTime)
+		//	}
+		//}
+		//meanConfirmation = meanConfirmation / float64(counter)
+		////  calculating the sd confirmation time
+		//
+		//var sdConfirmation float64
+		//counter = 0
+		//sdConfirmation = 0
+		//for _, tx := range sim.tangle {
+		//	if tx.confirmationTime > -1 {
+		//		counter += 1
+		//		sdConfirmation += math.Pow((float64(tx.confirmationTime) - meanConfirmation), 2)
+		//	}
+		//}
+		//sdConfirmation = math.Sqrt(sdConfirmation / float64(counter))
+		//
+		//fmt.Println("Mean confirmation time is:", meanConfirmation)
+		//fmt.Println("SD confirmation time is:", sdConfirmation)
+		////saveTangle(sim.tangle)
 		//fmt.Println("\n\n")
 		//fmt.Println("Tangle size: ", sim.param.TangleSize)
 
@@ -141,16 +139,12 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		}
 
 	}
-
-	//fmt.Println("E(L):", float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut*2)/sim.param.Lambda/float64(sim.param.nRun))
 	return result, performance
 }
 
 func (sim *Sim) clearSim() {
-	// sim.approvers = make(map[int][]int)
 	sim.b = make(Benchmark)
 	sim.tangleAge = 0
-	//sim.nodeApprover = [][]bool{}
 	sim.nodeApprover = make([][]bool, sim.param.numberNodes)
 	for i := 0; i < sim.param.numberNodes; i++ {
 		sim.nodeApprover[i] = make([]bool, sim.param.TangleSize)
@@ -158,15 +152,11 @@ func (sim *Sim) clearSim() {
 			sim.nodeApprover[i][j] = false
 		}
 	}
-	//sim.mana = []float64{}
 	sim.mana = make([]float64, sim.param.numberNodes)
 	sim.tangle = make([]Tx, sim.param.TangleSize)
 	sim.tips = []int{}
 	sim.orphanTips = []int{}
 	sim.hiddenTips = []int{}
-
-	// sim.spinePastCone = make(map[int]Tx)
-	// sim.spineApprovers = make(map[int][]int)
 }
 
 func (sim Sim) isAdverse(i int) bool {

@@ -5,8 +5,6 @@ import (
 	"math"
 	"math/rand"
 	"os"
-
-	"github.com/willf/bitset"
 )
 
 // TipSelector defines the interface for a TSA
@@ -22,56 +20,6 @@ type URTS struct {
 // RURTS implements the restricted uniform random tip selection algorithm, where txs are only valid tips up to some age D
 type RURTS struct {
 	TipSelector
-}
-
-// getReferences returns the set of all the transactions directly or indirectly referenced by t.
-// The references are computed using recursion and dynamic programming.
-func getReferences(t int, tangle []Tx, cache []*bitset.BitSet) *bitset.BitSet {
-	if cache[t] != nil {
-		return cache[t]
-	}
-
-	result := bitset.New(uint(t))
-	for _, r := range tangle[t].ref {
-		result.InPlaceUnion(getReferences(r, tangle, cache))
-		result.Set(uint(r))
-	}
-	cache[t] = result
-	return result
-}
-
-// heaviestPairs finds the tip pairs the reference the most transactions.
-func heaviestPairs(sim *Sim) [][2]int {
-	// cache the references of all the nodes
-	cache := make([]*bitset.BitSet, len(sim.tangle))
-	cache[0] = bitset.New(0) // genesis has no referenced txs
-
-	var bestWeight uint
-	var bestResults [][2]int
-
-	// loop through all pairs of tips and find the pair with the most referenced txs.
-	for _, t1 := range sim.tips {
-		ref1 := getReferences(t1, sim.tangle, cache)
-
-		for _, t2 := range sim.tips {
-			if t1 >= t2 {
-				continue // we don't care about the order in the pair
-			}
-
-			ref2 := getReferences(t2, sim.tangle, cache)
-
-			// the weight are all the txs referenced by t1,t2 plus t1 and t2 themselves
-			weight := ref1.UnionCardinality(ref2) + 2
-			if weight > bestWeight {
-				bestWeight = weight
-				bestResults = [][2]int{[2]int{t1, t2}}
-			} else if weight == bestWeight {
-				bestResults = append(bestResults, [2]int{t1, t2})
-			}
-		}
-	}
-
-	return bestResults
 }
 
 // TipSelect selects k tips

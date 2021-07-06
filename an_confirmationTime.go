@@ -5,8 +5,6 @@ import (
 	"math"
 	"os"
 	"sort"
-
-	"gonum.org/v1/gonum/stat"
 )
 
 type ctResult struct {
@@ -18,10 +16,9 @@ type ctResult struct {
 }
 
 func newCTResult(p Parameters) ctResult {
-	// variables initialization for entropy
 	var result ctResult
 	result.confirmationTime = make([][]int, p.nRun)
-	for i := range result.confirmationTime {
+	for i := 0; i < p.nRun; i++ {
 		result.confirmationTime[i] = make([]int, p.TangleSize)
 	}
 	result.mean = make([]float64, p.TangleSize)
@@ -35,37 +32,63 @@ func (sim *Sim) fillCT(run int, r *ctResult) {
 	}
 	//order row
 	sort.Sort(sort.Reverse(sort.IntSlice(r.confirmationTime[run])))
-
 }
 
 func (r *ctResult) Statistics(p Parameters) {
 	var confirmed bool
-	for j := range r.mean {
+	var counter int
+	var mean float64
+	var variance float64
+	for j := 0; j < p.TangleSize; j++ {
 		confirmed = true
-		var col []float64
-		for i := range r.confirmationTime {
-			if r.confirmationTime[i][j] == 1-1 {
+		counter = 0
+		mean = 0
+		variance = 0
+		for i := 0; i < p.nRun; i++ {
+			if r.confirmationTime[i][j] == -1 {
 				r.mean[j] = -1
 				r.variance[j] = -1
 				confirmed = false
 				break
 			}
+			mean += float64(r.confirmationTime[i][j])
+			counter++
 		}
 		if confirmed {
-			r.mean[j], r.variance[j] = stat.MeanVariance(col, nil)
+			mean = mean / float64(counter)
+			counter = 0
+			for i := 0; i < p.nRun; i++ {
+				variance += math.Pow((float64(r.confirmationTime[i][j]) - mean), 2)
+				counter++
+			}
+			r.mean[j] = mean
+			r.variance[j] = variance / float64(counter)
 		}
 	}
-	var set []float64
-	for j := range r.mean {
-		for i := range r.confirmationTime {
+	counter = 0
+	mean = 0
+	for j := 0; j < p.TangleSize; j++ {
+		for i := 0; i < p.nRun; i++ {
 			if r.confirmationTime[i][j] > -1 {
-				set = append(set, float64(r.confirmationTime[i][j]))
+				counter += 1
+				mean += float64(r.confirmationTime[i][j])
 			}
 		}
-		//fmt.Println("Len col:", len(col))
-		r.totalMean, r.totalVariance = stat.MeanVariance(set, nil)
 	}
-
+	mean = mean / float64(counter)
+	counter = 0
+	variance = 0
+	for j := 0; j < p.TangleSize; j++ {
+		for i := 0; i < p.nRun; i++ {
+			if r.confirmationTime[i][j] > -1 {
+				counter += 1
+				variance += math.Pow((mean - float64(r.confirmationTime[i][j])), 2)
+			}
+		}
+	}
+	r.totalMean = mean
+	r.totalVariance = variance / float64(counter)
+	fmt.Println("Stopping Statistics")
 	// total pdf
 	// r.tPDF = MetricIntInt{"pdf", make(map[int]int)}
 	// for _, row := range r.pdf {
@@ -80,26 +103,30 @@ func (a ctResult) Join(b ctResult) ctResult {
 	}
 	var result ctResult
 	result.confirmationTime = append(a.confirmationTime, b.confirmationTime...)
-	result.mean = a.mean
-	result.variance = a.variance
+	//result.mean = a.mean   // placeholder to be checked
+	//result.variance = a.variance
 	return result
 }
 
 func (a ctResult) ctToString(p Parameters, sample int) string {
+	fmt.Println("Starting ctToString")
 	result := "# CT of each tx (descendent order)\n"
 	result += "#Index\t\tsample\t\tavg\t\tvar\t\tstd\n"
 	for j := range a.confirmationTime[0] {
 		result += fmt.Sprintf("%d\t\t%d\t\t%.2f\t\t%.2f\t\t%.4f\n", j, a.confirmationTime[sample][j], a.mean[j], a.variance[j], math.Sqrt(a.variance[j]))
 	}
+	fmt.Println("Stopping ctToString")
 	return result
 }
 
 func (a ctResult) Save(p Parameters, sample int) error {
+	fmt.Println("Starting Save CT")
 	err := a.SaveCT(p)
 	if err != nil {
 		fmt.Println("error Saving CT", err)
 		return err
 	}
+	fmt.Println("Stopping Save CT")
 	return err
 }
 
