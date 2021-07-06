@@ -19,10 +19,7 @@ import (
 // input: path, if != nil, is the path to highlight
 // input: mode, is the type of graph:
 //			1: simple Tangle with/without highlighed path
-//			2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
-//			3: Tangle with tx visiting probability in red gradients
-//			4: Tangle with highlighted path of random walker transitioning to first approver
-//			5: Tangle with highlighted path of random walker transitioning to last approver
+//
 func (sim *Sim) visualizeTangle(path map[int]int, mode int) {
 	G := createTangleGraph(0, sim, path, mode)
 	f, err := os.Create("graph/TangleGraph.dot")

@@ -97,7 +97,7 @@ func (a ctResult) ctToString(p Parameters, sample int) string {
 func (a ctResult) Save(p Parameters, sample int) error {
 	err := a.SaveCT(p)
 	if err != nil {
-		fmt.Println("error Saving CW", err)
+		fmt.Println("error Saving CT", err)
 		return err
 	}
 	return err

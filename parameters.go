@@ -2,74 +2,57 @@ package main
 
 import (
 	"math"
-	"runtime"
 	"strings"
 )
 
 // variable initialization
 func newParameters(variable float64) Parameters {
-	lambda := 20.
+	lambda := 100. // transaction per seconds
 	// lambda := variable
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
-	hlarge := 10
+	hlarge := 1
+	numberNodes := 2000
 	p := Parameters{
-		numberNodes: 2000,
+		numberNodes: numberNodes,
 		zipf:        variable,
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-		nParallelSims: runtime.NumCPU()/2 - 1,
-		//nParallelSims: 1,
+		//nParallelSims: runtime.NumCPU()/2 - 1,
+		nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
 		nRun:   1,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
 		K:                 2,      // Num of tips to select
-		Hsmall:            10,     // Delay for first type of tx,
+		Hsmall:            1,      // Delay for first type of tx, should be set to 1. Delay in seconds
 		Hlarge:            hlarge, // Delay for second type of tx
 		p:                 0,      //proportion of second type of tx
 		D:                 10000,  // max age for RURTS
 		Seed:              1,      //
-		TangleSize:        10000 * lambdaForSize,
-		minCut:            0 * hlarge * lambdaForSize, // cut data close to the genesis
-		maxCutrange:       0 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
-		stillrecent:       2 * lambdaForSize,          // when is a tx considered recent, and when is it a candidate for left behind
+		TangleSize:        1000 * lambdaForSize,
+		minCut:            10 * hlarge * lambdaForSize, // cut data close to the genesis
+		maxCutrange:       10 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
+		stillrecent:       20 * lambdaForSize,          // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate:      false,
 		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
 
 		// - - - Attacks - - -
-		q:            .0,            // proportion of adversary txs
-		TSAAdversary: "SpamGenesis", // spam tips linked to the genesis,
+		q:            .5,              // proportion of adversary txs
+		TSAAdversary: "SpamGenesis",   // spam tips linked to the genesis,
+		adversaryID:  numberNodes - 1, // nodeID of adversary
 		// - - - Response - - -
 		responseSpamTipsEnabled: false,           // response dynamically to the tip spam attack
 		acceptableNumberTips:    int(2 * lambda), // when we should start to increase K
 		responseKIncrease:       3.,              // at which rate do we increase K
 		maxK:                    20,              // maximum K used for protection, value will get replaced when K is larger
 		// - - - Analysis section - - -
-		CountTipsEnabled:     true,
-		CTAnalysisEnabled:    true,
-		pOrphanEnabled:       false, // calculate orphanage probability
-		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
-		// measure distance of slices compared to the expected distribution
-		DistSlicesEnabled:    false,
-		DistSlicesByTime:     false, // true = tx time slices, false= tx ID slices
-		DistSlicesLength:     1,     //length of Slices
-		DistSlicesResolution: 100,   // Number of intervals per distance '1', higher number = higher resolution
-		// measure app stats for all txs
-		AppStatsAllEnabled: false, // Approver stats for all txs
-		// AnPastCone Analysis
-		AnPastCone: AnPastCone{false, 5, 40, 5}, //{Enabled, Resolution, MaxT, MaxApp}
-		// AnFutureCone Analysis
-		AnFutureCone: AnFutureCone{false, 5, 40, 5}, //{Enabled, Resolution, MaxT, MaxApp}
+		CountTipsEnabled:  true,
+		CTAnalysisEnabled: true,
 
 		// - - - Drawing - - -
 		//
 		//drawTangleMode = 0: drawing disabled
 		//drawTangleMode = 1: simple Tangle with/without highlighed path
-		//drawTangleMode = 2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
-		//drawTangleMode = 3: Tangle with tx visiting probability in red gradients
-		//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
-		//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
-		//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
 		drawTangleMode:        0,
 		horizontalOrientation: true,
 	}
@@ -137,6 +120,7 @@ type Parameters struct {
 
 	q                       float64
 	attackType              string
+	adversaryID             int
 	responseSpamTipsEnabled bool
 	acceptableNumberTips    int
 	responseKIncrease       float64
@@ -145,46 +129,9 @@ type Parameters struct {
 	CountTipsEnabled  bool
 	CTAnalysisEnabled bool
 
-	pOrphanEnabled       bool
-	pOrphanLinFitEnabled bool
-	AnPastCone           AnPastCone
-	AnFutureCone         AnFutureCone
-	DistSlicesEnabled    bool
-	DistSlicesByTime     bool
-	DistSlicesLength     float64
-	DistSlicesResolution int
-	AppStatsAllEnabled   bool
 	// - - - Drawing - - -
 	//drawTangleMode = 0: drawing disabled
 	//drawTangleMode = 1: simple Tangle with/without highlighed path
-	//drawTangleMode = 2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
-	//drawTangleMode = 3: Tangle with tx visiting probability in red gradients
-	//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
-	//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
-	//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
 	drawTangleMode        int
 	horizontalOrientation bool
-}
-
-// AnPastCone Analysis Past Cone
-type AnPastCone struct {
-	Enabled    bool
-	Resolution float64
-	MaxT       float64
-	MaxApp     int
-}
-
-// AnFutureCone Analysis
-type AnFutureCone struct {
-	Enabled    bool
-	Resolution float64
-	MaxT       float64
-	MaxApp     int
-}
-
-// AnFocusRW Analysis Focus RW
-type AnFocusRW struct {
-	Enabled bool
-	murel   float64 // tx by adversary = murel * lambda
-	nRWs    int     // number of RWs per data point
 }

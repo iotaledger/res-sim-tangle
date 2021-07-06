@@ -68,33 +68,22 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			//nodeID = sim.generator.Int() % p.numberNodes // every node has same probability
 
 			//choose nodes proportional to their mana
+			var t Tx
 			random := sim.generator.Float64()
-
-			nodeID = 0
-			cumsum := sim.mana[nodeID]
-			for {
-				if cumsum > random {
-					break
-				}
-				nodeID++
-				cumsum += sim.mana[nodeID]
-			}
-
-			//generate new tx
-			t := newTx(&sim, sim.tangle[i-1], nodeID)
-			//fmt.Println("tx", i)
-
-			//update set of tips before running TSA, increase the wb matrix here
-			sim.removeOldTips(t)
-			sim.tips = append(sim.tips, sim.revealTips(t)...)
-			//fmt.Println("Tip sets", sim.tips)
-			//run TSA to select tips to approve
-			if sim.isAdverse(i) {
-				t.ref = sim.param.tsaAdversary.TipSelectAdversary(t, &sim) // adversary tip selection
+			if random > sim.param.q { // tx is issued by honest node
+				nodeID = sim.chooseNodeID()
+				t = newTx(&sim, sim.tangle[i-1], nodeID)
+				sim.removeOldTips(t)
+				sim.tips = append(sim.tips, sim.revealTips(t)...)
+				t.ref = sim.param.tsa.TipSelect(t, &sim) // honest TSA
 			} else {
-				t.ref = sim.param.tsa.TipSelect(t, &sim) //sim.tipsSelection(t, sim.vTips)
+				nodeID = sim.param.adversaryID
+				t = newTx(&sim, sim.tangle[i-1], nodeID)
+				sim.removeOldTips(t)
+				sim.tips = append(sim.tips, sim.revealTips(t)...)
+				t.ref = sim.param.tsaAdversary.TipSelectAdversary(t, &sim) // adversary TSA
 			}
-			//fmt.Println(t.ref)
+
 			//add the new tx to the Tangle and to the hidden tips set
 			sim.tangle[i] = t
 			//fmt.Println("Increase tangle age")
@@ -111,6 +100,9 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//for i := 0; i < p.TangleSize; i++ {
 		//	fmt.Println(sim.tangle[i].confirmationTime)
 		//}
+		fmt.Println("\n ")
+		fmt.Println("Simulations ended. Started to calculate statistics")
+		// calculating the mean confirmation time
 		var meanConfirmation float64
 		counter := 0
 		meanConfirmation = 0
@@ -121,7 +113,21 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			}
 		}
 		meanConfirmation = meanConfirmation / float64(counter)
+		//  calculating the sd confirmation time
+
+		var sdConfirmation float64
+		counter = 0
+		sdConfirmation = 0
+		for _, tx := range sim.tangle {
+			if tx.confirmationTime > -1 {
+				counter += 1
+				sdConfirmation += math.Pow(float64(tx.confirmationTime)-meanConfirmation, 2)
+			}
+		}
+		sdConfirmation = math.Sqrt(sdConfirmation / float64(counter))
+
 		fmt.Println("Mean confirmation time is:", meanConfirmation)
+		fmt.Println("SD confirmation time is:", sdConfirmation)
 		//saveTangle(sim.tangle)
 		//fmt.Println("\n\n")
 		//fmt.Println("Tangle size: ", sim.param.TangleSize)
@@ -165,8 +171,8 @@ func (sim *Sim) clearSim() {
 
 func (sim Sim) isAdverse(i int) bool {
 	isAdverse := false
-	if i > sim.param.TangleSize/3 {
-		if i < sim.param.TangleSize*2/3 {
+	if i > sim.param.TangleSize/10 {
+		if i < sim.param.TangleSize*9/10 {
 			if sim.generator.Float64() < sim.param.q {
 				isAdverse = true
 			}
@@ -175,7 +181,7 @@ func (sim Sim) isAdverse(i int) bool {
 	return isAdverse
 }
 
-func (sim Sim) setMana(s float64) {
+func (sim *Sim) setMana(s float64) {
 	var sum float64
 	sum = 0
 	for i := 0; i < int(sim.param.numberNodes); i++ {
@@ -185,4 +191,18 @@ func (sim Sim) setMana(s float64) {
 		sim.mana[i] = (math.Pow(float64(i+1), -s)) / sum
 	}
 	return
+}
+
+func (sim *Sim) chooseNodeID() int {
+	random := sim.generator.Float64()
+	nodeID := 0
+	cumsum := sim.mana[nodeID]
+	for {
+		if cumsum > random {
+			break
+		}
+		nodeID++
+		cumsum += sim.mana[nodeID]
+	}
+	return nodeID
 }
