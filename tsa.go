@@ -24,10 +24,6 @@ type RURTS struct {
 	TipSelector
 }
 
-// HPS implements the "Heaviest Pair Selection" algorithm, where the tips are selected in such a way
-// that the number of referenced transactions is maximized.
-type HPS struct{}
-
 // getReferences returns the set of all the transactions directly or indirectly referenced by t.
 // The references are computed using recursion and dynamic programming.
 func getReferences(t int, tangle []Tx, cache []*bitset.BitSet) *bitset.BitSet {
@@ -76,27 +72,6 @@ func heaviestPairs(sim *Sim) [][2]int {
 	}
 
 	return bestResults
-}
-
-func (HPS) TipSelect(t Tx, sim *Sim) (result []int) {
-	if len(sim.tips) <= sim.param.K {
-		result = append([]int{}, sim.tips...)
-	} else {
-		if sim.param.K != 2 {
-			panic("Only 2 references supported.")
-		}
-		heaviest := heaviestPairs(sim)
-
-		// select a random pair from the set of best pairs
-		result = heaviest[rand.Intn(len(heaviest))][:]
-	}
-
-	// mark the approval time if needed
-	for _, x := range result {
-		if sim.tangle[x].firstApprovalTime < 0 {
-		}
-	}
-	return result
 }
 
 // TipSelect selects k tips

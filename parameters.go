@@ -60,8 +60,6 @@ func newParameters(variable float64) Parameters {
 	// - - - - setup some of the parameter values - - -
 	p.TSA = strings.ToUpper(p.TSA) // make sure string is upper case
 	switch p.TSA {
-	case "HPS":
-		p.tsa = HPS{}
 	case "RURTS":
 		p.tsa = RURTS{}
 	case "URTS":
