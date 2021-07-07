@@ -157,7 +157,10 @@ func (sim *Sim) updateAW(t Tx, nodeID int) {
 		//fmt.Println("List of parents", t.ref)
 		if sim.tangle[t.id].aw > 0.5 {
 			sim.tangle[t.id].confirmationTime = sim.tangleAge - sim.tangle[t.id].id //
-			return                                                                  // we stop exploring the pas cone
+			// we stop exploring the pas cone
+		}
+		if sim.tangle[t.id].aw > 0.8 {
+			return
 		}
 		for _, refID := range t.ref {
 			//fmt.Println("Checking parents", refID)

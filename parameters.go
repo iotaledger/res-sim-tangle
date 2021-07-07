@@ -23,7 +23,7 @@ func newParameters(variable float64) Parameters {
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:                 2,      // Num of tips to select
+		K:                 64,     // Num of tips to select
 		Hsmall:            1,      // Delay for first type of tx, should be set to 1. Delay in seconds
 		Hlarge:            hlarge, // Delay for second type of tx
 		p:                 0,      //proportion of second type of tx
@@ -37,7 +37,7 @@ func newParameters(variable float64) Parameters {
 		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
 
 		// - - - Attacks - - -
-		q:            .0,              // proportion of adversary txs
+		q:            .33,             // proportion of adversary txs
 		TSAAdversary: "SpamGenesis",   // spam tips linked to the genesis,
 		adversaryID:  numberNodes - 1, // nodeID of adversary
 		// - - - Response - - -

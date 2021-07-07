@@ -55,7 +55,8 @@ func run(p Parameters, r *Result, c chan bool) {
 func runForVariables(b Benchmark) {
 	var total string
 	//Xs := []float64{2, 3, 4, 5, 6, 7, 8, 9, 10}
-	Xs := []float64{0, .4, .8, 1.0, 1.2, 1.6, 1.8, 2.0, 3.0}
+	Xs := []float64{0, .4, .8, 1.0, 1.2, 1.6, 1.8, 2.0}
+	//Xs := []float64{1.6, 1.65, 1.7, 1.725, 1.75, 1.8, 2.0}
 	//Xs := []float64{1.0}
 	//NXs := 2
 	//Xs := make([]float64, NXs+1)
