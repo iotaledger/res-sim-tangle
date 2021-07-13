@@ -62,8 +62,8 @@ func (r *tipsResult) Statistics(p Parameters) {
 	//fmt.Println("Param:", p.minCut, p.TangleSize-p.minCut)
 	r.tAVG = stat.Mean(r.mean[p.minCut:], nil)
 	r.tSTD = math.Sqrt(stat.Mean(r.variance[p.minCut:], nil))
-	r.meanOrphanTips = stat.MeanInt(r.nOrphanTips)
-	r.STDOrphanTips = math.Sqrt(stat.VarInt(r.nOrphanTips))
+	r.meanOrphanTips = MeanInt(r.nOrphanTips)
+	r.STDOrphanTips = math.Sqrt(VarInt(r.nOrphanTips))
 	r.meanOrphanTipsRatio = r.meanOrphanTips / float64(p.TangleSize)
 	r.STDOrphanTipsRatio = r.STDOrphanTips / float64(p.TangleSize)
 	// total pdf
@@ -189,4 +189,25 @@ func (a tipsResult) SaveOrphanTips(p Parameters) (err error) {
 
 	return nil
 
+}
+
+func MeanInt(x []int) float64 {
+	sum := 0
+	for _, xs := range x {
+		sum += xs
+	}
+	return float64(sum) / float64(len(x))
+}
+
+func VarInt(x []int) float64 {
+	sum := 0.
+	sum2 := 0.
+	for _, xs := range x {
+		sum += float64(xs)
+	}
+	for _, xs := range x {
+		a := float64(xs) - sum/float64(len(x))
+		sum2 += a * a
+	}
+	return float64(sum2) / float64(len(x))
 }

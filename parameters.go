@@ -16,7 +16,7 @@ func newParameters(variable float64) Parameters {
 		nParallelSims: runtime.NumCPU()/2 - 1,
 		// nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
-		nRun:   1000,
+		nRun:   10,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
@@ -36,14 +36,14 @@ func newParameters(variable float64) Parameters {
 		q:            .9,            // proportion of adversary txs
 		TSAAdversary: "SpamGenesis", // spam tips linked to the genesis,
 		// - - - Response - - -
-		responseSpamTipsEnabled: true,            // response dynamically to the tip spam attack
+		responseSpamTipsEnabled: false,           // response dynamically to the tip spam attack
 		acceptableNumberTips:    int(2 * lambda), // when we should start to increase K
 		responseKIncrease:       3.,              // at which rate do we increase K
 		maxK:                    20,              // maximum K used for protection, value will get replaced when K is larger
 		// - - - Analysis section - - -
 		CountTipsEnabled: true,
 		// CWAnalysisEnabled:    false,
-		pOrphanEnabled:       false, // calculate orphanage probability
+		pOrphanEnabled:       true,  // calculate orphanage probability
 		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
 		// measure distance of slices compared to the expected distribution
 		DistSlicesEnabled:    false,
