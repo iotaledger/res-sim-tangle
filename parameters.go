@@ -1,76 +1,45 @@
 package main
 
 import (
+	"github.com/iotaledger/hive.go/configuration"
 	"math"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
 // variable initialization
-func newParameters(variable float64) Parameters {
-	lambda := 20.
-	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
-	p := Parameters{
-
-		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-		nParallelSims: runtime.NumCPU()/2 - 1,
-		// nParallelSims: 1,
-		// nRun:          int(math.Min(10000., 10000/lambda)),
-		nRun:   10,
-		Lambda: lambda,
-		TSA:    "RURTS",
-		// TSA:               "URTS",
-		K:          2, // Num of tips to select
-		H:          1,
-		D:          int(variable), // max age for RURTS
-		Seed:       1,             //
-		TangleSize: 300 * lambdaForSize,
-		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
-		minCut:            51 * lambdaForSize, // cut data close to the genesis
-		maxCutrange:       52 * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
-		stillrecent:       2 * lambdaForSize,  // when is a tx considered recent, and when is it a candidate for left behind
-		ConstantRate:      false,
-		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
-
-		// - - - Attacks - - -
-		q:            .9,            // proportion of adversary txs
-		TSAAdversary: "SpamGenesis", // spam tips linked to the genesis,
-		// - - - Response - - -
-		responseSpamTipsEnabled: false,           // response dynamically to the tip spam attack
-		acceptableNumberTips:    int(2 * lambda), // when we should start to increase K
-		responseKIncrease:       3.,              // at which rate do we increase K
-		maxK:                    20,              // maximum K used for protection, value will get replaced when K is larger
-		// - - - Analysis section - - -
-		CountTipsEnabled: true,
-		// CWAnalysisEnabled:    false,
-		pOrphanEnabled:       true,  // calculate orphanage probability
-		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
-		// measure distance of slices compared to the expected distribution
-		DistSlicesEnabled:    false,
-		DistSlicesByTime:     false, // true = tx time slices, false= tx ID slices
-		DistSlicesLength:     1,     //length of Slices
-		DistSlicesResolution: 100,   // Number of intervals per distance '1', higher number = higher resolution
-		// measure app stats for all txs
-		AppStatsAllEnabled: false, // Approver stats for all txs
-		// AnPastCone Analysis
-		AnPastCone: AnPastCone{false, 5, 40, 5}, //{Enabled, Resolution, MaxT, MaxApp}
-		// AnFutureCone Analysis
-		AnFutureCone: AnFutureCone{false, 5, 40, 5}, //{Enabled, Resolution, MaxT, MaxApp}
-
-		// - - - Drawing - - -
-		//
-		//drawTangleMode = 0: drawing disabled
-		//drawTangleMode = 1: simple Tangle with/without highlighed path
-		//drawTangleMode = 2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
-		//drawTangleMode = 3: Tangle with tx visiting probability in red gradients
-		//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
-		//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
-		//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
-		drawTangleMode:        0,
-		horizontalOrientation: true,
+func newParameters(age float64) Parameters {
+	p := Parameters{}
+	config := configuration.New()
+	err := config.LoadFile("./parameters.yml")
+	if err != nil {
+		panic(err)
 	}
+	configuration.BindParameters(p)
+	configuration.UpdateBoundParameters(config)
 
 	// - - - - setup some of the parameter values - - -
+
+	if p.nParallelSims == -1 {
+		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threadingif
+		p.nParallelSims = runtime.NumCPU()/2 - 1
+	}
+
+	if age != -1 {
+		p.D = int(age)
+	}
+	lambdaForSize := int(math.Max(1, p.Lambda)) // make sure this value is at least 1
+	p.TangleSize = p.TangleSize * lambdaForSize
+	p.minCut = p.minCut * lambdaForSize
+	p.maxCutrange = p.maxCutrange * lambdaForSize
+	p.maxCut = p.TangleSize - p.maxCutrange
+	p.stillrecent = p.stillrecent * lambdaForSize
+	p.acceptableNumberTips = p.acceptableNumberTips * lambdaForSize
+
+	p.AnPastCone = coneFromParameters(p.PastCone)
+	p.AnFutureCone = coneFromParameters(p.FutureCone)
+
 	p.TSA = strings.ToUpper(p.TSA) // make sure string is upper case
 	switch p.TSA {
 	case "HPS":
@@ -92,8 +61,6 @@ func newParameters(variable float64) Parameters {
 		p.tsaAdversary = SpamGenesis{}
 	}
 
-	p.maxCut = p.TangleSize - p.maxCutrange
-
 	if p.maxK < p.K {
 		p.maxK = p.K
 	}
@@ -104,15 +71,41 @@ func newParameters(variable float64) Parameters {
 	return p
 }
 
-//define Parameters types
+func coneFromParameters(cone []string) AnCone {
+	enabled, err := strconv.ParseBool(cone[0])
+	if err != nil {
+		panic(err)
+	}
+	resolution, err := strconv.ParseFloat(cone[1], 64)
+	if err != nil {
+		panic(err)
+	}
+	maxT, err := strconv.ParseFloat(cone[2], 64)
+	if err != nil {
+		panic(err)
+	}
+	maxApp, err := strconv.ParseInt(cone[3], 10, 32)
+	if err != nil {
+		panic(err)
+	}
+	return AnCone{enabled,
+		resolution,
+		maxT,
+		int(maxApp),
+	}
+}
+
+// Parameters define Parameters types
 type Parameters struct {
-	nParallelSims int
-	K             int
-	H             int
-	D             int
-	Lambda        float64
-	// tsaType           string
+	nParallelSims     int
+	K                 int
+	H                 int
+	D                 int
+	Lambda            float64
 	TangleSize        int
+	minCut            int
+	maxCutrange       int
+	maxCut            int
 	Seed              int64
 	TSA               string
 	tsa               TipSelector
@@ -121,9 +114,6 @@ type Parameters struct {
 	SingleEdgeEnabled bool
 	ConstantRate      bool
 	DataPath          string
-	minCut            int
-	maxCutrange       int
-	maxCut            int
 	nRun              int
 	stillrecent       int
 	// CWMatrixLen       int
@@ -140,8 +130,10 @@ type Parameters struct {
 
 	pOrphanEnabled       bool
 	pOrphanLinFitEnabled bool
-	AnPastCone           AnPastCone
-	AnFutureCone         AnFutureCone
+	PastCone             []string
+	AnPastCone           AnCone
+	FutureCone           []string
+	AnFutureCone         AnCone
 	DistSlicesEnabled    bool
 	DistSlicesByTime     bool
 	DistSlicesLength     float64
@@ -159,16 +151,8 @@ type Parameters struct {
 	horizontalOrientation bool
 }
 
-// AnPastCone Analysis Past Cone
-type AnPastCone struct {
-	Enabled    bool
-	Resolution float64
-	MaxT       float64
-	MaxApp     int
-}
-
-// AnFutureCone Analysis
-type AnFutureCone struct {
+// AnCone Analysis results
+type AnCone struct {
 	Enabled    bool
 	Resolution float64
 	MaxT       float64
