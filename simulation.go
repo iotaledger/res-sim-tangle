@@ -32,13 +32,13 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 	sim.param = *p
 	result.initResults(p)
 	sim.clearSim()
-	//fmt.Println(p.nRun)
-	bar := progressbar.New(sim.param.nRun)
+	//fmt.Println(p.NRun)
+	bar := progressbar.New(sim.param.NRun)
 
 	// - - - - - - - - - - - - - - - - - - - - -
-	// run nRun tangle sims
+	// run NRun tangle sims
 	// - - - - - - - - - - - - - - - - - - - - -
-	for run := 0; run < sim.param.nRun; run++ {
+	for run := 0; run < sim.param.NRun; run++ {
 
 		sim.clearSim()
 		//fmt.Println(sim)
@@ -86,17 +86,17 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//Compare CWs
 		//fmt.Println("CW comparison:", sim.compareCW())
 		// data evaluation after each tangle
-		//result.avgtips.val = append(result.avgtips.val, float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut-sim.param.maxCutrange)/sim.param.Lambda)
+		//result.avgtips.val = append(result.avgtips.val, float64(nTips)/float64(sim.param.TangleSize-sim.param.MinCut-sim.param.MaxCutRange)/sim.param.Lambda)
 		result.EvaluateTangle(&sim, p, run)
 
 		//Visualize the Tangle
-		if p.drawTangleMode > 0 {
-			sim.visualizeTangle(nil, p.drawTangleMode)
+		if p.DrawTangleMode > 0 {
+			sim.visualizeTangle(nil, p.DrawTangleMode)
 		}
 
 	}
 
-	//fmt.Println("E(L):", float64(nTips)/float64(sim.param.TangleSize-sim.param.minCut*2)/sim.param.Lambda/float64(sim.param.nRun))
+	//fmt.Println("E(L):", float64(nTips)/float64(sim.param.TangleSize-sim.param.MinCut*2)/sim.param.Lambda/float64(sim.param.NRun))
 	return result, performance
 }
 
@@ -120,7 +120,7 @@ func (sim Sim) isAdverse(i int) bool {
 	isAdverse := false
 	if i > sim.param.TangleSize/3 {
 		if i < sim.param.TangleSize*2/3 {
-			if sim.generator.Float64() < sim.param.q {
+			if sim.generator.Float64() < sim.param.Q {
 				isAdverse = true
 			}
 		}

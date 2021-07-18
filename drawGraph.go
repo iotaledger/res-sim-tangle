@@ -52,7 +52,7 @@ func createTangleGraph(tx int, sim *Sim, path map[int]int, mode int) *graphviz.G
 	sortRankTransactons(sim, nodeTxs, G)
 	G.DefaultNodeAttribute(graphviz.Shape, graphviz.ShapeCircle)
 	G.GraphAttribute(graphviz.NodeSep, "0.3")
-	if sim.param.horizontalOrientation {
+	if sim.param.HorizontalOrientation {
 		G.GraphAttribute("rankdir", "RL")
 	}
 	//G.GraphAttribute("bgcolor", "transparent")

@@ -18,7 +18,7 @@ type cwResult struct {
 func newCWResult(p Parameters) cwResult {
 	// variables initialization for entropy
 	var result cwResult
-	result.cw = make([][]int, p.nRun)
+	result.cw = make([][]int, p.NRun)
 	for i := range result.cw {
 		result.cw[i] = make([]int, p.TangleSize)
 	}
@@ -45,9 +45,9 @@ func (r *cwResult) Statistics(p Parameters) {
 		r.mean[j], r.variance[j] = stat.MeanVariance(col, nil)
 	}
 	//fmt.Println("Len mean:", len(r.mean))
-	//fmt.Println("Param:", p.minCut, p.TangleSize-p.minCut)
-	//r.tAVG = stat.Mean(r.mean[p.minCut:], nil)
-	//r.tSTD = math.Sqrt(stat.Mean(r.variance[p.minCut:], nil))
+	//fmt.Println("Param:", p.MinCut, p.TangleSize-p.MinCut)
+	//r.tAVG = stat.Mean(r.mean[p.MinCut:], nil)
+	//r.tSTD = math.Sqrt(stat.Mean(r.variance[p.MinCut:], nil))
 
 	// total pdf
 	// r.tPDF = MetricIntInt{"pdf", make(map[int]int)}

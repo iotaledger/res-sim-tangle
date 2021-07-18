@@ -30,10 +30,10 @@ type pOrphanResult struct {
 }
 
 func (sim *Sim) runOrphaningP(result *pOrphanResult) {
-	// remove txs grater than maxCut from both tangle and spine tangle so to have a comparable cone
-	newTangle := sim.tangle[sim.param.minCut:sim.param.maxCut]
-	// calculate spine Tangle up to maxCut (all txs (directly/indirectly) referenced by a GHOST particle (alpha = infinity)
-	newspinePastCone := sliceMap(sim.spinePastCone, sim.param.minCut, sim.param.maxCut)
+	// remove txs grater than MaxCut from both tangle and spine tangle so to have a comparable cone
+	newTangle := sim.tangle[sim.param.MinCut:sim.param.MaxCut]
+	// calculate spine Tangle up to MaxCut (all txs (directly/indirectly) referenced by a GHOST particle (alpha = infinity)
+	newspinePastCone := sliceMap(sim.spinePastCone, sim.param.MinCut, sim.param.MaxCut)
 
 	result.tTangle = append(result.tTangle, getAverageApprovalTime(sliceToMap(newTangle)))
 	result.tSpine = append(result.tSpine, getAverageApprovalTime(newspinePastCone))
@@ -44,7 +44,7 @@ func (sim *Sim) runOrphaningP(result *pOrphanResult) {
 
 	recentTipsCones := sim.runOrphanageRecent(result) // calculate op2
 
-	if sim.param.pOrphanLinFitEnabled {
+	if sim.param.POrphanLinFitEnabled {
 		sim.runOrphanageLinFit(result) // calculate op3
 	}
 
@@ -96,7 +96,7 @@ func (a pOrphanResult) String() string {
 func newPOrphanResult(p *Parameters) pOrphanResult {
 	// variables initialization for pOprhan
 	var result pOrphanResult
-	if p.pOrphanLinFitEnabled {
+	if p.POrphanLinFitEnabled {
 		result.nTipsAtID = append(result.nTipsAtID, make([]int, p.TangleSize)...)
 		result.nOrphanAtID = append(result.nOrphanAtID, make([]int, p.TangleSize)...)
 	}
@@ -114,8 +114,8 @@ func sliceMap(m map[int]Tx, lBound, uBound int) map[int]Tx {
 }
 
 func getOrphanTxs(sim *Sim) map[int]Tx {
-	newTangle := sim.tangle[sim.param.minCut:sim.param.maxCut]
-	newspinePastCone := sliceMap(sim.spinePastCone, sim.param.minCut, sim.param.maxCut)
+	newTangle := sim.tangle[sim.param.MinCut:sim.param.MaxCut]
+	newspinePastCone := sliceMap(sim.spinePastCone, sim.param.MinCut, sim.param.MaxCut)
 	result := make(map[int]Tx)
 
 	for k, v := range newTangle {
@@ -223,7 +223,7 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
 	_, lastVisibleTx := max(sim.tips)
 
 	// finding the size of coneUnionBitMask
-	for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.stillrecent; tx-- {
+	for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.StillRecent; tx-- {
 		if len(sim.cw[tx]) > size {
 			size = len(sim.cw[tx])
 		}
@@ -232,7 +232,7 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
 	coneUnionBitMask := make([]uint64, size)
 
 	//ORing all the cones
-	for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.stillrecent; tx-- {
+	for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.StillRecent; tx-- {
 		for block := 0; block < len(sim.cw[tx]); block++ {
 			coneUnionBitMask[block] |= sim.cw[tx][block]
 		}
@@ -244,7 +244,7 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
 		var i uint
 		for i = 0; i < base; i++ {
 			id := block*int(base) + int(i)
-			if id < sim.param.maxCut && id >= sim.param.minCut {
+			if id < sim.param.MaxCut && id >= sim.param.MinCut {
 				//if coneUnionBitMask[block]&(1<<i) != 0 {
 				if (coneUnionBitMask[block]>>i)&1 == 1 {
 					ones[id] = sim.tangle[id]
@@ -256,12 +256,12 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
 	}
 
 	// set := make(map[int]bool)
-	// for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.stillrecent; tx-- {
+	// for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.StillRecent; tx-- {
 	// 	dfs(sim.tangle[tx], set, sim)
 	// }
 
-	//ones = sliceMap(ones, sim.param.minCut, sim.param.maxCut)
-	//zeros = sliceMap(zeros, sim.param.minCut, sim.param.maxCut)
+	//ones = sliceMap(ones, sim.param.MinCut, sim.param.MaxCut)
+	//zeros = sliceMap(zeros, sim.param.MinCut, sim.param.MaxCut)
 	top := 0
 	for id := range zeros {
 		if len(sim.tangle[id].app) == 0 {
@@ -269,8 +269,8 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
 		}
 	}
 
-	result.op2 = append(result.op2, 1-float64(len(ones))/float64(sim.param.maxCut-sim.param.minCut))
-	result.top2 = append(result.top2, float64(top)/float64(sim.param.maxCut-sim.param.minCut))
+	result.op2 = append(result.op2, 1-float64(len(ones))/float64(sim.param.MaxCut-sim.param.MinCut))
+	result.top2 = append(result.top2, float64(top)/float64(sim.param.MaxCut-sim.param.MinCut))
 	return ones
 }
 

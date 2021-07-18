@@ -16,14 +16,14 @@ func newParameters(age float64) Parameters {
 	if err != nil {
 		panic(err)
 	}
-	configuration.BindParameters(p)
+	configuration.BindParameters(&p.ConfParameters)
 	configuration.UpdateBoundParameters(config)
 
 	// - - - - setup some of the parameter values - - -
 
-	if p.nParallelSims == -1 {
+	if p.NParallelSims == -1 {
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threadingif
-		p.nParallelSims = runtime.NumCPU()/2 - 1
+		p.NParallelSims = runtime.NumCPU()/2 - 1
 	}
 
 	if age != -1 {
@@ -31,11 +31,11 @@ func newParameters(age float64) Parameters {
 	}
 	lambdaForSize := int(math.Max(1, p.Lambda)) // make sure this value is at least 1
 	p.TangleSize = p.TangleSize * lambdaForSize
-	p.minCut = p.minCut * lambdaForSize
-	p.maxCutrange = p.maxCutrange * lambdaForSize
-	p.maxCut = p.TangleSize - p.maxCutrange
-	p.stillrecent = p.stillrecent * lambdaForSize
-	p.acceptableNumberTips = p.acceptableNumberTips * lambdaForSize
+	p.MinCut = p.MinCut * lambdaForSize
+	p.MaxCutRange = p.MaxCutRange * lambdaForSize
+	p.MaxCut = p.TangleSize - p.MaxCutRange
+	p.StillRecent = p.StillRecent * lambdaForSize
+	p.AcceptableNumberTips = p.AcceptableNumberTips * lambdaForSize
 
 	p.AnPastCone = coneFromParameters(p.PastCone)
 	p.AnFutureCone = coneFromParameters(p.FutureCone)
@@ -61,8 +61,8 @@ func newParameters(age float64) Parameters {
 		p.tsaAdversary = SpamGenesis{}
 	}
 
-	if p.maxK < p.K {
-		p.maxK = p.K
+	if p.MaxK < p.K {
+		p.MaxK = p.K
 	}
 
 	createDirIfNotExist("data")
@@ -96,59 +96,62 @@ func coneFromParameters(cone []string) AnCone {
 }
 
 // Parameters define Parameters types
-type Parameters struct {
-	nParallelSims     int
+type ConfParameters struct {
+	NParallelSims     int
 	K                 int
 	H                 int
 	D                 int
 	Lambda            float64
 	TangleSize        int
-	minCut            int
-	maxCutrange       int
-	maxCut            int
+	MinCut            int
+	MaxCutRange       int
+	MaxCut            int
 	Seed              int64
 	TSA               string
-	tsa               TipSelector
 	TSAAdversary      string
-	tsaAdversary      TipSelectorAdversary
 	SingleEdgeEnabled bool
 	ConstantRate      bool
 	DataPath          string
-	nRun              int
-	stillrecent       int
+	NRun              int
+	StillRecent       int
 	// CWMatrixLen       int
 
-	q                       float64
-	attackType              string
-	responseSpamTipsEnabled bool
-	acceptableNumberTips    int
-	responseKIncrease       float64
-	maxK                    int
+	Q                       float64
+	ResponseSpamTipsEnabled bool
+	AcceptableNumberTips    int
+	ResponseKIncrease       float64
+	MaxK                    int
 	// - - - Analysis - - -
 	CountTipsEnabled bool
 	// CWAnalysisEnabled bool
 
-	pOrphanEnabled       bool
-	pOrphanLinFitEnabled bool
+	POrphanEnabled       bool
+	POrphanLinFitEnabled bool
 	PastCone             []string
-	AnPastCone           AnCone
 	FutureCone           []string
-	AnFutureCone         AnCone
 	DistSlicesEnabled    bool
 	DistSlicesByTime     bool
 	DistSlicesLength     float64
 	DistSlicesResolution int
 	AppStatsAllEnabled   bool
 	// - - - Drawing - - -
-	//drawTangleMode = 0: drawing disabled
-	//drawTangleMode = 1: simple Tangle with/without highlighed path
-	//drawTangleMode = 2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
-	//drawTangleMode = 3: Tangle with tx visiting probability in red gradients
-	//drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
-	//drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
-	//drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
-	drawTangleMode        int
-	horizontalOrientation bool
+	//DrawTangleMode = 0: drawing disabled
+	//DrawTangleMode = 1: simple Tangle with/without highlighed path
+	//DrawTangleMode = 2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
+	//DrawTangleMode = 3: Tangle with tx visiting probability in red gradients
+	//DrawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
+	//DrawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
+	//DrawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
+	DrawTangleMode        int
+	HorizontalOrientation bool
+}
+
+type Parameters struct {
+	ConfParameters
+	tsa          TipSelector
+	tsaAdversary TipSelectorAdversary
+	AnPastCone   AnCone
+	AnFutureCone AnCone
 }
 
 // AnCone Analysis results

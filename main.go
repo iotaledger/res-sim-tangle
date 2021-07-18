@@ -20,15 +20,15 @@ func runSimulation(b Benchmark, x float64) Result {
 
 	p := newParameters(x)
 	defer b.track(runningtime("TSA=" + strings.ToUpper(p.TSA) + ", X=" + fmt.Sprintf("%.2f", x) + ", " + "\tTime"))
-	c := make(chan bool, p.nParallelSims)
-	r := make([]Result, p.nParallelSims)
+	c := make(chan bool, p.NParallelSims)
+	r := make([]Result, p.NParallelSims)
 	var f Result
 
-	for i := 0; i < p.nParallelSims; i++ {
-		p.Seed = int64(i*p.nRun + 1)
+	for i := 0; i < p.NParallelSims; i++ {
+		p.Seed = int64(i*p.NRun + 1)
 		go run(p, &r[i], c)
 	}
-	for i := 0; i < p.nParallelSims; i++ {
+	for i := 0; i < p.NParallelSims; i++ {
 		<-c
 	}
 
