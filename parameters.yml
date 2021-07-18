@@ -1,66 +1,57 @@
-# if -1 use number of cpus
-nParallelSims: -1
-# nParallelSims: 1
-# nRun:          int(math.Min(10000. 10000/lambda))
-nRun:   10
-Lambda: 20
-TSA:    "RURTS"
-# TSA:               "URTS"
-K:          2 # Num of tips to select
-H:          1
-D:          40 # max age for RURTS
-Seed:       1             #
-TangleSize: 300        # Number of message * lambda
-# CWMatrixLen:       300 * lambdaForSize # reduce CWMatrix to this len
-minCut:            51  # cut data close to the genesis (multiply by lambda)
-maxCutrange:       52  # cut data for the most recent txs, not applied for every analysis (multiplied by lambda)
-stillrecent:       2   # when is a tx considered recent, and when is it a candidate for left behind (multiplied by lambda)
-ConstantRate:      false
-SingleEdgeEnabled: false # true = SingleEdge model, false = MultiEdge model
+Simulation:
+  # if -1 use number of cpus
+  nParallelSims: -1
+  # nParallelSims: 1
+  # nRun:          int(math.Min(10000. 10000/lambda))
+  nRun:   10
+  Lambda: 20
+  TSA:    "RURTS"
+  # TSA:               "URTS"
+  K:          2 # Num of tips to select
+  H:          1
+  D:          40 # max age for RURTS
+  Seed:       1             #
+  TangleSize: 300        # Number of message * lambda
+  # CWMatrixLen:       300 * lambdaForSize # reduce CWMatrix to this len
+  minCut:            51  # cut data close to the genesis (multiply by lambda)
+  maxCutrange:       52  # cut data for the most recent txs, not applied for every analysis (multiplied by lambda)
+  stillrecent:       2   # when is a tx considered recent, and when is it a candidate for left behind (multiplied by lambda)
+  ConstantRate:      false
+  SingleEdgeEnabled: false # true = SingleEdge model, false = MultiEdge model
 
-  # - - - Attacks - - -
-q:            0.9            # proportion of adversary txs
-TSAAdversary: "SpamGenesis" # spam tips linked to the genesis
-  # - - - Response - - -
-responseSpamTipsEnabled: false           # response dynamically to the tip spam attack
-acceptableNumberTips:    2               # when we should start to increase K (multiply by lambda)
-responseKIncrease:       3.0              # at which rate do we increase K
-maxK:                    20              # maximum K used for protection value will get replaced when K is larger
+    # - - - Attacks - - -
+  q:            0.9            # proportion of adversary txs
+  TSAAdversary: "SpamGenesis" # spam tips linked to the genesis
+    # - - - Response - - -
+  responseSpamTipsEnabled: false           # response dynamically to the tip spam attack
+  acceptableNumberTips:    2               # when we should start to increase K (multiply by lambda)
+  responseKIncrease:       3.0              # at which rate do we increase K
+  maxK:                    20              # maximum K used for protection value will get replaced when K is larger
 
-  # - - - Analysis section - - -
-CountTipsEnabled: true
-# CWAnalysisEnabled:    false
-pOrphanEnabled:       true  # calculate orphanage probability
-pOrphanLinFitEnabled: false # also apply linear fit, numerically expensive
-  # measure distance of slices compared to the expected distribution
-DistSlicesEnabled:    false
-DistSlicesByTime:     false # true = tx time slices, false= tx ID slices
-DistSlicesLength:     1     #length of Slices
-DistSlicesResolution: 100   # Number of intervals per distance '1', higher number = higher resolution
-  # measure app stats for all txs
-AppStatsAllEnabled: false # Approver stats for all txs
-  # AnPastCone Analysis
-PastCone: #{Enabled, Resolution, MaxT, MaxApp}
-  - "false"
-  - "5"
-  - "40"
-  - "5"
-
-#  # AnFutureCone Analysis
-FutureCone:  #{Enabled, Resolution, MaxT, MaxApp}
-  - "false"
-  - "5"
-  - "40"
-  - "5"
-
-  # - - - Drawing - - -
-  #
-#drawTangleMode = 0: drawing disabled
-#drawTangleMode = 1: simple Tangle with/without highlighed path
-#drawTangleMode = 2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
-#drawTangleMode = 3: Tangle with tx visiting probability in red gradients
-#drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
-#drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
-#drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
-drawTangleMode:        0
-horizontalOrientation: true
+    # - - - Analysis section - - -
+  CountTipsEnabled: true
+  # CWAnalysisEnabled:    false
+  pOrphanEnabled:       true  # calculate orphanage probability
+  pOrphanLinFitEnabled: false # also apply linear fit, numerically expensive
+    # measure distance of slices compared to the expected distribution
+  DistSlicesEnabled:    false
+  DistSlicesByTime:     false # true = tx time slices, false= tx ID slices
+  DistSlicesLength:     1     #length of Slices
+  DistSlicesResolution: 100   # Number of intervals per distance '1', higher number = higher resolution
+    # measure app stats for all txs
+  AppStatsAllEnabled: false # Approver stats for all txs
+    # AnPastCone Analysis
+  PastCone: ["false", "5", "40", "5"] #{Enabled, Resolution, MaxT, MaxApp}
+  #  # AnFutureCone Analysis
+  FutureCone: ["false", "5", "40", "5"] #{Enabled, Resolution, MaxT, MaxApp}
+    # - - - Drawing - - -
+    #
+  #drawTangleMode = 0: drawing disabled
+  #drawTangleMode = 1: simple Tangle with/without highlighed path
+  #drawTangleMode = 2: Ghost path, Ghost cone, Orphans + tips (TODO: clustering needs to be done manually)
+  #drawTangleMode = 3: Tangle with tx visiting probability in red gradients
+  #drawTangleMode = 4: Tangle with highlighted path of random walker transitioning to first approver
+  #drawTangleMode = 5: Tangle with highlighted path of random walker transitioning to last approver
+  #drawTangleMode = -1: 10 random walk and draws the Tangle at each step (for GIF or video only)
+  drawTangleMode:        0
+  horizontalOrientation: true

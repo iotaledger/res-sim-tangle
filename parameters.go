@@ -16,7 +16,7 @@ func newParameters(age float64) Parameters {
 	if err != nil {
 		panic(err)
 	}
-	configuration.BindParameters(&p.ConfParameters)
+	configuration.BindParameters(&p.ConfParameters, "simulation")
 	configuration.UpdateBoundParameters(config)
 
 	// - - - - setup some of the parameter values - - -
@@ -88,7 +88,8 @@ func coneFromParameters(cone []string) AnCone {
 	if err != nil {
 		panic(err)
 	}
-	return AnCone{enabled,
+	return AnCone{
+		enabled,
 		resolution,
 		maxT,
 		int(maxApp),
