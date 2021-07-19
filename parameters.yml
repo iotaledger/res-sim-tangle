@@ -11,12 +11,12 @@ Simulation:
   H:          1
   D:          40 # max age for RURTS
   Seed:       1             #
-  TangleSize: 300        # Number of message * lambda
+  TangleSizeNormalized: 300   # Number of total messages / lambda
   # CWMatrixLen:       300 * lambdaForSize # reduce CWMatrix to this len
-  minCut:            51  # cut data close to the genesis (value in units of lambda)
-  maxCutrange:       52  # cut data for the most recent txs, not applied for every analysis (value in units of lambda)
-  stillrecent:       2   # when is a tx considered recent, and when is it a candidate for left behind (multiplied by lambda)
-  ConstantRate:      false
+  minCutNormalized: 51  # cut data close to the genesis (value in units of lambda)
+  maxCutrangeNormalized: 52  # cut data for the most recent txs, not applied for every analysis (value in units of lambda)
+  stillrecent: 2   # when is a tx considered recent, and when is it a candidate for left behind (multiplied by lambda)
+  ConstantRate: false
   SingleEdgeEnabled: false # true = SingleEdge model, false = MultiEdge model
 
     # - - - Attacks - - -

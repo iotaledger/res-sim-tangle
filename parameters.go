@@ -30,9 +30,9 @@ func newParameters(age float64) Parameters {
 		p.D = int(age)
 	}
 	lambdaForSize := int(math.Max(1, p.Lambda)) // make sure this value is at least 1
-	p.TangleSize = p.TangleSize * lambdaForSize
-	p.MinCut = p.MinCut * lambdaForSize
-	p.MaxCutRange = p.MaxCutRange * lambdaForSize
+	p.TangleSize = p.TangleSizeNormalized * lambdaForSize
+	p.MinCut = p.MinCutNormalized * lambdaForSize
+	p.MaxCutRange = p.MaxCutRangeNormalized * lambdaForSize
 	p.MaxCut = p.TangleSize - p.MaxCutRange
 	p.StillRecent = p.StillRecent * lambdaForSize
 	p.AcceptableNumberTips = p.AcceptableNumberTips * lambdaForSize
@@ -96,25 +96,24 @@ func coneFromParameters(cone []string) AnCone {
 	}
 }
 
-// Parameters define Parameters types
+// Parameters defined in Yaml
 type ConfParameters struct {
-	NParallelSims     int
-	K                 int
-	H                 int
-	D                 int
-	Lambda            float64
-	TangleSize        int
-	MinCut            int
-	MaxCutRange       int
-	MaxCut            int
-	Seed              int64
-	TSA               string
-	TSAAdversary      string
-	SingleEdgeEnabled bool
-	ConstantRate      bool
-	DataPath          string
-	NRun              int
-	StillRecent       int
+	NParallelSims         int
+	K                     int
+	H                     int
+	D                     int
+	Lambda                float64
+	TangleSizeNormalized  int
+	MinCutNormalized      int
+	MaxCutRangeNormalized int
+	Seed                  int64
+	TSA                   string
+	TSAAdversary          string
+	SingleEdgeEnabled     bool
+	ConstantRate          bool
+	DataPath              string
+	NRun                  int
+	StillRecent           int
 	// CWMatrixLen       int
 
 	Q                       float64
@@ -147,12 +146,17 @@ type ConfParameters struct {
 	HorizontalOrientation bool
 }
 
+//Parameters to be used by simulation
 type Parameters struct {
 	ConfParameters
 	tsa          TipSelector
 	tsaAdversary TipSelectorAdversary
 	AnPastCone   AnCone
 	AnFutureCone AnCone
+	TangleSize   int
+	MinCut       int
+	MaxCutRange  int
+	MaxCut       int
 }
 
 // AnCone Analysis results
