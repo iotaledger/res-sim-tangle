@@ -13,8 +13,8 @@ Simulation:
   Seed:       1             #
   TangleSize: 300        # Number of message * lambda
   # CWMatrixLen:       300 * lambdaForSize # reduce CWMatrix to this len
-  minCut:            51  # cut data close to the genesis (multiply by lambda)
-  maxCutrange:       52  # cut data for the most recent txs, not applied for every analysis (multiplied by lambda)
+  minCut:            51  # cut data close to the genesis (value in units of lambda)
+  maxCutrange:       52  # cut data for the most recent txs, not applied for every analysis (value in units of lambda)
   stillrecent:       2   # when is a tx considered recent, and when is it a candidate for left behind (multiplied by lambda)
   ConstantRate:      false
   SingleEdgeEnabled: false # true = SingleEdge model, false = MultiEdge model
