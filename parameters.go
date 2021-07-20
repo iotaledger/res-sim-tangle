@@ -9,7 +9,7 @@ import (
 )
 
 // variable initialization
-func newParameters(age float64) Parameters {
+func newParameters(variable float64) Parameters {
 	p := Parameters{}
 	config := configuration.New()
 	err := config.LoadFile("./parameters.yml")
@@ -26,8 +26,11 @@ func newParameters(age float64) Parameters {
 		p.NParallelSims = runtime.NumCPU()/2 - 1
 	}
 
-	if age != -1 {
-		p.D = int(age)
+	if variable != -1 {
+		/* comment out chosen variable */
+		p.D = int(variable)
+		// p.K = int(variable)
+		// p.lambda = variable
 	}
 	lambdaForSize := int(math.Max(1, p.Lambda)) // make sure this value is at least 1
 	p.TangleSize = p.TangleSizeNormalized * lambdaForSize
