@@ -5,9 +5,10 @@ import (
 	"strings"
 )
 
+var p = newParameters()
+
 // main routine
 func main() {
-
 	b := make(Benchmark)
 	_ = b
 	//runRealDataEvaluation(10, 0, true)
@@ -17,8 +18,7 @@ func main() {
 }
 
 func runSimulation(b Benchmark, x float64) Result {
-
-	p := newParameters(x)
+	p.setVariable(x)
 	defer b.track(runningtime("TSA=" + strings.ToUpper(p.TSA) + ", X=" + fmt.Sprintf("%.2f", x) + ", " + "\tTime"))
 	c := make(chan bool, p.NParallelSims)
 	r := make([]Result, p.NParallelSims)
