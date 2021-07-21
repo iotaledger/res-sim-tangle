@@ -25,22 +25,22 @@ type tipsResult struct {
 
 func newTipsResult(p Parameters) tipsResult {
 	var result tipsResult
-	result.nTips = make([][]int, p.nRun)
-	result.pdf = make([]MetricIntInt, p.nRun)
+	result.nTips = make([][]int, p.NRun)
+	result.pdf = make([]MetricIntInt, p.NRun)
 	for i := range result.nTips {
 		result.nTips[i] = make([]int, p.TangleSize)
 		result.pdf[i] = MetricIntInt{"pdf", make(map[int]int)}
 	}
 	result.mean = make([]float64, p.TangleSize)
 	result.variance = make([]float64, p.TangleSize)
-	result.nOrphanTips = make([]int, p.nRun)
+	result.nOrphanTips = make([]int, p.NRun)
 	//result.tPDF = MetricIntInt{"total_tips_pdf", make(map[int]int)}
 	return result
 }
 
 func (sim *Sim) countTips(tx int, run int, r *tipsResult) {
 	r.nTips[run][tx] = len(sim.tips)
-	if tx > sim.param.minCut {
+	if tx > sim.param.MinCut {
 		r.pdf[run].v[len(sim.tips)]++
 	}
 }
@@ -59,9 +59,9 @@ func (r *tipsResult) Statistics(p Parameters) {
 		r.mean[j], r.variance[j] = stat.MeanVariance(col, nil)
 	}
 	//fmt.Println("Len mean:", len(r.mean))
-	//fmt.Println("Param:", p.minCut, p.TangleSize-p.minCut)
-	r.tAVG = stat.Mean(r.mean[p.minCut:], nil)
-	r.tSTD = math.Sqrt(stat.Mean(r.variance[p.minCut:], nil))
+	//fmt.Println("Param:", p.MinCut, p.TangleSize-p.MinCut)
+	r.tAVG = stat.Mean(r.mean[p.MinCut:], nil)
+	r.tSTD = math.Sqrt(stat.Mean(r.variance[p.MinCut:], nil))
 	r.meanOrphanTips = MeanInt(r.nOrphanTips)
 	r.STDOrphanTips = math.Sqrt(VarInt(r.nOrphanTips))
 	r.meanOrphanTipsRatio = r.meanOrphanTips / float64(p.TangleSize)

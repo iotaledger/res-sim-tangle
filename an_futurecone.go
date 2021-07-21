@@ -35,18 +35,18 @@ func (sim *Sim) runAnFutureCone(result *FutureConeResult) {
 	maxchildID := 0
 	_ = maxchildID
 
-	if len(sim.cw) < sim.param.TangleSize-sim.param.minCut {
+	if len(sim.cw) < sim.param.TangleSize-sim.param.MinCut {
 		fmt.Println(".\n\nNeed to check that the CWMatrix is not limited too much for this analysis.")
 		pauseit()
 	}
 
-	if sim.param.maxCutrange < int(sim.param.AnFutureCone.MaxT*sim.param.Lambda) {
-		fmt.Println("maxCutrange < MaxT !")
+	if sim.param.MaxCutRange < int(sim.param.AnFutureCone.MaxT*sim.param.Lambda) {
+		fmt.Println("MaxCutRange < MaxT !")
 		pauseit()
 	}
 
 	// count occurances
-	for i1 := sim.param.minCut; i1 < sim.param.maxCut; i1++ { //only consider roots that are within this cut ranges
+	for i1 := sim.param.MinCut; i1 < sim.param.MaxCut; i1++ { //only consider roots that are within this cut ranges
 	}
 }
 

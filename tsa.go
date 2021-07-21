@@ -141,7 +141,7 @@ func (URTS) TipSelect(t Tx, sim *Sim) []int {
 // TipSelect selects k tips
 func (RURTS) TipSelect(t Tx, sim *Sim) []int {
 	kNow := sim.param.K
-	if sim.param.responseSpamTipsEnabled {
+	if sim.param.ResponseSpamTipsEnabled {
 		kNow = increaseK(sim)
 	}
 
@@ -183,10 +183,10 @@ func (RURTS) TipSelect(t Tx, sim *Sim) []int {
 
 // dynamically increase K
 func increaseK(sim *Sim) int {
-	if len(sim.tips) > sim.param.acceptableNumberTips {
-		delta := math.Max(0, float64(len(sim.tips)-sim.param.acceptableNumberTips)/(2.*sim.param.Lambda))
-		Know := sim.param.K + int(delta*delta*sim.param.responseKIncrease)
-		return int(math.Min(float64(sim.param.maxK), float64(Know)))
+	if len(sim.tips) > sim.param.AcceptableNumberTips {
+		delta := math.Max(0, float64(len(sim.tips)-sim.param.AcceptableNumberTips)/(2.*sim.param.Lambda))
+		Know := sim.param.K + int(delta*delta*sim.param.ResponseKIncrease)
+		return int(math.Min(float64(sim.param.MaxK), float64(Know)))
 	}
 	return sim.param.K
 }

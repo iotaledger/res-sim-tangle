@@ -40,12 +40,12 @@ func (sim *Sim) evalTangle_DistSlices(r *DistSlicesResult) {
 	sliceID := -1
 	NumThisSlice := make([]float64, len(pRef))
 	TotalNumThisSlice := 0
-	SliceRestTime := ModFloat(sim.tangle[sim.param.minCut].time, sim.param.DistSlicesLength)
+	SliceRestTime := ModFloat(sim.tangle[sim.param.MinCut].time, sim.param.DistSlicesLength)
 	SliceRestTimeNew := 0.
-	SliceTime := sim.tangle[sim.param.minCut].time - SliceRestTime
+	SliceTime := sim.tangle[sim.param.MinCut].time - SliceRestTime
 	SliceFull := false
 
-	for i1 := sim.param.minCut; i1 < sim.param.maxCut; i1++ { //note, last slice is not considered because it may be partly above maxCut
+	for i1 := sim.param.MinCut; i1 < sim.param.MaxCut; i1++ { //note, last slice is not considered because it may be partly above MaxCut
 		SliceRestTimeNew = sim.tangle[i1].time - SliceTime
 
 		// last Slice finished / full ?
@@ -56,7 +56,7 @@ func (sim *Sim) evalTangle_DistSlices(r *DistSlicesResult) {
 		}
 
 		if SliceFull { //last sliceID finished
-			if sliceID > -1 { //discard the first slice because parts of it may be partly below minCut
+			if sliceID > -1 { //discard the first slice because parts of it may be partly below MinCut
 				dist := calcDist(&NumThisSlice, &pRef, TotalNumThisSlice)
 				intervals := float64(sim.param.DistSlicesResolution)
 				r.Num[float64(int(intervals*dist))/intervals]++
