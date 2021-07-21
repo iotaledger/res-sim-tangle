@@ -9,7 +9,7 @@ import (
 )
 
 // variable initialization
-func newParameters(variable float64) Parameters {
+func newParameters() Parameters {
 	p := Parameters{}
 	config := configuration.New()
 	err := config.LoadFile("./parameters.yml")
@@ -26,12 +26,6 @@ func newParameters(variable float64) Parameters {
 		p.NParallelSims = runtime.NumCPU()/2 - 1
 	}
 
-	if variable != -1 {
-		/* comment out chosen variable */
-		p.D = int(variable)
-		// p.K = int(variable)
-		// p.lambda = variable
-	}
 	lambdaForSize := int(math.Max(1, p.Lambda)) // make sure this value is at least 1
 	p.TangleSize = p.TangleSizeNormalized * lambdaForSize
 	p.MinCut = p.MinCutNormalized * lambdaForSize
@@ -175,4 +169,13 @@ type AnFocusRW struct {
 	Enabled bool
 	murel   float64 // tx by adversary = murel * lambda
 	nRWs    int     // number of RWs per data point
+}
+
+func (p *Parameters) setVariable(variable float64) {
+	if variable != -1 {
+		/* comment out chosen variable */
+		p.D = int(variable)
+		// p.K = int(variable)
+		// p.lambda = variable
+	}
 }
