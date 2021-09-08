@@ -53,7 +53,7 @@ func run(p Parameters, r *Result, c chan bool) {
 
 func runForVariables(b Benchmark) {
 	var total string
-	// Xs := []float64{2, 3, 4, 5, 6, 7, 8, 9, 10}
+	// Xs := []float64{1, 2, 4, 8, 16, 32, 64, 128, 256, 512}
 	// Xs := []float64{0, .1, .2, .3, .4, .5, .6, .7, .8, .9}
 	NXs := 20
 	Xs := make([]float64, NXs+1)
@@ -71,7 +71,7 @@ func runForVariables(b Benchmark) {
 		fmt.Println("X=", x)
 		r := runSimulation(b, x)
 		if banner == "" {
-			banner += fmt.Sprintf("#x\tOrphanratio\tSTD\n")
+			banner += fmt.Sprintf("#x\tOrphanratio\tSTD\ttipsAVG\ttipsSTD\n")
 		}
 
 		output := fmt.Sprintf("%.4f", x)

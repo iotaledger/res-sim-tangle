@@ -18,17 +18,17 @@ func newParameters(variable float64) Parameters {
 		nParallelSims: runtime.NumCPU()/2 - 1,
 		// nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
-		nRun:   2,
+		nRun:   100,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:          8,        // Num of tips to select
+		K:          2,        // Num of tips to select
 		Hsmall:     1,        // Delay for first type of tx,
 		Hlarge:     hlarge,   // Delay for second type of tx
 		p:          variable, //proportion of second type of tx
 		D:          100000,   // max age for RURTS
 		Seed:       1,        //
-		TangleSize: 1000 * lambdaForSize,
+		TangleSize: (10*hlarge + 500) * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            10 * hlarge * lambdaForSize, // cut data close to the genesis
 		maxCutrange:       10 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis

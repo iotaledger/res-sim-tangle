@@ -53,15 +53,20 @@ func (r *tipsResult) Statistics(p Parameters) {
 	for j := range r.mean {
 		var col []float64
 		for i := range r.nTips {
+			// fmt.Print(r.nTips[i][j], " ,")
 			col = append(col, float64(r.nTips[i][j]))
 		}
-		//fmt.Println("Len col:", len(col))
-		r.mean[j], r.variance[j] = stat.MeanVariance(col, nil)
+		r.mean[j], r.variance[j] = MeanVariance(col)
+		// fmt.Print("Len col:", len(col), "; ")
+		// fmt.Println(r.mean[j], r.variance[j])
 	}
-	//fmt.Println("Len mean:", len(r.mean))
+	fmt.Println("Len mean:", len(r.mean), "; Len mean cut: ", len(r.mean[p.minCut:]))
 	//fmt.Println("Param:", p.minCut, p.TangleSize-p.minCut)
-	r.tAVG = stat.Mean(r.mean[p.minCut:], nil)
-	r.tSTD = math.Sqrt(stat.Mean(r.variance[p.minCut:], nil))
+	// r.tAVG = stat.Mean(r.mean[p.minCut:], nil)
+	// r.tSTD = math.Sqrt(stat.Mean(r.variance[p.minCut:], nil))
+	var variance float64
+	r.tAVG, variance = MeanVariance(r.mean[p.minCut:])
+	r.tSTD = math.Sqrt(variance)
 	r.meanOrphanTips = stat.MeanInt(r.nOrphanTips)
 	r.STDOrphanTips = math.Sqrt(stat.VarInt(r.nOrphanTips))
 	r.meanOrphanTipsRatio = r.meanOrphanTips / float64(p.TangleSize)
@@ -189,4 +194,18 @@ func (a tipsResult) SaveOrphanTips(p Parameters) (err error) {
 
 	return nil
 
+}
+
+func MeanVariance(x []float64) (mean, variance float64) {
+	// Note that this will panic if the slice lengths do not match.
+	mean = stat.Mean(x, nil)
+	var (
+		ss float64
+	)
+	for _, v := range x {
+		d := v - mean
+		ss += d * d
+	}
+	variance = (ss) / float64(len(x))
+	return mean, variance
 }
