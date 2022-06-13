@@ -11,7 +11,7 @@ func newParameters(variable float64) Parameters {
 	lambda := 20.
 	// lambda := variable
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
-	hlarge := 40
+	hlarge := 1
 	p := Parameters{
 
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
@@ -22,12 +22,12 @@ func newParameters(variable float64) Parameters {
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:          2,        // Num of tips to select
-		Hsmall:     1,        // Delay for first type of tx,
-		Hlarge:     hlarge,   // Delay for second type of tx
-		p:          variable, //proportion of second type of tx
-		D:          100000,   // max age for RURTS
-		Seed:       1,        //
+		K:          int(variable), // Num of tips to select
+		Hsmall:     1,             // Delay for first type of tx,
+		Hlarge:     hlarge,        // Delay for second type of tx
+		p:          0.,            //proportion of second type of tx
+		D:          5,             // max age for RURTS
+		Seed:       1,             //
 		TangleSize: (10*hlarge + 500) * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            10 * hlarge * lambdaForSize, // cut data close to the genesis
@@ -37,7 +37,7 @@ func newParameters(variable float64) Parameters {
 		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
 
 		// - - - Attacks - - -
-		q:            .0,            // proportion of adversary txs
+		q:            0.,            // proportion of adversary txs
 		TSAAdversary: "SpamGenesis", // spam tips linked to the genesis,
 		// - - - Response - - -
 		responseSpamTipsEnabled: false,           // response dynamically to the tip spam attack
@@ -47,7 +47,7 @@ func newParameters(variable float64) Parameters {
 		// - - - Analysis section - - -
 		CountTipsEnabled: true,
 		// CWAnalysisEnabled:    false,
-		pOrphanEnabled:       false, // calculate orphanage probability
+		pOrphanEnabled:       true,  // calculate orphanage probability
 		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
 		// measure distance of slices compared to the expected distribution
 		DistSlicesEnabled:    false,

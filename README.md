@@ -14,7 +14,7 @@ First, you need to [install Go](https://golang.org/doc/install) if it is not alr
 If you prefer, you can build your executable (as well as cross compiling for other architectures) by using the `go build` tool:
 
 ```
-go build -o sim *.go
+go build -o sim
 ```
 You can then run your simulation by running:
 

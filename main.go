@@ -55,12 +55,12 @@ func runForVariables(b Benchmark) {
 	var total string
 	// Xs := []float64{1, 2, 4, 8, 16, 32, 64, 128, 256, 512}
 	// Xs := []float64{0, .1, .2, .3, .4, .5, .6, .7, .8, .9}
-	NXs := 20
+	NXs := 10
 	Xs := make([]float64, NXs+1)
 	for i1 := 0; i1 < NXs+1; i1++ {
-		Xs[i1] = 1. / float64(NXs) * float64(i1)
-		// Xs[i1] = 5 * (float64(i1) + 1)
-		// Xs[i1] = 2 + float64(i1)
+		// Xs[i1] = 1. / float64(NXs) * float64(i1)
+		// Xs[i1] = 2 * (float64(i1) + 1)
+		Xs[i1] = 2 + float64(i1)
 	}
 	// for i1 := 0; i1 < NXs; i1++ {
 	// 	Xs[i1] = .1 * math.Pow(100, float64(i1)/float64(NXs-1))
