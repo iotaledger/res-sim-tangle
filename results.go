@@ -10,6 +10,7 @@ import (
 
 // Result is the data structure containing all the results of a simulation
 type Result struct {
+	params      Parameters
 	tips        tipsResult
 	PastCone    PastConeResult
 	op          pOrphanResult

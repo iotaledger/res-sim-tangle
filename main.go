@@ -23,9 +23,14 @@ func runSimulation(b Benchmark, x float64) Result {
 	c := make(chan bool, p.nParallelSims)
 	r := make([]Result, p.nParallelSims)
 	var f Result
+	f.params = p
+
+	//readjusted for number of cores
+	p.nRun /= p.nParallelSims
 
 	for i := 0; i < p.nParallelSims; i++ {
 		p.Seed = int64(i*p.nRun + 1)
+		// run the simulation
 		go run(p, &r[i], c)
 	}
 	for i := 0; i < p.nParallelSims; i++ {
@@ -37,6 +42,7 @@ func runSimulation(b Benchmark, x float64) Result {
 	}
 
 	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tD=", p.D)
+	// save some results in files
 	f.FinalEvaluationSaveResults(p)
 	fmt.Println("- - - OrphanTips - - -")
 	fmt.Println("X\t\tmean\t\tSTD\t\tmean Ratio\t\tSTD Ratio")
@@ -65,13 +71,15 @@ func runForVariables(b Benchmark) {
 	// for i1 := 0; i1 < NXs; i1++ {
 	// 	Xs[i1] = .1 * math.Pow(100, float64(i1)/float64(NXs-1))
 	// }
+
+	fmt.Println("- - - - - - - - - - - - - - - - ")
 	fmt.Println("Variables=", Xs)
 	var banner string
 	for _, x := range Xs {
 		fmt.Println("X=", x)
 		r := runSimulation(b, x)
 		if banner == "" {
-			banner += fmt.Sprintf("#x\tOrphanratio\tSTD\ttipsAVG\ttipsSTD\n")
+			banner += fmt.Sprintf("#x\tOrphanratio\tSTD\ttipsAVG\ttipsSTD\t#txs\n")
 		}
 
 		output := fmt.Sprintf("%.4f", x)
@@ -79,6 +87,7 @@ func runForVariables(b Benchmark) {
 		output += fmt.Sprintf("\t%.8f", r.tips.STDOrphanTipsRatio)
 		output += fmt.Sprintf("\t%.8f", r.tips.tAVG)
 		output += fmt.Sprintf("\t%.8f", r.tips.tSTD)
+		output += fmt.Sprintf("\t%d", r.params.TangleSize-r.params.minCut)
 		output += fmt.Sprintf("\n")
 
 		total += output

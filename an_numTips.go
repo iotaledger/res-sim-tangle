@@ -102,18 +102,18 @@ func (a tipsResult) Join(b tipsResult) tipsResult {
 
 func (a tipsResult) nTipsToString(p Parameters, sample int) string {
 	result := "# Number of tips seen by each tx\n"
-	result += "#Tx\t\tsample\t\tavg\t\tvar\t\tstd\n"
+	result += "#Tx;sample;avg;var;std\n"
 	for j := range a.nTips[0][1:] {
-		result += fmt.Sprintf("%d\t\t%d\t\t%.2f\t\t%.2f\t\t%.4f\n", j+1, a.nTips[sample][j+1], a.mean[j+1], a.variance[j+1], math.Sqrt(a.variance[j+1]))
+		result += fmt.Sprintf("%d;%d;%.2f;%.2f;%.4f\n", j+1, a.nTips[sample][j+1], a.mean[j+1], a.variance[j+1], math.Sqrt(a.variance[j+1]))
 	}
 	return result
 }
 
 func (a tipsResult) nOrphanTipsToString(p Parameters, sample int) string {
 	result := "# Number of orphantips seen by each tangle\n"
-	result += "#Tangle\t\tnOrphan\t\tmean\t\tratio\n"
+	result += "#Tangle;nOrphan;OrphanRatio\n"
 	for j := range a.nOrphanTips[:] {
-		result += fmt.Sprintf("%d\t\t%d\t\t%.2f\t\t%.2f\n", j+1, a.nOrphanTips[j])
+		result += fmt.Sprintf("%d;%d;%f\n", j+1, a.nOrphanTips[j], float64(a.nOrphanTips[j])/float64(p.TangleSize))
 	}
 	return result
 }
@@ -126,7 +126,7 @@ func (a tipsResult) Save(p Parameters, sample int) error {
 	}
 	err = a.SaveOrphanTips(p)
 	if err != nil {
-		fmt.Println("error Saving Tips", err)
+		fmt.Println("error Saving Orphan Tips", err)
 		return err
 	}
 	// err = a.tPDF.Save(p, "tips_pdf", "avg", false)
@@ -143,15 +143,8 @@ func (a tipsResult) Save(p Parameters, sample int) error {
 }
 
 func (a tipsResult) SaveTips(p Parameters) (err error) {
-	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
-	var rateType string
-	if p.ConstantRate {
-		rateType = "constant"
-	} else {
-		rateType = "poisson"
-	}
-	f, err := os.Create("data/tips_" + p.TSA + "_" + rateType +
-		"_lambda_" + lambdaStr + "_.txt")
+	str := fmt.Sprintf("%d", int(p.Variable))
+	f, err := os.Create("data/tips_" + str + ".csv")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
 		return err
@@ -170,15 +163,8 @@ func (a tipsResult) SaveTips(p Parameters) (err error) {
 }
 
 func (a tipsResult) SaveOrphanTips(p Parameters) (err error) {
-	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
-	var rateType string
-	if p.ConstantRate {
-		rateType = "constant"
-	} else {
-		rateType = "poisson"
-	}
-	f, err := os.Create("data/orphantips_" + p.TSA + "_" + rateType +
-		"_lambda_" + lambdaStr + "_.txt")
+	str := fmt.Sprintf("%d", int(p.Variable))
+	f, err := os.Create("data/orphantips_" + str + ".csv")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
 		return err

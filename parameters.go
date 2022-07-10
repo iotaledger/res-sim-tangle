@@ -2,7 +2,6 @@ package main
 
 import (
 	"math"
-	"runtime"
 	"strings"
 )
 
@@ -13,25 +12,26 @@ func newParameters(variable float64) Parameters {
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	hlarge := 1
 	p := Parameters{
+		Variable: variable,
 
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-		nParallelSims: runtime.NumCPU()/2 - 1,
-		// nParallelSims: 1,
+		// nParallelSims: runtime.NumCPU()/2 - 1,
+		nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
 		nRun:   100,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:          int(variable), // Num of tips to select
+		K:          2,             // Num of tips to select
 		Hsmall:     1,             // Delay for first type of tx,
 		Hlarge:     hlarge,        // Delay for second type of tx
 		p:          0.,            //proportion of second type of tx
-		D:          5,             // max age for RURTS
+		D:          int(variable), // max age for RURTS
 		Seed:       1,             //
-		TangleSize: (10*hlarge + 500) * lambdaForSize,
+		TangleSize: (10*hlarge + 1000) * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
-		minCut:            10 * hlarge * lambdaForSize, // cut data close to the genesis
-		maxCutrange:       10 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
+		minCut:            20 * hlarge * lambdaForSize, // cut data close to the genesis
+		maxCutrange:       20 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
 		stillrecent:       2 * lambdaForSize,           // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate:      false,
 		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
@@ -45,10 +45,10 @@ func newParameters(variable float64) Parameters {
 		responseKIncrease:       3.,              // at which rate do we increase K
 		maxK:                    20,              // maximum K used for protection, value will get replaced when K is larger
 		// - - - Analysis section - - -
-		CountTipsEnabled: true,
+		CountTipsEnabled: true, // including orphan tips
 		// CWAnalysisEnabled:    false,
-		pOrphanEnabled:       true,  // calculate orphanage probability
-		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
+		recordOrphansForEachSim: true,  // save for each Tangle the orphan number
+		pOrphanLinFitEnabled:    false, // also apply linear fit, numerically expensive
 		// measure distance of slices compared to the expected distribution
 		DistSlicesEnabled:    false,
 		DistSlicesByTime:     false, // true = tx time slices, false= tx ID slices
@@ -110,6 +110,7 @@ func newParameters(variable float64) Parameters {
 
 //define Parameters types
 type Parameters struct {
+	Variable      float64
 	nParallelSims int
 	K             int
 	Hsmall        int
@@ -144,15 +145,15 @@ type Parameters struct {
 	CountTipsEnabled bool
 	// CWAnalysisEnabled bool
 
-	pOrphanEnabled       bool
-	pOrphanLinFitEnabled bool
-	AnPastCone           AnPastCone
-	AnFutureCone         AnFutureCone
-	DistSlicesEnabled    bool
-	DistSlicesByTime     bool
-	DistSlicesLength     float64
-	DistSlicesResolution int
-	AppStatsAllEnabled   bool
+	recordOrphansForEachSim bool
+	pOrphanLinFitEnabled    bool
+	AnPastCone              AnPastCone
+	AnFutureCone            AnFutureCone
+	DistSlicesEnabled       bool
+	DistSlicesByTime        bool
+	DistSlicesLength        float64
+	DistSlicesResolution    int
+	AppStatsAllEnabled      bool
 	// - - - Drawing - - -
 	//drawTangleMode = 0: drawing disabled
 	//drawTangleMode = 1: simple Tangle with/without highlighed path

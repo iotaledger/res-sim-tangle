@@ -13,9 +13,7 @@ func (result *Result) initResults(p *Parameters) {
 	if p.AnPastCone.Enabled {
 		result.PastCone = newPastConeResult([]string{"avg", "1", "2", "3", "4", "5", "rest"})
 	}
-	if p.pOrphanEnabled {
-		result.op = newPOrphanResult(p)
-	}
+	result.op = newPOrphanResult(p)
 	if p.DistSlicesEnabled {
 		result.DistSlices = newDistSlicesResult()
 	}

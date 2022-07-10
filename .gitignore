@@ -1,3 +1,6 @@
+*.png
+*.csv
+*.eps
 *.exe
 data/*
 figures/*
