@@ -8,14 +8,20 @@ sns.set_theme(style="darkgrid")
 
 folder = "data/"
 
-filename = "q"
-xlims = [0, 1]
-xlabel = "Adversary proportion"
-# filename = "D"
-# xlims = [0, 11]
-# xlabel = "Expiration time"
+# filename = "q"
+# xlims = [0, 1]
+# xlabel = "Adversary proportion"
+filename = "D,q=.25"
+xlims = [0, 11]
+xlabel = "Expiration time"
+# filename = "k,q=.5"
+# xlims = [2, 12]
+# xlabel = "Number of parents"
 
+printAnalytical = True
+ylims = [1e-7, 1]
 folderdata = "../data/"+filename+"/"
+
 # Colors
 BG_WHITE = "#fbf9f4"
 GREY_LIGHT = "#b4aea9"
@@ -44,7 +50,6 @@ def evaluate1(analysisType):
     elif analysisType == 2:
         filenamedata = folderdata+"orphantips_"
         ylabel = "Orphanage rate"
-        ylims = [1e-5, 1]
         fileSaveFig = folder+'orphanage.png'
 
     X = loadColumn(folderdata+"params", 0, 0)
@@ -64,8 +69,12 @@ def evaluate1(analysisType):
         dfStats = df['data'].describe()
         yQ1[i] = dfStats['25%']
         yQ3[i] = dfStats['75%']
-        yMin[i] = dfStats['min']
-        yMax[i] = dfStats['max']
+        # 0 values make no sense
+        y[y == 0] = np.nan
+        yQ3[yQ1 == 0] = np.nan
+        yQ1[yQ1 == 0] = np.nan
+        yMax[yMin == 0] = np.nan
+        yMin[yMin == 0] = np.nan
     sns.lineplot(X, y, label="Median")
     plt.fill_between(X, yQ1, yQ3, color='b',
                      alpha=0.2, label="25% to 75% quantiles")
@@ -73,6 +82,13 @@ def evaluate1(analysisType):
                      alpha=0.1, label="Min to Max")
     plt.fill_between(X, yQ3, yMax, color='r',
                      alpha=0.1)
+    if printAnalytical & analysisType == 1:
+        xL, L, Lsimple = getAnalyticalCurve()
+        print("++++++++++++++++++++++++++++")
+        print(xL)
+        sns.lineplot(xL, Lsimple, color="red",
+                     label="Analytical (simple)", linestyle="dashed")
+        sns.lineplot(xL, L, color="red", label="Analytical")
     if analysisType == 2:
         plt.yscale('log')
         plt.ylim(ylims)
@@ -92,7 +108,6 @@ def evaluate2(analysisType):
     elif analysisType == 2:
         filenamedata = folderdata+"orphantips_"
         ylabel = "Orphanage rate"
-        ylims = [1e-5, 1]
         fileSaveFig = folder+'orphanage.png'
 
     X = loadColumn(folderdata+"params", 0, 0)
@@ -138,7 +153,7 @@ def evaluate2(analysisType):
         c = GREY_LIGHT
         bp = ax.boxplot(
             y_data,
-            widths=0.7,
+            widths=max(xlims)/len(X)*.8,
             positions=[x],
             showfliers=False,  # Do not show the outliers beyond the caps.
             showcaps=False,   # Do not show the caps
@@ -185,6 +200,50 @@ def loadColumn(filename, column, skiprows):
         print(filestr)
         print("File not found.")
         return []
+
+
+def getAnalyticalCurve():
+    lam = 20.
+    h = 1.
+    k = 2.
+    q = .25
+    D = 6.
+
+    # load X data
+    Xdata = loadColumn(folderdata+"params", 0, 0)
+    X = np.arange(30)/30.
+    X = max(Xdata)*np.ones(len(X))-(max(Xdata)-min(Xdata))*X
+    D = X
+
+    p = 1-q
+
+    # solve the following numerically
+    # L0 = p*k(h-D*np.exp(-D*p*k/L0))/(p*k-1+np.exp(-D*p*k/L0))*lam*h
+    L0 = X*0+1
+    print(L0[:3])
+    for i in range(101):
+        L1 = L0
+        L0 = p*k*(h-D*np.exp(-D*p*k/L0))/(p*k-1+np.exp(-D*p*k/L0))
+        delta = L0-L1
+        pos = 24
+        print("x,L0,delta = ", X[pos], L0[pos], np.log(abs(delta[pos])))
+    L = L0*lam
+    L[L < 0] = np.NaN
+
+    print("------- Numerical precision ---- ")
+    print(len(L), len(delta), len(X))
+    input = X[L0 > 0]
+    result = L[L0 > 0]
+    error = abs(delta[L0 > 0])
+    print("Xvalue\tResult\tError")
+    for i in range(len(input)):
+        print(input[i], result[i], error[i])
+
+    # simple equation instead
+    Lsimple = p*k/(p*k-1)*h*lam*np.ones(len(X))
+    Lsimple[Lsimple < 0] = np.NaN
+
+    return X, L, Lsimple
 
 
 # needs to be at the very end of the file
