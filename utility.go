@@ -133,7 +133,7 @@ func ModFloat(a float64, b float64) float64 {
 }
 
 func initParamsLog() (err error) {
-	f, err := os.Create("data/params.log")
+	f, err := os.Create("data/params.csv")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
 		return err
@@ -144,7 +144,7 @@ func initParamsLog() (err error) {
 
 func writetoParamsLog(variable float64) (err error) {
 	// log the variable array
-	f, err := os.OpenFile("data/params.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("data/params.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}

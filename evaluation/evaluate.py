@@ -5,14 +5,13 @@ import seaborn as sns
 import pandas as pd
 
 sns.set_theme(style="darkgrid")
-ylims = [1e-5, 1]
 
-folderdata = "../data/D/"
-filenamedata = folderdata+"orphantips_"
 folder = "data/"
-filename = "D"
+filename = "q"
+folderdata = "../data/"+filename+"/"
+xlims = [0, 1]
 
-xaxislabel = "Expiration time"
+xlabel = "Expiration time"
 
 # Colors
 BG_WHITE = "#fbf9f4"
@@ -28,12 +27,26 @@ COLOR_SCALE = ["#1B9E77", "#D95F02", "#7570B3"]
 
 
 def main():
-    varyD()
-    varyD2()
+    evaluate1(1)  # tips
+    evaluate2(1)  # tips
+    evaluate1(2)  # orphanage
+    evaluate2(2)  # orphanage
 
 
-def varyD():
-    X = np.arange(10)+2
+def evaluate1(analysisType):
+    if analysisType == 1:
+        filenamedata = folderdata+"tips_"
+        ylabel = "Number of tips"
+        fileSaveFig = folder+'tips.png'
+    elif analysisType == 2:
+        filenamedata = folderdata+"orphantips_"
+        ylabel = "Orphanage rate"
+        ylims = [1e-5, 1]
+        fileSaveFig = folder+'orphanage.png'
+
+    X = loadColumn(folderdata+"params", 0, 0)
+    print(X)
+    print("Length of X="+str(len(X)))
     y = X*0.
     yQ1 = X*0.
     yQ3 = X*0.
@@ -42,7 +55,7 @@ def varyD():
 
     fig, ax = plt.subplots()
     for i in np.arange(len(X)):
-        y_data = loadColumn(filenamedata+str(X[i]), 2, 2)
+        y_data = loadColumn(filenamedata+str(i), 2, 2)
         y[i] = np.mean(y_data)
         df = pd.DataFrame(y_data, columns=['data'])
         dfStats = df['data'].describe()
@@ -50,29 +63,41 @@ def varyD():
         yQ3[i] = dfStats['75%']
         yMin[i] = dfStats['min']
         yMax[i] = dfStats['max']
-    sns.lineplot(X, y, label="Orphanage rate")
+    sns.lineplot(X, y, label="Median")
     plt.fill_between(X, yQ1, yQ3, color='b',
                      alpha=0.2, label="25% to 75% quantiles")
     plt.fill_between(X, yMin, yQ1, color='r',
                      alpha=0.1, label="Min to Max")
     plt.fill_between(X, yQ3, yMax, color='r',
                      alpha=0.1)
-    plt.yscale('log')
-    plt.xlabel(xaxislabel)
-    plt.ylabel("Orphanage rate")
-    plt.ylim([min(yQ1), 1])
-    plt.xlim([0, max(X)])
+    if analysisType == 2:
+        plt.yscale('log')
+        plt.ylim(ylims)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.xlim(xlims)
     plt.legend()
-    plt.savefig(folder+'orphanage.png', format='png')
+    plt.savefig(fileSaveFig, format='png')
     plt.clf()
 
 
-def varyD2():
-    X = np.arange(10)+2
+def evaluate2(analysisType):
+    if analysisType == 1:
+        filenamedata = folderdata+"tips_"
+        ylabel = "Number of tips"
+        fileSaveFig = folder+'tips.png'
+    elif analysisType == 2:
+        filenamedata = folderdata+"orphantips_"
+        ylabel = "Orphanage rate"
+        ylims = [1e-5, 1]
+        fileSaveFig = folder+'orphanage.png'
+
+    X = loadColumn(folderdata+"params", 0, 0)
 
     fig, ax = plt.subplots()
-    for x in X:
-        y_data = loadColumn(filenamedata+str(x), 2, 2)
+    for i in np.arange(len(X)):
+        x = X[i]
+        y_data = loadColumn(filenamedata+str(i), 2, 2)
 
         # Some layout stuff ----------------------------------------------
         # Background color
@@ -136,19 +161,20 @@ def varyD2():
         # df['value'] = df['value'].astype(float)
         # sns.boxplot(x='site', y='value',  data=df)
 
-    plt.ylim(ylims)
-    plt.xlim([0, max(X)+1])
-    plt.yscale("log")
-    plt.xlabel(xaxislabel)
-    plt.ylabel("Orphanage rate")
-    plt.savefig(folder+'orphanage_v2.png', format='png')
+    if analysisType == 2:
+        plt.yscale('log')
+        plt.ylim(ylims)
+    plt.xlim(xlims)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.savefig(fileSaveFig+'_v2.png', format='png')
     plt.clf()
 
 
 def loadColumn(filename, column, skiprows):
     try:
-        filestr = filename
-        f = open(filestr+".csv", "r")
+        filestr = filename+".csv"
+        f = open(filestr, "r")
         data = np.loadtxt(f, delimiter=";",
                           skiprows=skiprows, usecols=(column))
         return data
