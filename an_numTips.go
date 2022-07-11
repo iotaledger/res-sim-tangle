@@ -143,7 +143,7 @@ func (a tipsResult) Save(p Parameters, sample int) error {
 }
 
 func (a tipsResult) SaveTips(p Parameters) (err error) {
-	str := fmt.Sprintf("%d", int(p.Variable))
+	str := fmt.Sprintf("%d", int(p.SimStep))
 	f, err := os.Create("data/tips_" + str + ".csv")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
@@ -163,7 +163,7 @@ func (a tipsResult) SaveTips(p Parameters) (err error) {
 }
 
 func (a tipsResult) SaveOrphanTips(p Parameters) (err error) {
-	str := fmt.Sprintf("%d", int(p.Variable))
+	str := fmt.Sprintf("%d", int(p.SimStep))
 	f, err := os.Create("data/orphantips_" + str + ".csv")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)

@@ -6,29 +6,30 @@ import (
 )
 
 // variable initialization
-func newParameters(variable float64) Parameters {
+func newParameters(variable float64, simStep int) Parameters {
 	lambda := 20.
 	// lambda := variable
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	hlarge := 1
 	p := Parameters{
 		Variable: variable,
+		SimStep:  simStep, // at which # of variable of the simulation we are
 
 		// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
 		// nParallelSims: runtime.NumCPU()/2 - 1,
 		nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
-		nRun:   100,
+		nRun:   3,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:          2,             // Num of tips to select
-		Hsmall:     1,             // Delay for first type of tx,
-		Hlarge:     hlarge,        // Delay for second type of tx
-		p:          0.,            //proportion of second type of tx
-		D:          int(variable), // max age for RURTS
-		Seed:       1,             //
-		TangleSize: (10*hlarge + 1000) * lambdaForSize,
+		K:          2,      // Num of tips to select
+		Hsmall:     1,      // Delay for first type of tx,
+		Hlarge:     hlarge, // Delay for second type of tx
+		p:          0.,     //proportion of second type of tx
+		D:          10,     // max age for RURTS
+		Seed:       1,      //
+		TangleSize: (10*hlarge + 500) * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            20 * hlarge * lambdaForSize, // cut data close to the genesis
 		maxCutrange:       20 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
@@ -37,7 +38,7 @@ func newParameters(variable float64) Parameters {
 		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
 
 		// - - - Attacks - - -
-		q:            0.,            // proportion of adversary txs
+		q:            variable,      // proportion of adversary txs
 		TSAAdversary: "SpamGenesis", // spam tips linked to the genesis,
 		// - - - Response - - -
 		responseSpamTipsEnabled: false,           // response dynamically to the tip spam attack
@@ -111,6 +112,7 @@ func newParameters(variable float64) Parameters {
 //define Parameters types
 type Parameters struct {
 	Variable      float64
+	SimStep       int
 	nParallelSims int
 	K             int
 	Hsmall        int
