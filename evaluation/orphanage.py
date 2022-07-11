@@ -7,8 +7,12 @@ import pandas as pd
 sns.set_theme(style="darkgrid")
 ylims = [1e-5, 1]
 
-folderdata = "../data/varyD/"
+folderdata = "../data/D/"
+filenamedata = folderdata+"orphantips_"
 folder = "data/"
+filename = "D"
+
+xaxislabel = "Expiration time"
 
 # Colors
 BG_WHITE = "#fbf9f4"
@@ -29,8 +33,6 @@ def main():
 
 
 def varyD():
-    filename = "varyD"
-    filenamedata = folderdata+"orphantips_"
     X = np.arange(10)+2
     y = X*0.
     yQ1 = X*0.
@@ -48,39 +50,29 @@ def varyD():
         yQ3[i] = dfStats['75%']
         yMin[i] = dfStats['min']
         yMax[i] = dfStats['max']
-    # x = loadColumn(folder+filename, 0, 1)
-    # y = loadColumn(folder+filename, 1, 1)
-    # STD = loadColumn(folder+filename, 2, 1)
     sns.lineplot(X, y, label="Orphanage rate")
-    # sns.lineplot(x, STD, color="red", label="STD")
-    # yQ1 = y-STD
-    # yQ1[yQ1 < 0] = np.NaN
-    # plt.plot(x, mean_1, 'b-', label='mean_1')
     plt.fill_between(X, yQ1, yQ3, color='b',
                      alpha=0.2, label="25% to 75% quantiles")
     plt.fill_between(X, yMin, yQ1, color='r',
                      alpha=0.1, label="Min to Max")
     plt.fill_between(X, yQ3, yMax, color='r',
                      alpha=0.1)
-    # fig, ax = plt.subplots()
     plt.yscale('log')
-    plt.xlabel("Expiration time")
+    plt.xlabel(xaxislabel)
     plt.ylabel("Orphanage rate")
     plt.ylim([min(yQ1), 1])
     plt.xlim([0, max(X)])
     plt.legend()
-    # plt.show()
-    plt.savefig(folder+'varyD_orphanage.png', format='png')
+    plt.savefig(folder+'orphanage.png', format='png')
     plt.clf()
 
 
 def varyD2():
-    filename = folderdata+"orphantips_"
     X = np.arange(10)+2
 
     fig, ax = plt.subplots()
     for x in X:
-        y_data = loadColumn(filename+str(x), 2, 2)
+        y_data = loadColumn(filenamedata+str(x), 2, 2)
 
         # Some layout stuff ----------------------------------------------
         # Background color
@@ -147,9 +139,9 @@ def varyD2():
     plt.ylim(ylims)
     plt.xlim([0, max(X)+1])
     plt.yscale("log")
-    plt.xlabel("Expiration time")
+    plt.xlabel(xaxislabel)
     plt.ylabel("Orphanage rate")
-    plt.savefig(folder+'varyD2_orphanage.png', format='png')
+    plt.savefig(folder+'orphanage_v2.png', format='png')
     plt.clf()
 
 
