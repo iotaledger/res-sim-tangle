@@ -119,12 +119,14 @@ func (sim *Sim) clearSim() {
 
 func (sim Sim) isAdverse(i int) bool {
 	isAdverse := false
-	if i > sim.param.TangleSize/3 {
-		if i < sim.param.TangleSize*2/3 {
-			if sim.generator.Float64() < sim.param.q {
-				isAdverse = true
-			}
+	attackActive := true
+	if sim.param.qPartiallyActive {
+		if i < sim.param.TangleSize/3 || i > sim.param.TangleSize*2/3 {
+			attackActive = false
 		}
+	}
+	if (sim.generator.Float64() < sim.param.q) && attackActive {
+		isAdverse = true
 	}
 	return isAdverse
 }

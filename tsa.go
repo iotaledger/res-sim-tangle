@@ -213,6 +213,10 @@ type SpamGenesis struct {
 func (SpamGenesis) TipSelectAdversary(t Tx, sim *Sim) []int {
 	tipsApproved := make([]int, 1)
 	//var j int
+	if len(sim.tips) == 0 {
+		fmt.Println("ERROR: No tips left")
+		os.Exit(0)
+	}
 	tipsApproved[0] = 0 // use genesis as only parent
 
 	return tipsApproved

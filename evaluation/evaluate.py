@@ -7,12 +7,15 @@ import pandas as pd
 sns.set_theme(style="darkgrid")
 
 folder = "data/"
+
 filename = "q"
-folderdata = "../data/"+filename+"/"
 xlims = [0, 1]
+xlabel = "Adversary proportion"
+# filename = "D"
+# xlims = [0, 11]
+# xlabel = "Expiration time"
 
-xlabel = "Expiration time"
-
+folderdata = "../data/"+filename+"/"
 # Colors
 BG_WHITE = "#fbf9f4"
 GREY_LIGHT = "#b4aea9"
