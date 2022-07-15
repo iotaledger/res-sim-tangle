@@ -23,7 +23,7 @@ func newParameters(variable float64, simStep int) Parameters {
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:          2,        // Num of tips to select
+		K:          4,        // Num of tips to select
 		Hsmall:     1,        // Delay for first type of tx,
 		Hlarge:     hlarge,   // Delay for second type of tx
 		p:          0.,       //proportion of second type of tx

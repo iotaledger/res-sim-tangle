@@ -1,3 +1,4 @@
+from cmath import e
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as st
@@ -11,15 +12,24 @@ folder = "data/"
 # filename = "q"
 # xlims = [0, 1]
 # xlabel = "Adversary proportion"
-filename = "D,q=.25,k=2,lam=100"
-xlims = [1, 19]
+filename = "D,q=.25,k=4,lam=100"
+xlims = [-3, 21]
 xlabel = "Expiration time"
 # filename = "k,q=.5"
 # xlims = [2, 12]
 # xlabel = "Number of parents"
 
+# values
+lam = 100.
+h = 1.
+k = 4.
+q = .25
+D = 6.
+p = 1.-q
+
 printAnalytical = True
-ylims = [1e-7, 1]
+ylimsTips = [0, 350]
+ylimsOrphan = [1e-7, 1]
 folderdata = "../data/"+filename+"/"
 
 # Colors
@@ -55,9 +65,9 @@ def evaluate1(analysisType):
         column = 2
 
     X = loadColumn(folderdata+"params", 0, 0)
-    print(X)
     print("Length of X="+str(len(X)))
-    y = X*0.
+    print("X=\n", X)
+    Y = X*0.
     yQ1 = X*0.
     yQ3 = X*0.
     yMin = X*0.
@@ -66,36 +76,40 @@ def evaluate1(analysisType):
     fig, ax = plt.subplots()
     for i in np.arange(len(X)):
         y_data = loadColumn(filenamedata+str(i), column, 2)
-        y[i] = np.mean(y_data)
+        Y[i] = np.mean(y_data)
         df = pd.DataFrame(y_data, columns=['data'])
         dfStats = df['data'].describe()
         yQ1[i] = dfStats['25%']
         yQ3[i] = dfStats['75%']
         # 0 values make no sense
-        y[y == 0] = np.nan
+        Y[Y == 0] = np.nan
         yQ3[yQ1 == 0] = np.nan
         yQ1[yQ1 == 0] = np.nan
         yMax[yMin == 0] = np.nan
         yMin[yMin == 0] = np.nan
-    sns.lineplot(x=X, y=y, label="Median")
+    sns.lineplot(x=X, y=Y, label="Mean")
     plt.fill_between(X, yQ1, yQ3, color='b',
                      alpha=0.2, label="25% to 75% quantiles")
-    plt.fill_between(X, yMin, yQ1, color='r',
-                     alpha=0.1, label="Min to Max")
-    plt.fill_between(X, yQ3, yMax, color='r',
-                     alpha=0.1)
-    if printAnalytical & analysisType == 1:
-        xL, L1, L2, Lsimple = getAnalyticalCurve()
+    # plt.fill_between(X, yMin, yQ1, color='r',
+    #                  alpha=0.1, label="Min to Max")
+    # plt.fill_between(X, yQ3, yMax, color='r',
+    #                  alpha=0.1)
+    xL, L1, L2, Lsimple, o = getAnalyticalCurve(X, Y, analysisType)
+    if printAnalytical & (analysisType == 1):
         print("++++++++++++++++++++++++++++")
-        print(xL)
+        print("xL=\n", xL)
         sns.lineplot(x=xL, y=Lsimple, color="red",
                      label="Analytical (simple)", linestyle="dashed")
         sns.lineplot(x=xL, y=(L1+L2)/2., color="red", label="Analytical")
         sns.lineplot(x=xL, y=L1, color="red", linestyle="dotted")
         sns.lineplot(x=xL, y=L2, color="red", linestyle="dotted")
+    if printAnalytical & (analysisType == 2):
+        sns.lineplot(x=xL, y=o, color="red",
+                     label="Analytical", linestyle="dashed")
+    plt.ylim(ylimsTips)
     if analysisType == 2:
         plt.yscale('log')
-        plt.ylim(ylims)
+        plt.ylim(ylimsOrphan)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.xlim(xlims)
@@ -185,9 +199,10 @@ def evaluate2(analysisType):
         # df['value'] = df['value'].astype(float)
         # sns.boxplot(x='site', y='value',  data=df)
 
+    plt.ylim(ylimsTips)
     if analysisType == 2:
         plt.yscale('log')
-        plt.ylim(ylims)
+        plt.ylim(ylimsOrphan)
     plt.xlim(xlims)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
@@ -208,51 +223,64 @@ def loadColumn(filename, column, skiprows):
         return []
 
 
-def getAnalyticalCurve():
-    lam = 100.
-    h = 1.
-    k = 2.
-    q = .25
-    D = 6.
-
+def getAnalyticalCurve(Xdata, Ydata, analysistype):
     # load X data
     Xdata = loadColumn(folderdata+"params", 0, 0)
     X = np.arange(100)/100.
     # X = max(Xdata)*np.ones(len(X))-(max(Xdata)-min(Xdata))*X
-    X = 20.*X+1.05
-    D = X-1
+    X = 23.*X-3
+    D = X
 
-    p = 1-q
+    L0, L1, L2, L0avg, delta = calcL(D)
 
-    # solve the following numerically
-    # L0 = p*k(h-D*np.exp(-D*p*k/L0))/(p*k-1+np.exp(-D*p*k/L0))*lam*h
-    L0 = X*0+1
-    print(L0[:3])
-    for i in range(1001):
-        L1 = L0
-        L0 = p*k*(h-D*np.exp(-D*p*k/L0))/(p*k-1+np.exp(-D*p*k/L0))
-        delta = L0-L1
-        pos = 24
-        print("x,L0,delta = ", X[pos], L0[pos], np.log(abs(delta[pos])))
-    L2 = L0*lam
-    L1 = L1*lam
-    L1[L1 < 0] = np.NaN
-    L2[L1 < 0] = np.NaN
-
-    print("------- Numerical precision ---- ")
-    print(len(L1), len(delta), len(X))
     input = X[L0 > 0]
     result = L1[L0 > 0]
     error = abs(delta[L0 > 0])
-    print("Xvalue\tResult\tError")
-    for i in range(len(input)):
-        print(input[i], "\t", result[i], "\t", error[i])
+    # print("------- Numerical precision ---- ")
+    # print(len(L1), len(delta), len(X))
+    # print("Xvalue\tResult\tError")
+    # for i in range(len(input)):
+    #     print(input[i], "\t", result[i], "\t", error[i])
 
     # simple equation instead
     Lsimple = p*k/(p*k-1)*h*lam*np.ones(len(X))
     Lsimple[Lsimple < 0] = np.NaN
 
-    return X, L1, L2, Lsimple
+    # estimate coefficient for orphanage probability
+    if analysistype == 2:
+        _, _, _, L0avgdata, _ = calcL(Xdata)
+        print("L0avg", len(L0avgdata), L0avgdata)
+        print("Xdata", len(Xdata), Xdata)
+        print("Ydata", len(Ydata), Ydata)
+        select = (Xdata >= 2.)*(Ydata < .1)
+        cOrph0 = Ydata[select] * np.exp(Xdata[select]*p*k / L0avgdata[select])
+        print(cOrph0)
+        print(np.sort(cOrph0))
+        print("median cOrph0= ", np.median(np.sort(cOrph0)))
+        c = np.median(np.sort(cOrph0))
+    else:
+        c = 1.
+
+    # c = 50.
+    o = c*np.exp(-D*p*k/L0avg)
+
+    return X, L1, L2, Lsimple, o
+
+
+def calcL(D):
+    # solve the following numerically
+    # L0 = p*k(h-D*np.exp(-D*p*k/L0))/(p*k-1+np.exp(-D*p*k/L0))*lam*h
+    L0 = D*0.+1.
+    for i in range(1001):
+        L1 = L0
+        L0 = p*k*(h-D*np.exp(-D*p*k/L0))/(p*k-1+np.exp(-D*p*k/L0))
+        delta = L0-L1
+    L2 = L0*lam
+    L1 = L1*lam
+    L1[L1 < 0] = np.NaN
+    L2[L1 < 0] = np.NaN
+    L0avg = (L1+L2)/2./lam
+    return L0, L1, L2, L0avg, delta
 
 
 # needs to be at the very end of the file
