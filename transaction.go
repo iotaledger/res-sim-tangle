@@ -102,8 +102,8 @@ func (t Tx) isVisible(now float64) bool {
 }
 
 //given a time "now" and a transaction t, checks that t is visible
-func (t Tx) isTooOld(now float64, D int) bool {
-	return now-t.time > float64(D)
+func (t Tx) isTooOld(now float64, D float64) bool {
+	return now-t.time > D
 }
 
 func (t Tx) isGenesis() bool {

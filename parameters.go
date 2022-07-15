@@ -7,7 +7,7 @@ import (
 
 // variable initialization
 func newParameters(variable float64, simStep int) Parameters {
-	lambda := 20.
+	lambda := 100.
 	// lambda := variable
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	hlarge := 1
@@ -19,26 +19,27 @@ func newParameters(variable float64, simStep int) Parameters {
 		// nParallelSims: runtime.NumCPU()/2 - 1,
 		nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
-		nRun:   100,
+		nRun:   10,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:          2,             // Num of tips to select
-		Hsmall:     1,             // Delay for first type of tx,
-		Hlarge:     hlarge,        // Delay for second type of tx
-		p:          0.,            //proportion of second type of tx
-		D:          int(variable), // max age for RURTS
-		Seed:       1,             //
-		TangleSize: (10*hlarge + 500) * lambdaForSize,
+		K:          2,        // Num of tips to select
+		Hsmall:     1,        // Delay for first type of tx,
+		Hlarge:     hlarge,   // Delay for second type of tx
+		p:          0.,       //proportion of second type of tx
+		D:          variable, // max age for RURTS
+		Seed:       1,        //
+		TangleSize: (500) * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
-		minCut:            20 * hlarge * lambdaForSize, // cut data close to the genesis
+		minCut:            10 * lambdaForSize,          // cut data close to the genesis
 		maxCutrange:       20 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
 		stillrecent:       2 * lambdaForSize,           // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate:      false,
 		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
+		recordSamples:     10,    // number of samples of tangles for which the entire tip number variation should be recorded
 
 		// - - - Attacks - - -
-		q:                0.25,          // proportion of adversary txs
+		q:                .25,           // proportion of adversary txs
 		qPartiallyActive: false,         // attack only active between [1/3,2/3] of the Tangle
 		TSAAdversary:     "SpamGenesis", // spam tips linked to the genesis,
 		// - - - Response - - -
@@ -119,7 +120,7 @@ type Parameters struct {
 	Hsmall        int
 	Hlarge        int
 	p             float64
-	D             int
+	D             float64
 	Lambda        float64
 	// tsaType           string
 	TangleSize        int
@@ -129,6 +130,7 @@ type Parameters struct {
 	TSAAdversary      string
 	tsaAdversary      TipSelectorAdversary
 	SingleEdgeEnabled bool
+	recordSamples     int
 	ConstantRate      bool
 	DataPath          string
 	minCut            int

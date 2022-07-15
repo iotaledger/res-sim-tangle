@@ -11,8 +11,8 @@ folder = "data/"
 # filename = "q"
 # xlims = [0, 1]
 # xlabel = "Adversary proportion"
-filename = "D,q=.25"
-xlims = [0, 11]
+filename = "D,q=.25,k=2,lam=100"
+xlims = [1, 19]
 xlabel = "Expiration time"
 # filename = "k,q=.5"
 # xlims = [2, 12]
@@ -47,10 +47,12 @@ def evaluate1(analysisType):
         filenamedata = folderdata+"tips_"
         ylabel = "Number of tips"
         fileSaveFig = folder+'tips.png'
+        column = 1
     elif analysisType == 2:
         filenamedata = folderdata+"orphantips_"
         ylabel = "Orphanage rate"
         fileSaveFig = folder+'orphanage.png'
+        column = 2
 
     X = loadColumn(folderdata+"params", 0, 0)
     print(X)
@@ -63,7 +65,7 @@ def evaluate1(analysisType):
 
     fig, ax = plt.subplots()
     for i in np.arange(len(X)):
-        y_data = loadColumn(filenamedata+str(i), 2, 2)
+        y_data = loadColumn(filenamedata+str(i), column, 2)
         y[i] = np.mean(y_data)
         df = pd.DataFrame(y_data, columns=['data'])
         dfStats = df['data'].describe()
@@ -75,7 +77,7 @@ def evaluate1(analysisType):
         yQ1[yQ1 == 0] = np.nan
         yMax[yMin == 0] = np.nan
         yMin[yMin == 0] = np.nan
-    sns.lineplot(X, y, label="Median")
+    sns.lineplot(x=X, y=y, label="Median")
     plt.fill_between(X, yQ1, yQ3, color='b',
                      alpha=0.2, label="25% to 75% quantiles")
     plt.fill_between(X, yMin, yQ1, color='r',
@@ -83,12 +85,14 @@ def evaluate1(analysisType):
     plt.fill_between(X, yQ3, yMax, color='r',
                      alpha=0.1)
     if printAnalytical & analysisType == 1:
-        xL, L, Lsimple = getAnalyticalCurve()
+        xL, L1, L2, Lsimple = getAnalyticalCurve()
         print("++++++++++++++++++++++++++++")
         print(xL)
-        sns.lineplot(xL, Lsimple, color="red",
+        sns.lineplot(x=xL, y=Lsimple, color="red",
                      label="Analytical (simple)", linestyle="dashed")
-        sns.lineplot(xL, L, color="red", label="Analytical")
+        sns.lineplot(x=xL, y=(L1+L2)/2., color="red", label="Analytical")
+        sns.lineplot(x=xL, y=L1, color="red", linestyle="dotted")
+        sns.lineplot(x=xL, y=L2, color="red", linestyle="dotted")
     if analysisType == 2:
         plt.yscale('log')
         plt.ylim(ylims)
@@ -105,17 +109,19 @@ def evaluate2(analysisType):
         filenamedata = folderdata+"tips_"
         ylabel = "Number of tips"
         fileSaveFig = folder+'tips.png'
+        column = 1
     elif analysisType == 2:
         filenamedata = folderdata+"orphantips_"
         ylabel = "Orphanage rate"
         fileSaveFig = folder+'orphanage.png'
+        column = 2
 
     X = loadColumn(folderdata+"params", 0, 0)
 
     fig, ax = plt.subplots()
     for i in np.arange(len(X)):
         x = X[i]
-        y_data = loadColumn(filenamedata+str(i), 2, 2)
+        y_data = loadColumn(filenamedata+str(i), column, 2)
 
         # Some layout stuff ----------------------------------------------
         # Background color
@@ -203,7 +209,7 @@ def loadColumn(filename, column, skiprows):
 
 
 def getAnalyticalCurve():
-    lam = 20.
+    lam = 100.
     h = 1.
     k = 2.
     q = .25
@@ -211,9 +217,10 @@ def getAnalyticalCurve():
 
     # load X data
     Xdata = loadColumn(folderdata+"params", 0, 0)
-    X = np.arange(30)/30.
-    X = max(Xdata)*np.ones(len(X))-(max(Xdata)-min(Xdata))*X
-    D = X
+    X = np.arange(100)/100.
+    # X = max(Xdata)*np.ones(len(X))-(max(Xdata)-min(Xdata))*X
+    X = 20.*X+1.05
+    D = X-1
 
     p = 1-q
 
@@ -221,29 +228,31 @@ def getAnalyticalCurve():
     # L0 = p*k(h-D*np.exp(-D*p*k/L0))/(p*k-1+np.exp(-D*p*k/L0))*lam*h
     L0 = X*0+1
     print(L0[:3])
-    for i in range(101):
+    for i in range(1001):
         L1 = L0
         L0 = p*k*(h-D*np.exp(-D*p*k/L0))/(p*k-1+np.exp(-D*p*k/L0))
         delta = L0-L1
         pos = 24
         print("x,L0,delta = ", X[pos], L0[pos], np.log(abs(delta[pos])))
-    L = L0*lam
-    L[L < 0] = np.NaN
+    L2 = L0*lam
+    L1 = L1*lam
+    L1[L1 < 0] = np.NaN
+    L2[L1 < 0] = np.NaN
 
     print("------- Numerical precision ---- ")
-    print(len(L), len(delta), len(X))
+    print(len(L1), len(delta), len(X))
     input = X[L0 > 0]
-    result = L[L0 > 0]
+    result = L1[L0 > 0]
     error = abs(delta[L0 > 0])
     print("Xvalue\tResult\tError")
     for i in range(len(input)):
-        print(input[i], result[i], error[i])
+        print(input[i], "\t", result[i], "\t", error[i])
 
     # simple equation instead
     Lsimple = p*k/(p*k-1)*h*lam*np.ones(len(X))
     Lsimple[Lsimple < 0] = np.NaN
 
-    return X, L, Lsimple
+    return X, L1, L2, Lsimple
 
 
 # needs to be at the very end of the file

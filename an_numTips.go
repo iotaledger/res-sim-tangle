@@ -100,16 +100,20 @@ func (a tipsResult) Join(b tipsResult) tipsResult {
 // 	return result
 // }
 
-func (a tipsResult) nTipsToString(p Parameters, sample int) string {
+func (a tipsResult) nTipsToString(p Parameters, samples int) string {
 	result := "# Number of tips seen by each tx\n"
-	result += "#Tx;sample;avg;var;std\n"
+	result += "#Tx;avg;var;std;samples\n"
 	for j := range a.nTips[0][1:] {
-		result += fmt.Sprintf("%d;%d;%.2f;%.2f;%.4f\n", j+1, a.nTips[sample][j+1], a.mean[j+1], a.variance[j+1], math.Sqrt(a.variance[j+1]))
+		result += fmt.Sprintf("%d;%.2f;%.2f;%.4f", j+1, a.mean[j+1], a.variance[j+1], math.Sqrt(a.variance[j+1]))
+		for i := 0; i < samples; i++ {
+			result += fmt.Sprintf(";%d", a.nTips[i][j+1])
+		}
+		result += fmt.Sprintf("\n")
 	}
 	return result
 }
 
-func (a tipsResult) nOrphanTipsToString(p Parameters, sample int) string {
+func (a tipsResult) nOrphanTipsToString(p Parameters) string {
 	result := "# Number of orphantips seen by each tangle\n"
 	result += "#Tangle;nOrphan;OrphanRatio\n"
 	for j := range a.nOrphanTips[:] {
@@ -151,7 +155,11 @@ func (a tipsResult) SaveTips(p Parameters) (err error) {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString(a.nTipsToString(p, 0)) // writing...
+	samples := p.nRun
+	if samples > p.recordSamples {
+		samples = p.recordSamples
+	}
+	_, err = f.WriteString(a.nTipsToString(p, samples)) // writing...
 
 	if err != nil {
 		fmt.Printf("error writing string: %v", err)
@@ -171,7 +179,7 @@ func (a tipsResult) SaveOrphanTips(p Parameters) (err error) {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString(a.nOrphanTipsToString(p, 0)) // writing...
+	_, err = f.WriteString(a.nOrphanTipsToString(p)) // writing...
 
 	if err != nil {
 		fmt.Printf("error writing string: %v", err)
