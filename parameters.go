@@ -23,13 +23,13 @@ func newParameters(variable float64, simStep int) Parameters {
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
-		K:          4,        // Num of tips to select
-		Hsmall:     1,        // Delay for first type of tx,
-		Hlarge:     hlarge,   // Delay for second type of tx
-		p:          0.,       //proportion of second type of tx
-		D:          variable, // max age for RURTS
-		Seed:       1,        //
-		TangleSize: (500) * lambdaForSize,
+		K:          2,      // Num of tips to select
+		Hsmall:     1,      // Delay for first type of tx,
+		Hlarge:     hlarge, // Delay for second type of tx
+		p:          0.,     //proportion of second type of tx
+		D:          100.,   // max age for RURTS
+		Seed:       1,      //
+		TangleSize: (1000) * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            10 * lambdaForSize,          // cut data close to the genesis
 		maxCutrange:       20 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
@@ -39,7 +39,7 @@ func newParameters(variable float64, simStep int) Parameters {
 		recordSamples:     10,    // number of samples of tangles for which the entire tip number variation should be recorded
 
 		// - - - Attacks - - -
-		q:                .25,           // proportion of adversary txs
+		q:                variable,      // proportion of adversary txs
 		qPartiallyActive: false,         // attack only active between [1/3,2/3] of the Tangle
 		TSAAdversary:     "SpamGenesis", // spam tips linked to the genesis,
 		// - - - Response - - -

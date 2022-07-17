@@ -9,25 +9,18 @@ sns.set_theme(style="darkgrid")
 
 folder = "data/"
 
-# filename = "q"
-# xlims = [0, 1]
-# xlabel = "Adversary proportion"
-filename = "D,q=.33,k=2,lam=100"
-xlims = [-3, 25]
-xlabel = "Expiration time"
-# filename = "k,q=.5"
-# xlims = [2, 12]
-# xlabel = "Number of parents"
+filename = "q,k=2,lam=100,D=100"
+xlims = [0, 1]
+xlabel = "Adversary proportion"
 
 # values
 lam = 100.
 h = 1.
 k = 2.
-q = .33
-p = 1.-q
+D = 100.
 
 printAnalytical = True
-ylimsTips = [0, 400]
+ylimsTips = [0, 10000]
 ylimsOrphan = [1e-7, 1]
 folderdata = "../data/"+filename+"/"
 
@@ -75,6 +68,8 @@ def evaluate1(analysisType):
     fig, ax = plt.subplots()
     for i in np.arange(len(X)):
         y_data = loadColumn(filenamedata+str(i), column, 2)
+        # only consider data when it is converged
+        y_data = y_data[int(len(y_data)*.75):]
         Y[i] = np.mean(y_data)
         df = pd.DataFrame(y_data, columns=['data'])
         dfStats = df['data'].describe()
@@ -89,11 +84,9 @@ def evaluate1(analysisType):
     sns.lineplot(x=X, y=Y, label="Mean")
     plt.fill_between(X, yQ1, yQ3, color='b',
                      alpha=0.2, label="25% to 75% quantiles")
-    # plt.fill_between(X, yMin, yQ1, color='r',
-    #                  alpha=0.1, label="Min to Max")
-    # plt.fill_between(X, yQ3, yMax, color='r',
-    #                  alpha=0.1)
     xL, L1, L2, Lavg, Lsimple, o = getAnalyticalCurve(X, Y, analysisType)
+    print("&&&&&&&&&&&&&&&&&&&&&")
+    print("xL=", xL)
     if printAnalytical & (analysisType == 1):
         print("++++++++++++++++++++++++++++")
         print("xL=\n", xL)
@@ -224,22 +217,11 @@ def loadColumn(filename, column, skiprows):
 
 def getAnalyticalCurve(Xdata, Ydata, analysistype):
     # load X data
-    # Xdata = loadColumn(folderdata+"params", 0, 0)
-    X = np.arange(100)/100.
-    # X = max(Xdata)*np.ones(len(X))-(max(Xdata)-min(Xdata))*X
-    X = 30.*X-3
-    D = X
+    X = np.arange(1000)/1000.
+    q = X*.5
+    p = 1.-q
 
-    L1, L2, L0avg, delta = calcL(D)
-
-    # input = X[L0 > 0]
-    # result = L1[L0 > 0]
-    # error = abs(delta[L0 > 0])
-    # print("------- Numerical precision ---- ")
-    # print(len(L1), len(delta), len(X))
-    # print("Xvalue\tResult\tError")
-    # for i in range(len(input)):
-    #     print(input[i], "\t", result[i], "\t", error[i])
+    L1, L2, L0avg, delta = calcL(q)
 
     # simple equation instead
     Lsimple = p*k/(p*k-1)*h*lam*np.ones(len(X))
@@ -248,29 +230,36 @@ def getAnalyticalCurve(Xdata, Ydata, analysistype):
     # estimate coefficient for orphanage probability
     if analysistype == 2:
         # need to ignore data for which probability is 0
-        Xdata = Xdata[Ydata > 0]
-        Ydata = Ydata[Ydata > 0]
-        _, _, L0avgdata, _ = calcL(Xdata)
-        print("L0avg", len(L0avgdata), L0avgdata)
-        print("Xdata", len(Xdata), Xdata)
-        print("Ydata", len(Ydata), Ydata)
-        select = (Xdata >= 2.)*(Ydata < .1)
-        cOrph0 = Ydata[select] * np.exp(Xdata[select]*p*k / L0avgdata[select])
-        print("median cOrph0= ", np.median(np.sort(cOrph0)))
-        c = np.median(np.sort(cOrph0))
+        # Xdata = Xdata[Ydata > 0]
+        # Ydata = Ydata[Ydata > 0]
+        # _, _, L0avgdata, _ = calcL(Xdata)
+        # print("L0avgdata", len(L0avgdata), L0avgdata)
+        # print("Xdata", len(Xdata), Xdata)
+        # print("Ydata", len(Ydata), Ydata)
+        # select = (Xdata >= 2.)*(Ydata < .1)
+        # cOrph0 = Ydata[select] * np.exp(Xdata[select]*D*k / L0avgdata[select])
+        # print("median cOrph0= ", np.median(np.sort(cOrph0)))
+        # c = np.median(np.sort(cOrph0))
+        print("-------------------------------")
+        print("getAnalyticalCurve: for now set c=1")
+        c = 1.
     else:
         c = 1.
 
     # c = 50.
     o = c*np.exp(-D*p*k/L0avg)
 
-    return X, L1, L2, L0avg*lam, Lsimple, o
+    return q, L1, L2, L0avg*lam, Lsimple, o
 
 
-def calcL(D):
+def calcL(q):
     # solve the following numerically
     # L0 = p*k(h-D*np.exp(-D*p*k/L0))/(p*k-1+np.exp(-D*p*k/L0))*lam*h
-    L0 = D*0.+3.
+    p = 1-q
+    L0 = q*0.+3.
+    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+    print(h, k, D)
+    print(p)
     for i in range(1001):
         L1 = L0
         L0 = p*k*(h-D*np.exp(-D*p*k/L0))/(p*k-1+np.exp(-D*p*k/L0))

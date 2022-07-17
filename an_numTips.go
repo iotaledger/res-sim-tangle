@@ -117,7 +117,9 @@ func (a tipsResult) nOrphanTipsToString(p Parameters) string {
 	result := "# Number of orphantips seen by each tangle\n"
 	result += "#Tangle;nOrphan;OrphanRatio\n"
 	for j := range a.nOrphanTips[:] {
-		result += fmt.Sprintf("%d;%d;%f\n", j+1, a.nOrphanTips[j], float64(a.nOrphanTips[j])/float64(p.TangleSize))
+		// for orphanratio : adjust Tangle size for D.
+		orphanratio := float64(a.nOrphanTips[j]) / (float64(p.TangleSize) - p.D*p.Lambda)
+		result += fmt.Sprintf("%d;%d;%f\n", j+1, a.nOrphanTips[j], orphanratio)
 	}
 	return result
 }
