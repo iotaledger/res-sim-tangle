@@ -19,7 +19,7 @@ func newParameters(variable float64, simStep int) Parameters {
 		// nParallelSims: runtime.NumCPU()/2 - 1,
 		nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
-		nRun:   10,
+		nRun:   1000,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
@@ -27,16 +27,16 @@ func newParameters(variable float64, simStep int) Parameters {
 		Hsmall:     1,      // Delay for first type of tx,
 		Hlarge:     hlarge, // Delay for second type of tx
 		p:          0.,     //proportion of second type of tx
-		D:          100.,   // max age for RURTS
+		D:          100,    // max age for RURTS
 		Seed:       1,      //
-		TangleSize: (1000) * lambdaForSize,
+		TangleSize: (300) * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            10 * lambdaForSize,          // cut data close to the genesis
 		maxCutrange:       20 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
 		stillrecent:       2 * lambdaForSize,           // when is a tx considered recent, and when is it a candidate for left behind
 		ConstantRate:      false,
 		SingleEdgeEnabled: false, // true = SingleEdge model, false = MultiEdge model
-		recordSamples:     10,    // number of samples of tangles for which the entire tip number variation should be recorded
+		recordSamples:     0,     // number of samples of tangles for which the entire tip number variation should be recorded
 
 		// - - - Attacks - - -
 		q:                variable,      // proportion of adversary txs

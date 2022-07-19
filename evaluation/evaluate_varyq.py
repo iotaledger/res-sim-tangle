@@ -14,7 +14,7 @@ xlims = [0, 1]
 xlabel = "Adversary proportion"
 
 printAnalytical = True
-ylimsTips = [0, 100]
+ylimsTips = [0, 400]
 ylimsOrphan = [1e-7, 1]
 cutdata = .5
 
@@ -43,7 +43,7 @@ def evaluate1(analysisType):
     fig, ax = plt.subplots()
 
     for j in np.arange(len(z)):
-        folderdata = "../data/"+study+str(z[j])+"/"
+        folderdata = "../data/"+study+str(z[j])+",lam=100/"
         if analysisType == 1:
             print("------------ Tips -----------")
             filenamedata = folderdata+"tips_"
@@ -130,9 +130,8 @@ def loadColumn(filename, column, skiprows):
 
 
 def getAnalyticalCurve(folder, k):
-    lam = 20.
+    lam = 100.
     h = 1.
-    q = .25
 
     # load X data
     Xdata = loadColumn(folder+"params", 0, 0)*1.1
