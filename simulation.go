@@ -14,7 +14,7 @@ type Sim struct {
 	orphanTips []int // A list of old tips for RURTS
 	hiddenTips []int // A list of yet unavailable/hidden tips
 	// approvers      map[int][]int // A map of direct approvers, e.g., 5 <- 10,13
-	cw            [][]uint64 // Matrix of propagated weigth branches (cw[i][] is the column of bit values forthe ith tx, stored as uint64 blocks)
+	cwMatrix      [][]uint64 // Matrix of propagated weigth branches (cw[i][] is the column of bit values for the ith tx, stored as uint64 blocks)
 	generator     *rand.Rand // An unsafe random generator
 	param         Parameters // Set of simulation parameters
 	b             Benchmark  // Data structure to save performance of the simulation

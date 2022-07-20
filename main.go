@@ -46,7 +46,7 @@ func runSimulation(b Benchmark, x float64, simStep int) Result {
 	f.FinalEvaluationSaveResults(p)
 	fmt.Println("- - - OrphanTips - - -")
 	fmt.Println("X\t\tmean\t\tSTD\t\tmean Ratio\t\tSTD Ratio")
-	fmt.Println(x, "\t", f.tips.meanOrphanTips, "\t", f.tips.STDOrphanTips, "\t", f.tips.meanOrphanTipsRatio, "\t", f.tips.STDOrphanTipsRatio)
+	fmt.Println(x, "\t", f.tipsResult.meanOrphanTips, "\t", f.tipsResult.STDOrphanTips, "\t", f.tipsResult.meanOrphanTipsRatio, "\t", f.tipsResult.STDOrphanTipsRatio)
 	return f
 }
 
@@ -82,7 +82,6 @@ func runForVariables(b Benchmark) {
 	// for i1 := 0; i1 < NXs; i1++ {
 	// 	Xs[i1] = .1 * math.Pow(100, float64(i1)/float64(NXs-1))
 	// }
-
 	fmt.Println("- - - - - - - - - - - - - - - - ")
 	fmt.Println("Variables=", Xs)
 	var banner string
@@ -97,10 +96,10 @@ func runForVariables(b Benchmark) {
 		}
 
 		output := fmt.Sprintf("%.4f", x)
-		output += fmt.Sprintf("\t%.8f", r.tips.meanOrphanTipsRatio)
-		output += fmt.Sprintf("\t%.8f", r.tips.STDOrphanTipsRatio)
-		output += fmt.Sprintf("\t%.8f", r.tips.tAVG)
-		output += fmt.Sprintf("\t%.8f", r.tips.tSTD)
+		output += fmt.Sprintf("\t%.8f", r.tipsResult.meanOrphanTipsRatio)
+		output += fmt.Sprintf("\t%.8f", r.tipsResult.STDOrphanTipsRatio)
+		output += fmt.Sprintf("\t%.8f", r.tipsResult.tAVG)
+		output += fmt.Sprintf("\t%.8f", r.tipsResult.tSTD)
 		output += fmt.Sprintf("\t%d", r.params.TangleSize-r.params.minCut)
 		output += fmt.Sprintf("\n")
 		total += output

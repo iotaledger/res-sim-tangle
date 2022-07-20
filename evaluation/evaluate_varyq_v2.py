@@ -51,6 +51,7 @@ def evaluate1(analysisType):
         column = 1
     elif analysisType == 2:
         filenamedata = folderdata+"orphantips_"
+        filenamedata2 = folderdata+"orphantxs_"
         ylabel = "Orphanage rate"
         fileSaveFig = folder+'orphanage'
         column = 2
@@ -66,7 +67,8 @@ def evaluate1(analysisType):
     for i in np.arange(len(X)):
         y_data = loadColumn(filenamedata+str(i), column, 2)
         # only consider data when it is converged
-        y_data = y_data[int(len(y_data)*.75):]
+        if analysisType == 1:
+            y_data = y_data[int(len(y_data)*.75):]
         Y[i] = np.mean(y_data)
         df = pd.DataFrame(y_data, columns=['data'])
         dfStats = df['data'].describe()
@@ -79,6 +81,16 @@ def evaluate1(analysisType):
         yMax[yMin == 0] = np.nan
         yMin[yMin == 0] = np.nan
     sns.lineplot(x=X, y=Y, label="Simulation")
+
+    # true orphanage
+    if analysisType == 2:
+        Y2 = X*0.
+        for i in np.arange(len(X)):
+            y_data = loadColumn(filenamedata2+str(i), 1, 2)
+            Y2[i] = np.mean(y_data)
+        print(Y2)
+        sns.lineplot(x=X, y=Y2, label="Simulation (true)")
+
     # plt.fill_between(X, yQ1, yQ3, color='b',
     #                  alpha=0.2, label="25% to 75% quantiles")
     xL, L1, L2, Lavg, qSimple, Lsimple, o, oSimple = getAnalyticalCurve(

@@ -427,7 +427,7 @@ func ReferencedByTx(a []uint64, ID int) bool {
 func (sim *Sim) ReferencedByRecentTx(searchTx, lastTx, numRecent int) bool {
 	for tx := lastTx; tx > lastTx-numRecent && searchTx < tx; tx-- {
 		if searchTx < sim.tangle[tx].ref[0] { // only check if at least one of tx's approvers is known
-			if ReferencedByTx(sim.cw[tx], searchTx) {
+			if ReferencedByTx(sim.cwMatrix[tx], searchTx) {
 				return true
 			}
 		}
@@ -444,7 +444,7 @@ func (sim *Sim) isLeftBehind(thisTx int) bool {
 	// check if left behind
 	// fmt.Println("+")
 	// only have cw for len(sim.cw) of the txs
-	if sim.ReferencedByRecentTx(thisTx, len(sim.cw)-1, recentTx-1) { // if its not in the most recent cw set abandon the tx.
+	if sim.ReferencedByRecentTx(thisTx, len(sim.cwMatrix)-1, recentTx-1) { // if its not in the most recent cw set abandon the tx.
 		return false
 	}
 

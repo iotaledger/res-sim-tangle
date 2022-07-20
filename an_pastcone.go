@@ -39,7 +39,7 @@ func (sim *Sim) runAnPastCone(result *PastConeResult) {
 	maxchildID := 0
 	_ = maxchildID
 
-	if len(sim.cw) < sim.param.TangleSize-sim.param.minCut {
+	if len(sim.cwMatrix) < sim.param.TangleSize-sim.param.minCut {
 		fmt.Println(".\n\nNeed to check that the CWMatrix is not limited too much for this analysis.")
 		pauseit()
 	}
@@ -52,7 +52,7 @@ func (sim *Sim) runAnPastCone(result *PastConeResult) {
 	// count occurances
 	for i1 := sim.param.minCut; i1 < sim.param.maxCut; i1++ { //only consider roots that are within this cut ranges
 		maxchildID = 0
-		for i2, block := range sim.cw[i1] { // i2 iterates through the blocks, block is the unit64 of the block itself
+		for i2, block := range sim.cwMatrix[i1] { // i2 iterates through the blocks, block is the unit64 of the block itself
 			// fmt.Println(" ... i2", i2)
 			if (i2+1)*base > sim.param.minCut { // only consider blocks above min cut
 				if (i1 - (i2+1)*base) < int(sim.param.AnPastCone.MaxT)*int(sim.param.Lambda) { // only consider block if its within maxT

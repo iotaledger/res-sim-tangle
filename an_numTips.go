@@ -127,6 +127,15 @@ func (a tipsResult) nOrphanTipsToString(p Parameters) string {
 	return result
 }
 
+func (a orphanResult) nOrphanTxsToString(p Parameters) string {
+	result := "# proportion orphantxs seen by each tangle\n"
+	result += "#Tangle;OrphanRatio\n"
+	for j := range a.op2[:] {
+		result += fmt.Sprintf("%d;%f\n", j+1, a.op2[j])
+	}
+	return result
+}
+
 func (a tipsResult) Save(p Parameters, sample int) error {
 	err := a.SaveTips(p)
 	if err != nil {
@@ -192,7 +201,25 @@ func (a tipsResult) SaveOrphanTips(p Parameters) (err error) {
 	}
 
 	return nil
+}
 
+func (a orphanResult) SaveOrphanTxs(p Parameters) (err error) {
+	str := fmt.Sprintf("%d", int(p.SimStep))
+	f, err := os.Create("data/orphantxs_" + str + ".csv")
+	if err != nil {
+		fmt.Printf("error creating file: %v", err)
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(a.nOrphanTxsToString(p)) // writing...
+
+	if err != nil {
+		fmt.Printf("error writing string: %v", err)
+		return err
+	}
+
+	return nil
 }
 
 func MeanVariance(x []float64) (mean, variance float64) {

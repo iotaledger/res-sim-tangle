@@ -7,7 +7,7 @@ import (
 
 // variable initialization
 func newParameters(variable float64, simStep int) Parameters {
-	lambda := 100.
+	lambda := 20.
 	// lambda := variable
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	hlarge := 1
@@ -29,7 +29,7 @@ func newParameters(variable float64, simStep int) Parameters {
 		p:          0.,     //proportion of second type of tx
 		D:          100,    // max age for RURTS
 		Seed:       1,      //
-		TangleSize: (300) * lambdaForSize,
+		TangleSize: (500) * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            10 * lambdaForSize,          // cut data close to the genesis
 		maxCutrange:       20 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
@@ -50,8 +50,7 @@ func newParameters(variable float64, simStep int) Parameters {
 		// - - - Analysis section - - -
 		CountTipsEnabled: true, // including orphan tips
 		// CWAnalysisEnabled:    false,
-		recordOrphansForEachSim: true,  // save for each Tangle the orphan number
-		pOrphanLinFitEnabled:    false, // also apply linear fit, numerically expensive
+		pOrphanLinFitEnabled: false, // also apply linear fit, numerically expensive
 		// measure distance of slices compared to the expected distribution
 		DistSlicesEnabled:    false,
 		DistSlicesByTime:     false, // true = tx time slices, false= tx ID slices
@@ -63,6 +62,8 @@ func newParameters(variable float64, simStep int) Parameters {
 		AnPastCone: AnPastCone{false, 5, 40, 5}, //{Enabled, Resolution, MaxT, MaxApp}
 		// AnFutureCone Analysis
 		AnFutureCone: AnFutureCone{false, 5, 40, 5}, //{Enabled, Resolution, MaxT, MaxApp}
+		// true Orphanage Analysis (orphanage including via children)
+		AnOrphanageEnabled: true,
 
 		// - - - Drawing - - -
 		//
@@ -151,15 +152,15 @@ type Parameters struct {
 	CountTipsEnabled bool
 	// CWAnalysisEnabled bool
 
-	recordOrphansForEachSim bool
-	pOrphanLinFitEnabled    bool
-	AnPastCone              AnPastCone
-	AnFutureCone            AnFutureCone
-	DistSlicesEnabled       bool
-	DistSlicesByTime        bool
-	DistSlicesLength        float64
-	DistSlicesResolution    int
-	AppStatsAllEnabled      bool
+	pOrphanLinFitEnabled bool
+	AnPastCone           AnPastCone
+	AnFutureCone         AnFutureCone
+	AnOrphanageEnabled   bool
+	DistSlicesEnabled    bool
+	DistSlicesByTime     bool
+	DistSlicesLength     float64
+	DistSlicesResolution int
+	AppStatsAllEnabled   bool
 	// - - - Drawing - - -
 	//drawTangleMode = 0: drawing disabled
 	//drawTangleMode = 1: simple Tangle with/without highlighed path
