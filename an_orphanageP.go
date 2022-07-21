@@ -236,7 +236,7 @@ func (sim *Sim) runOrphanageRecent(result *orphanResult) {
 	}
 
 	// we want to be multiple times D in the past of the tip pool. Realistically for high lambda we can only do a few times
-	highestCountedID := lowestTipID - int(sim.param.Lambda*sim.param.D*2.)
+	highestCountedID := lowestTipID - int(sim.param.Lambda*sim.param.D*sim.param.AnOrphanageIgnoreDs)
 	countOrphaned := 0
 	for txID := sim.param.TangleSize - 1; txID >= 0; txID-- {
 		if txMask[txID] {

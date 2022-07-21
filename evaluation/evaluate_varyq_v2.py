@@ -11,7 +11,7 @@ sns.set_theme(style="darkgrid")
 folder = "data/"
 
 filename = "q,k=2,lam=100,D=100,orphanage"
-xlims = [0.4, 1]
+xlims = [0.33, 1]
 xlabel = "Adversary proportion"
 
 # values
@@ -57,6 +57,7 @@ def evaluate1(analysisType):
         column = 2
 
     X = loadColumn(folderdata+"params", 0, 0)
+    printVec(X)
     Y = X*0.
     yQ1 = X*0.
     yQ3 = X*0.
@@ -80,7 +81,8 @@ def evaluate1(analysisType):
         yQ1[yQ1 == 0] = np.nan
         yMax[yMin == 0] = np.nan
         yMin[yMin == 0] = np.nan
-    sns.lineplot(x=X, y=Y, label="Simulation")
+    sns.lineplot(x=X, y=Y, label="Simulation (Tip orphanage)")
+    printVec(Y)
 
     # true orphanage
     if analysisType == 2:
@@ -88,8 +90,9 @@ def evaluate1(analysisType):
         for i in np.arange(len(X)):
             y_data = loadColumn(filenamedata2+str(i), 1, 2)
             Y2[i] = np.mean(y_data)
+        printVec(Y2)
+        sns.lineplot(x=X, y=Y2, label="Simulation (Future cone orphanage)")
         print(Y2)
-        sns.lineplot(x=X, y=Y2, label="Simulation (true)")
 
     # plt.fill_between(X, yQ1, yQ3, color='b',
     #                  alpha=0.2, label="25% to 75% quantiles")
@@ -104,7 +107,7 @@ def evaluate1(analysisType):
     if printAnalytical & (analysisType == 2):
         sns.lineplot(x=qSimple, y=oSimple, color="red",
                      label="Model A", linestyle="dashed")
-        sns.lineplot(x=xL, y=o, color="purple",
+        sns.lineplot(x=xL[xL < .6], y=o[xL < .6], color="purple",
                      label="Model B", linestyle="dotted")
     plt.ylim(ylimsTips)
     if analysisType == 2:
@@ -148,8 +151,9 @@ def evaluate1(analysisType):
         ax2.plot(xL[:cutIndex2], Lavg[:cutIndex2],
                  color="purple", label="Analytical (Model B)", linestyle="dotted")
         ax1.legend()
-        ax1.set_xlabel("Tip pool size")
-        ax2.set_ylabel("Adversary proportion")
+        ax1.set_ylabel("Tip pool size")
+        ax1.yaxis.set_label_coords(-.1, 0)
+        ax2.set_xlabel("Adversary proportion")
         plt.savefig(fileSaveFig+'_subplots.png', format='png')
         plt.clf()
 
@@ -233,6 +237,12 @@ def loadColumn(filename, column, skiprows):
         print(filestr)
         print("File not found.")
         return []
+
+
+def printVec(vec):
+    print("-------------------")
+    for i in range(len(vec)):
+        print(vec[i])
 
 
 # needs to be at the very end of the file

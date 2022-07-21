@@ -7,7 +7,7 @@ import (
 
 // variable initialization
 func newParameters(variable float64, simStep int) Parameters {
-	lambda := 20.
+	lambda := 100.
 	// lambda := variable
 	lambdaForSize := int(math.Max(1, lambda)) // make sure this value is at least 1
 	hlarge := 1
@@ -19,7 +19,7 @@ func newParameters(variable float64, simStep int) Parameters {
 		// nParallelSims: runtime.NumCPU()/2 - 1,
 		nParallelSims: 1,
 		// nRun:          int(math.Min(10000., 10000/lambda)),
-		nRun:   1000,
+		nRun:   100,
 		Lambda: lambda,
 		TSA:    "RURTS",
 		// TSA:               "URTS",
@@ -29,7 +29,7 @@ func newParameters(variable float64, simStep int) Parameters {
 		p:          0.,     //proportion of second type of tx
 		D:          100,    // max age for RURTS
 		Seed:       1,      //
-		TangleSize: (500) * lambdaForSize,
+		TangleSize: (300) * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            10 * lambdaForSize,          // cut data close to the genesis
 		maxCutrange:       20 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
@@ -63,7 +63,8 @@ func newParameters(variable float64, simStep int) Parameters {
 		// AnFutureCone Analysis
 		AnFutureCone: AnFutureCone{false, 5, 40, 5}, //{Enabled, Resolution, MaxT, MaxApp}
 		// true Orphanage Analysis (orphanage including via children)
-		AnOrphanageEnabled: true,
+		AnOrphanageEnabled:  true,
+		AnOrphanageIgnoreDs: 3., //ignore the last few D to get a more accurate value for the orphanage
 
 		// - - - Drawing - - -
 		//
@@ -156,6 +157,7 @@ type Parameters struct {
 	AnPastCone           AnPastCone
 	AnFutureCone         AnFutureCone
 	AnOrphanageEnabled   bool
+	AnOrphanageIgnoreDs  float64
 	DistSlicesEnabled    bool
 	DistSlicesByTime     bool
 	DistSlicesLength     float64
