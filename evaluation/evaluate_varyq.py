@@ -4,7 +4,7 @@ import scipy.stats as st
 import seaborn as sns
 import pandas as pd
 
-sns.set_theme(style="darkgrid")
+# sns.set_theme(style="darkgrid")
 
 folder = "data/"
 
@@ -14,7 +14,7 @@ xlims = [0, 1]
 xlabel = "Adversary proportion"
 
 printAnalytical = True
-ylimsTips = [0, 400]
+ylimsTips = [0, 350]
 ylimsOrphan = [1e-7, 1]
 cutdata = .5
 
@@ -33,9 +33,7 @@ COLOR_SCALE = ["#1B9E77", "#D95F02", "#7570B3"]
 
 def main():
     evaluate1(1)  # tips
-    # evaluate2(1)  # tips
     # evaluate1(2)  # orphanage
-    # evaluate2(2)  # orphanage
 
 
 def evaluate1(analysisType):
@@ -112,6 +110,8 @@ def evaluate1(analysisType):
     plt.ylabel(ylabel)
     plt.xlim(xlims)
     plt.legend()
+    sns.despine()
+    plt.grid()
     plt.savefig(fileSaveFig, format='png')
     plt.clf()
 
