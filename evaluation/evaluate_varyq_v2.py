@@ -88,6 +88,13 @@ def evaluate1(analysisType):
         yhelp = Y-ySTD
         yhelp[yhelp <= 0] = ylow/1000.
         plt.fill_between(X, yhelp, Y, color='b', alpha=0.2)
+
+        # use L from simulation in analytical calculation of orphanage rate
+        # Lcalc, _, _, _, _, _ = getYdata(folderdata+"tips_", 1, X, 1)
+        # Ycalc = np.exp(-D*(1-X)*k/(Lcalc/100.))
+        # sns.lineplot(x=X, y=Ycalc, color="green",
+        #              label="Orph from L(Simulation)")
+
     # printVec(Y)
 
     # true orphanage
