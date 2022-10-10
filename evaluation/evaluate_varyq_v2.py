@@ -11,8 +11,8 @@ sns.despine()
 
 folder = "data/"
 
-filename = "q,k=2,lam=100,D=100,orphanage"
-xlims = [0.33, 1]
+filename = "q,k=2,lam=100,D=100_v2"
+xlims = [0.3, 1]
 xlabel = "Adversary proportion"
 
 # values
@@ -110,14 +110,14 @@ def evaluate1(analysisType):
         sns.lineplot(x=qSimple, y=Lsimple, color="red",
                      label="Analytical (Model A)", linestyle="dashed")
         sns.lineplot(x=xL, y=Lavg, color="red",
-                     label="Analytical (Model B)", linestyle="dotted")
+                     label="Analytical (Model B)", linestyle="dotted", linewidth=3)
         # sns.lineplot(x=xL, y=L1, color="red", linestyle="dotted")
         # sns.lineplot(x=xL, y=L2, color="red", linestyle="dotted")
     if printAnalytical & (analysisType == 2):
         sns.lineplot(x=qSimple, y=oSimple, color="red",
                      label="Model A", linestyle="dashed")
         sns.lineplot(x=xL, y=o, color="red",
-                     label="Model B", linestyle="dotted")
+                     label="Model B", linestyle="dotted", linewidth=3)
     plt.ylim(ylimsTips)
     if analysisType == 2:
         plt.yscale('log')

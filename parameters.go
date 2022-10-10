@@ -29,7 +29,7 @@ func newParameters(variable float64, simStep int) Parameters {
 		p:          0.,     //proportion of second type of tx
 		D:          100,    // max age for RURTS
 		Seed:       1,      //
-		TangleSize: (300) * lambdaForSize,
+		TangleSize: (2000) * lambdaForSize,
 		// CWMatrixLen:       300 * lambdaForSize, // reduce CWMatrix to this len
 		minCut:            10 * lambdaForSize,          // cut data close to the genesis
 		maxCutrange:       20 * hlarge * lambdaForSize, // cut data for the most recent txs, not applied for every analysis
