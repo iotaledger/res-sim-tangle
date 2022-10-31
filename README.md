@@ -1,9 +1,5 @@
 # res-sim-tangle
-## ToDo
-* Code refactoring
-* Improve comments
-* Better use of `interfaces`
-* Check random generator usage within concurrency 
+
 
 ## Run the simulation
 
