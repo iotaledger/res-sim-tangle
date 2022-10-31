@@ -1,9 +1,4 @@
-# res-attack-analysis-go
-## ToDo
-* Code refactoring
-* Improve comments
-* Better use of `interfaces`
-* Check random generator usage within concurrency 
+# res-sim-tangle
 
 ## Run the simulation
 
