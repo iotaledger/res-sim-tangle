@@ -1,4 +1,4 @@
-# res-attack-analysis-go
+# res-sim-tangle
 ## ToDo
 * Code refactoring
 * Improve comments
