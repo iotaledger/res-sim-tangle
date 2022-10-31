@@ -6,6 +6,8 @@ In the simulation blocks are created through a Poisson process (i.e. random) or 
 
 For the creation of blocks no different nodes exists. Instead, each block is at creation assigned to an ID and added to the global pool of blocks. Each block is hidden for some time and cannot be selected by the tip selection during the time it is hidden. This process emulates, to a reasonable degree, a distributed network, where the delay in processing and propagation is approximately the time a block is hidden. 
 
+Several aspects are added to the simulation. For example, blocks can expire if not picked up by other blocks in time. We also implement the option of different delay classes to exist, i.e. blocks are created with different times they are hidden. Also, adverse strategies to inflate the tip pool are implemented. 
+
 To allow for higher sampling, the simulator allows to run the simulation in parallel on multiple processors. Each of the simulation runs on the different processors is independent from the others. 
 
 ## Run the simulation
