@@ -11,13 +11,13 @@ import (
 	"gonum.org/v1/gonum/stat"
 )
 
-type pOrphanResult struct {
+type orphanResult struct {
 	// orphanage probability - probability of tx left behind
 	// tip orphanage probability - probability of tips left behind
 	op          []float64 // past cone of Ghost RW
 	top         []float64
-	op2         []float64 // union of past cones of N recent txs
-	top2        []float64
+	op2         []float64 // orphanage using union of past cones of recent txs
+	top2        []float64 // tip orphans (tx that do not have even an approver)
 	op3         []float64 // linear regression
 	top3        []float64
 	op4         []float64 // sum Ghost cone + N recent cones
@@ -29,7 +29,7 @@ type pOrphanResult struct {
 	tOrphan     []float64
 }
 
-func (sim *Sim) runOrphaningP(result *pOrphanResult) {
+func (sim *Sim) runOrphaningP(result *orphanResult) {
 	// remove txs grater than maxCut from both tangle and spine tangle so to have a comparable cone
 	newTangle := sim.tangle[sim.param.minCut:sim.param.maxCut]
 	// calculate spine Tangle up to maxCut (all txs (directly/indirectly) referenced by a GHOST particle (alpha = infinity)
@@ -42,7 +42,7 @@ func (sim *Sim) runOrphaningP(result *pOrphanResult) {
 
 	sim.runOrphanageGHOST(result, newTangle, newspinePastCone) // calculate op
 
-	recentTipsCones := sim.runOrphanageRecent(result) // calculate op2
+	recentTipsCones := sim.runOrphanageRecent_old(result) // calculate op2
 
 	if sim.param.pOrphanLinFitEnabled {
 		sim.runOrphanageLinFit(result) // calculate op3
@@ -51,11 +51,11 @@ func (sim *Sim) runOrphaningP(result *pOrphanResult) {
 	sim.runOrphanageGHOSTRecent(result, newTangle, newspinePastCone, recentTipsCones)
 }
 
-func (a pOrphanResult) Join(b pOrphanResult) pOrphanResult {
+func (a orphanResult) Join(b orphanResult) orphanResult {
 	if a.op == nil {
 		return b
 	}
-	var result pOrphanResult
+	var result orphanResult
 	result.op = append(a.op, b.op...)
 	result.top = append(a.top, b.top...)
 	result.op2 = append(a.op2, b.op2...)
@@ -70,9 +70,18 @@ func (a pOrphanResult) Join(b pOrphanResult) pOrphanResult {
 	return result
 }
 
+func (a orphanResult) Save(p Parameters) (err error) {
+	err = a.SaveOrphanTxs(p)
+	if err != nil {
+		fmt.Println("error Saving Orphan Tips", err)
+		return err
+	}
+	return err
+}
+
 // method String() implements the interface Stringer, so you call this automatically whenever you try to print, e.g., fmt.Println(a)
 // it overwrites the functionality of fmt.Println()
-func (a pOrphanResult) String() string {
+func (a orphanResult) String() string {
 	mean, std := stat.MeanStdDev(a.op, nil)
 	result := fmt.Sprintf("Orphanage Probability [mean, StdDev]:\t\t%.5f\t%.5f\n", mean, std)
 	mean, std = stat.MeanStdDev(a.top, nil)
@@ -93,9 +102,9 @@ func (a pOrphanResult) String() string {
 	return result
 }
 
-func newPOrphanResult(p *Parameters) pOrphanResult {
+func newOrphanResult(p *Parameters) orphanResult {
 	// variables initialization for pOprhan
-	var result pOrphanResult
+	var result orphanResult
 	if p.pOrphanLinFitEnabled {
 		result.nTipsAtID = append(result.nTipsAtID, make([]int, p.TangleSize)...)
 		result.nOrphanAtID = append(result.nOrphanAtID, make([]int, p.TangleSize)...)
@@ -130,8 +139,8 @@ func getAverageApprovalTime(tangle map[int]Tx) float64 {
 	avgTime := 0.
 	i := 0
 	for _, v := range tangle {
-		if v.firstApproval > 0 {
-			avgTime += v.firstApproval - v.time
+		if v.firstApprovalTime > 0 {
+			avgTime += v.firstApprovalTime - v.time
 			i++
 		}
 	}
@@ -151,7 +160,7 @@ func getCWgrowth(tx Tx, sim *Sim) []int {
 	cwGrowth := make([]int, sim.param.TangleSize-tx.id)
 
 	for i := tx.id; i < sim.param.TangleSize; i++ {
-		if tx.referencedByTxBitMask(sim.cw[i]) {
+		if tx.referencedByTxBitMask(sim.cwMatrix[i]) {
 			//if tx.referencedByTxDFS(sim.tangle[i], sim) {
 			//if ReferencedByTx(sim.cw[i], tx.id) {
 			cw++
@@ -184,7 +193,7 @@ func (tx Tx) referencedByTxDFS(refTx Tx, sim *Sim) bool {
 	return false
 }
 
-func (sim *Sim) runOrphanageGHOST(result *pOrphanResult, newTangle []Tx, newspinePastCone map[int]Tx) {
+func (sim *Sim) runOrphanageGHOST(result *orphanResult, newTangle []Tx, newspinePastCone map[int]Tx) {
 	// calculate op
 	result.op = append(result.op, 1.-float64(len(newspinePastCone))/float64(len(newTangle)))
 
@@ -198,7 +207,7 @@ func (sim *Sim) runOrphanageGHOST(result *pOrphanResult, newTangle []Tx, newspin
 	result.top = append(result.top, top/float64(len(newTangle)))
 }
 
-func (sim *Sim) runOrphanageGHOSTRecent(result *pOrphanResult, newTangle []Tx, newspinePastCone, coneRecent map[int]Tx) {
+func (sim *Sim) runOrphanageGHOSTRecent(result *orphanResult, newTangle []Tx, newspinePastCone, coneRecent map[int]Tx) {
 	// calculate op
 	sum := newspinePastCone
 	for k, v := range coneRecent {
@@ -216,25 +225,57 @@ func (sim *Sim) runOrphanageGHOSTRecent(result *pOrphanResult, newTangle []Tx, n
 	result.top4 = append(result.top4, top/float64(len(newTangle)))
 }
 
-func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
+func (sim *Sim) runOrphanageRecent(result *orphanResult) {
+	txMask := make(map[int]bool, sim.param.TangleSize)
+	lowestTipID := sim.param.TangleSize
+	for _, txID := range sim.tips {
+		if txID < lowestTipID {
+			lowestTipID = txID
+		}
+		txMask[txID] = true
+	}
+
+	// we want to be multiple times D in the past of the tip pool. Realistically for high lambda we can only do a few times
+	highestCountedID := lowestTipID - int(sim.param.Lambda*sim.param.D*sim.param.AnOrphanageIgnoreDs)
+	countOrphaned := 0
+	for txID := sim.param.TangleSize - 1; txID >= 0; txID-- {
+		if txMask[txID] {
+			refs := sim.tangle[txID].ref
+			for _, ref := range refs {
+				if !txMask[ref] { // if previously false, add it to the count
+					txMask[ref] = true
+				}
+			}
+		} else if txID < highestCountedID {
+			countOrphaned++ // counts orphaned txs for only the first half of the Tangle
+		}
+	}
+	result.op2 = append(result.op2, float64(countOrphaned)/(float64(highestCountedID)))
+}
+
+func (sim *Sim) runOrphanageRecent_old(result *orphanResult) map[int]Tx {
 	var base uint
 	base = 64
 	size := 0
-	_, lastVisibleTx := max(sim.tips)
+	// we now remove tips from the tip pool prior ,all tips have uniform probability to be selected
+	// thus we can just use sim.tips instead
+	// _, lastVisibleTx := max(sim.tips)
 
 	// finding the size of coneUnionBitMask
-	for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.stillrecent; tx-- {
-		if len(sim.cw[tx]) > size {
-			size = len(sim.cw[tx])
+	// for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.stillrecent; tx-- {
+	for tx := range sim.tips {
+		if len(sim.cwMatrix[tx]) > size { //the bit mask is stored as a list of uint64s
+			size = len(sim.cwMatrix[tx])
 		}
 	}
 	//data structure to keep information about directly and indirectly referenced txs
 	coneUnionBitMask := make([]uint64, size)
 
 	//ORing all the cones
-	for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.stillrecent; tx-- {
-		for block := 0; block < len(sim.cw[tx]); block++ {
-			coneUnionBitMask[block] |= sim.cw[tx][block]
+	// for tx := lastVisibleTx; tx > lastVisibleTx-sim.param.stillrecent; tx-- {
+	for tx := range sim.tips {
+		for block := 0; block < len(sim.cwMatrix[tx]); block++ {
+			coneUnionBitMask[block] |= sim.cwMatrix[tx][block]
 		}
 	}
 
@@ -247,9 +288,9 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
 			if id < sim.param.maxCut && id >= sim.param.minCut {
 				//if coneUnionBitMask[block]&(1<<i) != 0 {
 				if (coneUnionBitMask[block]>>i)&1 == 1 {
-					ones[id] = sim.tangle[id]
+					ones[id] = sim.tangle[id] // bitmask yields a 1 -> not orphaned
 				} else {
-					zeros[id] = sim.tangle[id]
+					zeros[id] = sim.tangle[id] // bitmask yields a zero -> orphaned
 				}
 			}
 		}
@@ -269,20 +310,20 @@ func (sim *Sim) runOrphanageRecent(result *pOrphanResult) map[int]Tx {
 		}
 	}
 
-	result.op2 = append(result.op2, 1-float64(len(ones))/float64(sim.param.maxCut-sim.param.minCut))
+	result.op2 = append(result.op2, 1-float64(len(ones))/float64(sim.param.maxCut-sim.param.minCut)) // 1- "non orphaned"
 	result.top2 = append(result.top2, float64(top)/float64(sim.param.maxCut-sim.param.minCut))
 	return ones
 }
 
-// how many txs are orphaned at a given index
-func (sim *Sim) runAnOPLinfit(tx int, r *pOrphanResult, run int) {
-	sim.computeSpine()
-	r.nTipsAtID[tx] = len(sim.tips)
-	r.nOrphanAtID[tx] = tx - len(sim.spinePastCone)
-}
+// // how many txs are orphaned at a given index
+// func (sim *Sim) runAnOPLinfit(tx int, r *pOrphanResult, run int) {
+// 	sim.computeSpine()
+// 	r.nTipsAtID[tx] = len(sim.tips)
+// 	r.nOrphanAtID[tx] = tx - len(sim.spinePastCone)
+// }
 
 // apply linear regression
-func (sim *Sim) runOrphanageLinFit(r *pOrphanResult) {
+func (sim *Sim) runOrphanageLinFit(r *orphanResult) {
 	x := makeRangeInt(1, sim.param.TangleSize)
 	y1 := r.nTipsAtID
 	m1, _ := linFit(x, y1)

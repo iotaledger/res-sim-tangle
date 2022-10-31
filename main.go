@@ -2,37 +2,35 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"math"
 	"strings"
-
-	"gonum.org/v1/gonum/stat"
 )
 
-// var nParallelSims = 1
-
-// factor 2 is to use the physical cores, whereas NumCPU returns double the number due to hyper-threading
-// var nParallelSims = runtime.NumCPU()/2 - 1
-
+// main routine
 func main() {
 
 	b := make(Benchmark)
 	_ = b
 	//runRealDataEvaluation(10, 0, true)
-	runSimulation(b, 100, 0)
+	runForVariables(b)
+	// runSimulation(b, 10)
 	// printPerformance(b)
 }
 
-func runSimulation(b Benchmark, lambda, alpha float64) Result {
+func runSimulation(b Benchmark, x float64, simStep int) Result {
 
-	p := newParameters(lambda, alpha)
-	defer b.track(runningtime("TSA=" + strings.ToUpper(p.TSA) + ", Lambda=" + fmt.Sprintf("%.2f", lambda) + ", Alpha=" + fmt.Sprintf("%.4f", alpha) + "\tTime"))
+	p := newParameters(x, simStep)
+	defer b.track(runningtime("TSA=" + strings.ToUpper(p.TSA) + ", X=" + fmt.Sprintf("%.2f", x) + ", " + "\tTime"))
 	c := make(chan bool, p.nParallelSims)
 	r := make([]Result, p.nParallelSims)
 	var f Result
+	f.params = p
+
+	//readjusted for number of cores
+	p.nRun /= p.nParallelSims
 
 	for i := 0; i < p.nParallelSims; i++ {
 		p.Seed = int64(i*p.nRun + 1)
+		// run the simulation
 		go run(p, &r[i], c)
 	}
 	for i := 0; i < p.nParallelSims; i++ {
@@ -43,9 +41,12 @@ func runSimulation(b Benchmark, lambda, alpha float64) Result {
 		f.JoinResults(batch, p)
 	}
 
-	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tAlpha=", p.Alpha)
-	//fmt.Println(f.avgtips)
+	fmt.Println("\nTSA=", strings.ToUpper(p.TSA), "\tLambda=", p.Lambda, "\tD=", p.D)
+	// save some results in files
 	f.FinalEvaluationSaveResults(p)
+	fmt.Println("- - - OrphanTips - - -")
+	fmt.Println("X\t\tmean\t\tSTD\t\tmean Ratio\t\tSTD Ratio")
+	fmt.Println(x, "\t", f.tipsResult.meanOrphanTips, "\t", f.tipsResult.STDOrphanTips, "\t", f.tipsResult.meanOrphanTipsRatio, "\t", f.tipsResult.STDOrphanTipsRatio)
 	return f
 }
 
@@ -56,120 +57,57 @@ func run(p Parameters, r *Result, c chan bool) {
 	printPerformance(b)
 }
 
-func runRealDataEvaluation(lambda, alpha float64, pull bool) {
-	p := newParameters(lambda, alpha)
-	var r Result
-	sim := Sim{}
-	sim.param = p
-	r.initResults(&p)
-	sim.clearSim()
-
-	if pull {
-
-		//pull real data from IRI
-		var endpoint = "http://node1.iota.capossele.org:14265"
-		err := pullData("data/trytes.txt", "data/toas.txt", endpoint, 100)
-		if err != nil {
-			log.Fatal(err)
-			fmt.Println(err)
-		}
-	}
-	//convert trytes to Tangle with []Tx
-
-	var err error
-	err = sim.buildTangleFromFile("data/trytes.txt", "data/toas.txt")
-	if err != nil {
-		log.Fatal(err)
-		fmt.Println(err)
-	}
-
-	// for _, tx := range sim.tangle {
-	// 	fmt.Println(int64(tx.time)/1000000 - tx.attachmentTimestamp)
-	// }
-
-	if !isTOAConsistent(sim.tangle) {
-		fmt.Println("ERROR: Tangle is not TOA consistent")
-		panic(0)
-	}
-
-	if !isRefConsistent(sim.tangle) {
-		fmt.Println("ERROR: Tangle is not ref consistent")
-		panic(0)
-	}
-
-	fmt.Println("CW comparison:", sim.compareCW())
-	fmt.Println("Time Of Arrival consistency:", isTOAConsistent(sim.tangle))
-	fmt.Println("Tangle consistency:", isRefConsistent(sim.tangle))
-
-	//printCWRef(sim.cw)
-
-	saveTangle(sim.tangle)
-
-	fmt.Println("Tangle size", len(sim.tangle))
-	fmt.Println("CW size:", len(sim.cw))
-
-	//Visualize the Tangle
-	if p.drawTangleMode > 0 {
-		sim.visualizeTangle(nil, p.drawTangleMode)
-	} else if p.drawTangleMode < 0 {
-		sim.visualizeRW()
-	}
-
-	//sim.tangle=function(datafile)
-	//r.EvaluateTangle(&sim, &p, 0)
-	//r.FinalEvaluationSaveResults(p)
-}
-
-func runForAlphasLambdas(b Benchmark) string {
-	// b := make(Benchmark)
-	//var ratio string
+func runForVariables(b Benchmark) {
 	var total string
-	// lambdas := []float64{3, 10, 30, 100, 300}
-	Nlambdas := 30
-	lambdas := make([]float64, Nlambdas)
-	for i1 := 0; i1 < Nlambdas; i1++ {
-		lambdas[i1] = .1 * math.Pow(3000, float64(i1)/float64(Nlambdas-1))
-	}
-	alphas := []float64{0}
-	// Nalphas := 20
-	// alphas := make([]float64, Nalphas)
-	// for i1 := 0; i1 < Nalphas; i1++ {
-	// 	alphas[i1] = 10. * math.Pow(30000, -float64(i1)/float64(Nalphas))
+	// Xs := []float64{1, 2, 4, 8, 16, 32, 64, 128, 256, 512}
+	// Xs := []float64{0, .1, .2, .3, .4, .5, .6, .7, .8, .9}
+	// Xs := []float64{0.5, .55, .6}
+	// Xs := []float64{0, .05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .7, .8, .9, .99}
+	NXs := 20
+	NXs2 := 10
+	Xs := make([]float64, 1+NXs+1+NXs2)
+	// for i1 := 0; i1 < NXs2; i1++ {
+	// 	Xs[i1] = 2./float64(NXs2)*float64(i1+1.) + 1.
 	// }
-
-	// alphas := []float64{0.}
-	var banner string
-	for _, lambda := range lambdas {
-		for _, alpha := range alphas {
-			//for alpha := 0.001; alpha <= 0.1; alpha += 0.001 {
-			//for lambda := 1.; lambda <= 100; lambda++ {
-			// if (alpha * lambda) < 10 {
-			// r := runSimulation(b, "rw", lambda, alpha)
-			if lambda > 0 {
-				r := runSimulation(b, lambda, alpha)
-				if banner == "" {
-					banner += fmt.Sprintf("#alpha\t")
-					for _, m := range r.velocity.vTime {
-						banner += fmt.Sprintf("%v\t", m.desc)
-					}
-					banner += fmt.Sprintf("OP\tTOP\n")
-				}
-
-				output := fmt.Sprintf("%.3f", alpha)
-				for _, m := range r.velocity.vTime {
-					x, y := r.velocity.getTimeMetric(m.desc)
-					output += fmt.Sprintf("\t%.5f", stat.Mean(x, y))
-				}
-				// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op, nil))
-				// output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top, nil))
-				output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.op2, nil))
-				output += fmt.Sprintf("\t%.5f", stat.Mean(r.op.top2, nil))
-				output += fmt.Sprintf("\n")
-
-				total += output
-				fmt.Println(output)
-			}
-		}
+	Xs[0] = .3
+	for i1 := 0; i1 < NXs+1; i1++ {
+		// Xs[i1] = 1. / float64(NXs) * float64(i1) * .98 * (1. - 1./8.)
+		Xs[1+i1] = 1./float64(NXs)*float64(i1)*.2 + .4
+		// Xs[i1] = 2 * (float64(i1) + 1)
+		// Xs[i1+NXs2] = 4. + float64(i1)
 	}
-	return banner + total
+	for i1 := 0; i1 < NXs2; i1++ {
+		// Xs[i1] = 1. / float64(NXs) * float64(i1) * .98 * (1. - 1./8.)
+		Xs[1+i1+NXs+1] = 1./float64(NXs2)*float64(i1+1)*(1.-.5) + .6
+		// Xs[i1] = 2 * (float64(i1) + 1)
+	}
+	// for i1 := 0; i1 < NXs; i1++ {
+	// 	Xs[i1] = .1 * math.Pow(100, float64(i1)/float64(NXs-1))
+	// }
+	fmt.Println("- - - - - - - - - - - - - - - - ")
+	fmt.Println("Variables=", Xs)
+	var banner string
+	i := 0
+	initParamsLog()
+	for _, x := range Xs {
+		fmt.Println("X=", x)
+		r := runSimulation(b, x, i)
+		i++
+		if banner == "" {
+			banner += fmt.Sprintf("#x\tOrphanratio\tSTD\ttipsAVG\ttipsSTD\t#txs\n")
+		}
+
+		output := fmt.Sprintf("%.4f", x)
+		output += fmt.Sprintf("\t%.8f", r.tipsResult.meanOrphanTipsRatio)
+		output += fmt.Sprintf("\t%.8f", r.tipsResult.STDOrphanTipsRatio)
+		output += fmt.Sprintf("\t%.8f", r.tipsResult.tAVG)
+		output += fmt.Sprintf("\t%.8f", r.tipsResult.tSTD)
+		output += fmt.Sprintf("\t%d", r.params.TangleSize-r.params.minCut)
+		output += fmt.Sprintf("\n")
+		total += output
+		fmt.Println(banner + output)
+		writetoParamsLog(x)
+	}
+	fmt.Println(banner + total)
+
 }

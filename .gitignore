@@ -1,6 +1,10 @@
+*.png
+*.csv
+*.eps
 *.exe
 data/*
 figures/*
+evaluation/data/*
 graph/*
 .DS_Store
 mod

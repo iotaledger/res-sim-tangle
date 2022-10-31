@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -129,4 +130,30 @@ func ModFloat(a float64, b float64) float64 {
 		a -= b
 	}
 	return a + b
+}
+
+func initParamsLog() (err error) {
+	f, err := os.Create("data/params.csv")
+	if err != nil {
+		fmt.Printf("error creating file: %v", err)
+		return err
+	}
+	defer f.Close()
+	return err
+}
+
+func writetoParamsLog(variable float64) (err error) {
+	// log the variable array
+	f, err := os.OpenFile("data/params.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	str := fmt.Sprintf("%.8f\n", variable)
+	if _, err := f.Write([]byte(str)); err != nil {
+		log.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+	return err
 }

@@ -134,10 +134,9 @@ func (r *DistSlicesResult) SaveToFile(p Parameters, target string, datavec map[f
 	sort.Float64s(keys)
 
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
-	alphaStr := fmt.Sprintf("%.4f", p.Alpha)
 	sliceStr := fmt.Sprintf("%.2f", p.DistSlicesLength)
 	resStr := fmt.Sprintf("%d", p.DistSlicesResolution)
-	f, err := os.Create("data/DistSlices__" + target + "_tsa=" + p.TSA + "_lambda" + lambdaStr + "_alpha" + alphaStr + "__slicelength" + sliceStr + "_res" + resStr + ".txt")
+	f, err := os.Create("data/DistSlices__" + target + "_tsa=" + p.TSA + "_lambda" + lambdaStr + "__slicelength" + sliceStr + "_res" + resStr + ".txt")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
 		return err

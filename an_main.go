@@ -2,48 +2,23 @@
 
 package main
 
-import (
-	"fmt"
-)
-
 // initiate analysis variables
 func (result *Result) initResults(p *Parameters) {
 	if p.CountTipsEnabled {
-		result.tips = newTipsResult(*p)
+		result.tipsResult = newTipsResult(*p)
 	}
-	if p.CWAnalysisEnabled {
-		result.cw = newCWResult(*p)
-	}
-	if p.VelocityEnabled {
-		if p.TSA != "RW" {
-			result.velocity = newVelocityResult([]string{"rw", "all", "first", "last", "second", "third", "fourth", "only-1", "CW-Max", "CW-Min", "CWMaxRW", "CWMinRW", "backU"}, *p)
-		} else {
-			result.velocity = newVelocityResult([]string{"rw", "all", "first", "last", "CW-Max", "CW-Min", "backU", "backB", "URW", "backG"}, *p)
-		}
-	}
+	// if p.CWAnalysisEnabled {
+	// 	result.cw = newCWResult(*p)
+	// }
 	if p.AnPastCone.Enabled {
-		result.PastCone = newPastConeResult([]string{"avg", "1", "2", "3", "4", "5", "rest"})
+		result.PastConeResult = newPastConeResult([]string{"avg", "1", "2", "3", "4", "5", "rest"})
 	}
-	if p.AnFocusRW.Enabled {
-		result.FocusRW = newFocusRWResult([]string{"0.1"})
-	}
-	if p.ExitProbEnabled {
-		result.exitProb = newExitProbResult()
-	}
-	if p.pOrphanEnabled {
-		result.op = newPOrphanResult(p)
-	}
+	result.opResult = newOrphanResult(p)
 	if p.DistSlicesEnabled {
-		result.DistSlices = newDistSlicesResult()
-	}
-	if p.DistRWsEnabled {
-		result.DistRWs = newDistRWsResult()
-	}
-	if p.AppStatsRWEnabled {
-		result.AppStatsRW = newAppStatsRWResult()
+		result.DistSlicesResult = newDistSlicesResult()
 	}
 	if p.AppStatsAllEnabled {
-		result.AppStatsAll = newAppStatsAllResult()
+		result.AppStatsAllResult = newAppStatsAllResult()
 	}
 
 }
@@ -51,10 +26,10 @@ func (result *Result) initResults(p *Parameters) {
 //save results at end of simulation
 func (f *Result) FinalEvaluationSaveResults(p Parameters) {
 	if p.CountTipsEnabled {
-		f.tips.Statistics(p)
-		fmt.Println(f.tips.ToString(p))
+		f.tipsResult.Statistics(p)
+		// fmt.Println(f.tips.ToString(p))
 		//fmt.Println(f.tips.nTipsToString(p, 0))
-		f.tips.Save(p, 0)
+		f.tipsResult.Save(p, 0)
 		// //debug
 		// var keys []int
 		// for k := range f.tips.tPDF.v {
@@ -68,136 +43,80 @@ func (f *Result) FinalEvaluationSaveResults(p Parameters) {
 		// //fmt.Println(f.tips.pdf[0])
 		// //fmt.Println(f.tips.tPDF)
 	}
-	if p.CWAnalysisEnabled {
-		f.cw.Statistics(p)
-		//fmt.Println(f.cw.ToString(p))
-		fmt.Println(f.cw.cwToString(p, 0))
-		f.cw.Save(p, 0)
-	}
-	if p.VelocityEnabled {
-		fmt.Println(f.velocity.Stat(p))
-		//f.velocity.Save(p)
-		//f.velocity.SaveStat(p)
-	}
+	// if p.CWAnalysisEnabled {
+	// 	f.cw.Statistics(p)
+	// 	//fmt.Println(f.cw.ToString(p))
+	// 	fmt.Println(f.cw.cwToString(p, 0))
+	// 	f.cw.Save(p, 0)
+	// }
 	if p.AnPastCone.Enabled {
-		f.PastCone.finalprocess(p)
-		f.PastCone.Save(p)
-	}
-	if p.AnFocusRW.Enabled {
-		f.FocusRW.finalprocess(p)
-		f.FocusRW.Save(p)
-	}
-	if p.ExitProbEnabled {
-		f.exitProb.Save(p)
-	}
-	if p.pOrphanEnabled && p.SpineEnabled {
-		fmt.Println(f.op)
+		f.PastConeResult.finalprocess(p)
+		f.PastConeResult.Save(p)
 	}
 	if p.DistSlicesEnabled {
-		f.DistSlices.finalprocess()
-		f.DistSlices.Save(p)
-	}
-	if p.DistRWsEnabled {
-		f.DistRWs.finalprocess()
-		f.DistRWs.Save(p)
-	}
-	if p.AppStatsRWEnabled {
-		f.AppStatsRW.finalprocess()
-		f.AppStatsRW.Save(p)
+		f.DistSlicesResult.finalprocess()
+		f.DistSlicesResult.Save(p)
 	}
 	if p.AppStatsAllEnabled {
-		f.AppStatsAll.finalprocess()
-		f.AppStatsAll.Save(p)
+		f.AppStatsAllResult.finalprocess()
+		f.AppStatsAllResult.Save(p)
 	}
+	if p.AnOrphanageEnabled {
+		f.opResult.Save(p)
+	}
+
 	return
 }
 
 //Evaluate after each tx
 func (result *Result) EvaluateAfterTx(sim *Sim, p *Parameters, run, i int) {
 	if p.CountTipsEnabled {
-		sim.countTips(i, run, &result.tips)
-	}
-	if p.pOrphanEnabled && p.pOrphanLinFitEnabled && p.SpineEnabled {
-		sim.runAnOPLinfit(i, &result.op, run)
+		sim.countTips(i, run, &result.tipsResult)
 	}
 }
 
 //Evaluate after each Tangle
 func (result *Result) EvaluateTangle(sim *Sim, p *Parameters, run int) {
-	if p.SpineEnabled {
-		sim.computeSpine()
-		//printApprovers(sim.spineApprovers)
-	}
-
 	if p.CountTipsEnabled {
+		sim.countOrphanTips(run, &result.tipsResult)
 		//sim.runTipsStat(&result.tips)
 	}
-	if p.CWAnalysisEnabled {
-		sim.fillCW(run, &result.cw)
-	}
-	if p.VelocityEnabled {
-		sim.runVelocityStat(&result.velocity)
-	}
+	// if p.CWAnalysisEnabled {
+	// 	sim.fillCW(run, &result.cw)
+	// }
 	if p.AnPastCone.Enabled {
-		sim.runAnPastCone(&result.PastCone)
-	}
-	if p.AnFocusRW.Enabled {
-		sim.evalTangle_AnFocusRW(&result.FocusRW)
-	}
-	if p.ExitProbEnabled {
-		sim.runExitProbStat(&result.exitProb)
-	}
-	if p.pOrphanEnabled && p.SpineEnabled {
-		sim.runOrphaningP(&result.op)
+		sim.runAnPastCone(&result.PastConeResult)
 	}
 	if p.DistSlicesEnabled {
-		sim.evalTangle_DistSlices(&result.DistSlices)
-	}
-	if p.DistRWsEnabled {
-		sim.evalTangle_DistRWs(&result.DistRWs)
-	}
-	if p.AppStatsRWEnabled {
-		sim.evalTangle_AppStatsRW(&result.AppStatsRW)
+		sim.evalTangle_DistSlices(&result.DistSlicesResult)
 	}
 	if p.AppStatsAllEnabled {
-		sim.evalTangle_AppStatsAll(&result.AppStatsAll)
+		sim.evalTangle_AppStatsAll(&result.AppStatsAllResult)
+	}
+	if p.AnOrphanageEnabled {
+		sim.runOrphanageRecent(&result.opResult) // calculate op2
 	}
 }
 
 //JoinResults joins result
 func (f *Result) JoinResults(batch Result, p Parameters) {
-	if p.VelocityEnabled {
-		f.velocity = f.velocity.Join(batch.velocity)
-	}
 	if p.AnPastCone.Enabled {
-		f.PastCone = f.PastCone.Join(batch.PastCone)
-	}
-	if p.AnFocusRW.Enabled {
-		f.FocusRW = f.FocusRW.Join(batch.FocusRW)
-	}
-	if p.ExitProbEnabled {
-		f.exitProb = f.exitProb.Join(batch.exitProb)
-	}
-	if p.pOrphanEnabled && p.SpineEnabled {
-		f.op = f.op.Join(batch.op)
+		f.PastConeResult = f.PastConeResult.Join(batch.PastConeResult)
 	}
 	if p.CountTipsEnabled {
-		f.tips = f.tips.Join(batch.tips)
+		f.tipsResult = f.tipsResult.Join(batch.tipsResult)
 	}
-	if p.CWAnalysisEnabled {
-		f.cw = f.cw.Join(batch.cw)
-	}
+	// if p.CWAnalysisEnabled {
+	// 	f.cw = f.cw.Join(batch.cw)
+	// }
 	if p.DistSlicesEnabled {
-		f.DistSlices.Join(batch.DistSlices)
-	}
-	if p.DistRWsEnabled {
-		f.DistRWs.Join(batch.DistRWs)
-	}
-	if p.AppStatsRWEnabled {
-		f.AppStatsRW.Join(batch.AppStatsRW)
+		f.DistSlicesResult.Join(batch.DistSlicesResult)
 	}
 	if p.AppStatsAllEnabled {
-		f.AppStatsAll.Join(batch.AppStatsAll)
+		f.AppStatsAllResult.Join(batch.AppStatsAllResult)
+	}
+	if p.AnOrphanageEnabled {
+		f.opResult = f.opResult.Join(batch.opResult)
 	}
 	//f.avgtips = f.avgtips.Join(batch.avgtips)
 }

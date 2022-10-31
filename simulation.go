@@ -11,9 +11,10 @@ import (
 type Sim struct {
 	tangle     []Tx  // A Tangle, i.e., a list of transactions
 	tips       []int // A list of current available/visible tips
+	orphanTips []int // A list of old tips for RURTS
 	hiddenTips []int // A list of yet unavailable/hidden tips
 	// approvers      map[int][]int // A map of direct approvers, e.g., 5 <- 10,13
-	cw            [][]uint64 // Matrix of propagated weigth branches (cw[i][] is the column of bit values forthe ith tx, stored as uint64 blocks)
+	cwMatrix      [][]uint64 // Matrix of propagated weigth branches (cw[i][] is the column of bit values for the ith tx, stored as uint64 blocks)
 	generator     *rand.Rand // An unsafe random generator
 	param         Parameters // Set of simulation parameters
 	b             Benchmark  // Data structure to save performance of the simulation
@@ -24,7 +25,7 @@ type Sim struct {
 // RunTangle executes the simulation
 func (p *Parameters) RunTangle() (Result, Benchmark) {
 	performance := make(Benchmark)
-	defer performance.track(runningtime("total"))
+	defer performance.track(runningtime("total time"))
 	sim := Sim{}
 
 	var result Result
@@ -59,10 +60,15 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 			// fmt.Println("tx", i)
 
 			//update set of tips before running TSA, increase the wb matrix here
-			sim.tips = append(sim.tips, sim.tipsUpdate(t)...)
+			sim.removeOldTips(t)
+			sim.tips = append(sim.tips, sim.revealTips(t)...)
 
-			//run TSA to select k(2) tips to approve
-			t.ref = sim.param.tsa.TipSelect(t, &sim) //sim.tipsSelection(t, sim.vTips)
+			//run TSA to select tips to approve
+			if sim.isAdverse(i) {
+				t.ref = sim.param.tsaAdversary.TipSelectAdversary(t, &sim) // adversary tip selection
+			} else {
+				t.ref = sim.param.tsa.TipSelect(t, &sim) //sim.tipsSelection(t, sim.vTips)
+			}
 
 			//add the new tx to the Tangle and to the hidden tips set
 			sim.tangle[i] = t
@@ -87,8 +93,6 @@ func (p *Parameters) RunTangle() (Result, Benchmark) {
 		//Visualize the Tangle
 		if p.drawTangleMode > 0 {
 			sim.visualizeTangle(nil, p.drawTangleMode)
-		} else if p.drawTangleMode < 0 {
-			sim.visualizeRW()
 		}
 
 	}
@@ -102,12 +106,27 @@ func (sim *Sim) clearSim() {
 	sim.b = make(Benchmark)
 
 	//sim.cw = [][]uint64{}
-	sim.cw = make([][]uint64, sim.param.CWMatrixLen)
+	// sim.cw = make([][]uint64, sim.param.CWMatrixLen)
 
 	sim.tangle = make([]Tx, sim.param.TangleSize)
 	sim.tips = []int{}
+	sim.orphanTips = []int{}
 	sim.hiddenTips = []int{}
 
-	sim.spinePastCone = make(map[int]Tx)
+	// sim.spinePastCone = make(map[int]Tx)
 	// sim.spineApprovers = make(map[int][]int)
+}
+
+func (sim Sim) isAdverse(i int) bool {
+	isAdverse := false
+	attackActive := true
+	if sim.param.qPartiallyActive {
+		if i < sim.param.TangleSize/3 || i > sim.param.TangleSize*2/3 {
+			attackActive = false
+		}
+	}
+	if (sim.generator.Float64() < sim.param.q) && attackActive {
+		isAdverse = true
+	}
+	return isAdverse
 }

@@ -35,7 +35,7 @@ func (sim *Sim) runAnFutureCone(result *FutureConeResult) {
 	maxchildID := 0
 	_ = maxchildID
 
-	if len(sim.cw) < sim.param.TangleSize-sim.param.minCut {
+	if len(sim.cwMatrix) < sim.param.TangleSize-sim.param.minCut {
 		fmt.Println(".\n\nNeed to check that the CWMatrix is not limited too much for this analysis.")
 		pauseit()
 	}

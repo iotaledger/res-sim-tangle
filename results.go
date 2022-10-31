@@ -10,18 +10,14 @@ import (
 
 // Result is the data structure containing all the results of a simulation
 type Result struct {
-	tips        tipsResult
-	velocity    velocityResult
-	PastCone    PastConeResult
-	FocusRW     FocusRWResult
-	exitProb    exitProbResult
-	op          pOrphanResult
-	cw          cwResult
-	avgtips     avgTips
-	DistSlices  DistSlicesResult
-	DistRWs     DistRWsResult
-	AppStatsRW  AppStatsRWResult
-	AppStatsAll AppStatsAllResult
+	params            Parameters
+	tipsResult        tipsResult
+	PastConeResult    PastConeResult
+	opResult          orphanResult
+	cwResult          cwResult
+	avgtips           avgTips
+	DistSlicesResult  DistSlicesResult
+	AppStatsAllResult AppStatsAllResult
 }
 
 type avgTips struct {
@@ -186,10 +182,9 @@ func SaveArrayMetricFloat64Float64(p Parameters, filename string, r []MetricFloa
 }
 func (m MetricFloat64Float64) SaveMetricFloat64Float64(p Parameters, filename string, normalized bool) error {
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
-	alphaStr := fmt.Sprintf("%.4f", p.Alpha)
 
 	if len(m.getkeys()) > 0 {
-		f, err := os.Create("data/" + filename + "__" + m.desc + "__TSA=" + p.TSA + "_lambda=" + lambdaStr + "_alpha=" + alphaStr + ".txt")
+		f, err := os.Create("data/" + filename + "__" + m.desc + "__TSA=" + p.TSA + "_lambda=" + lambdaStr + ".txt")
 		if err != nil {
 			fmt.Printf("error creating file: %v", err)
 			return err

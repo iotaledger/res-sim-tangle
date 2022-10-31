@@ -80,8 +80,7 @@ func (r *AppStatsAllResult) SaveToFile(p Parameters, target string, datavec map[
 	sort.Ints(keys)
 
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
-	alphaStr := fmt.Sprintf("%.4f", p.Alpha)
-	f, err := os.Create("data/AppStatsAll__" + target + "_tsa=" + p.TSA + "_lambda" + lambdaStr + "_alpha" + alphaStr + ".txt")
+	f, err := os.Create("data/AppStatsAll__" + target + "_tsa=" + p.TSA + "_lambda" + lambdaStr + ".txt")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
 		return err

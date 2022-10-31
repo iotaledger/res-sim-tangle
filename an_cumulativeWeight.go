@@ -88,7 +88,6 @@ func (a cwResult) Save(p Parameters, sample int) error {
 
 func (a cwResult) SaveCW(p Parameters) (err error) {
 	lambdaStr := fmt.Sprintf("%.2f", p.Lambda)
-	alphaStr := fmt.Sprintf("%.4f", p.Alpha)
 	var rateType string
 	if p.ConstantRate {
 		rateType = "constant"
@@ -96,8 +95,7 @@ func (a cwResult) SaveCW(p Parameters) (err error) {
 		rateType = "poisson"
 	}
 	f, err := os.Create("data/cw_" + p.TSA + "_" + rateType +
-		"_lambda_" + lambdaStr +
-		"_alpha_" + alphaStr + "_.txt")
+		"_lambda_" + lambdaStr + "_.txt")
 	if err != nil {
 		fmt.Printf("error creating file: %v", err)
 		return err
