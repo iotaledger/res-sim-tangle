@@ -67,8 +67,11 @@ func (r *tipsResult) Statistics(p Parameters) {
 	var variance float64
 	r.tAVG, variance = MeanVariance(r.mean[p.minCut:])
 	r.tSTD = math.Sqrt(variance)
-	r.meanOrphanTips = stat.MeanInt(r.nOrphanTips)
-	r.STDOrphanTips = math.Sqrt(stat.VarInt(r.nOrphanTips))
+		for i:=0;i<len(r.nOrphanTips);i++{
+		temp[i]=float64(r.nOrphanTips[i])
+	}
+	r.meanOrphanTips = stat.Mean(temp,nil)
+	r.STDOrphanTips = math.Sqrt(stat.Variance(temp,nil))
 	r.meanOrphanTipsRatio = r.meanOrphanTips / float64(p.TangleSize)
 	r.STDOrphanTipsRatio = r.STDOrphanTips / float64(p.TangleSize)
 	// total pdf
